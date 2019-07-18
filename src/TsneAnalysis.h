@@ -2,8 +2,9 @@
 
 #include "TsneData.h"
 
-#include "hdi/dimensionality_reduction/sparse_tsne_user_def_probabilities.h"
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
+#include "hdi/dimensionality_reduction/sparse_tsne_user_def_probabilities.h"
+#include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h"
 
 #include <QThread>
 
@@ -57,7 +58,8 @@ signals:
 private:
     // TSNE structures
     hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type _probabilityDistribution;
-    hdi::dr::SparseTSNEUserDefProbabilities<float> _gradientDescent;
+    hdi::dr::SparseTSNEUserDefProbabilities<float> _A_tSNE;
+    hdi::dr::GradientDescentTSNETexture _GPGPU_tSNE;
     hdi::data::Embedding<float> _embedding;
 
     // Data

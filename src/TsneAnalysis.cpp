@@ -6,7 +6,50 @@
 #include "TsneAnalysisPlugin.h"
 #include <QDebug>
 
+#include "hdi/dimensionality_reduction/tsne_parameters.h"
 #include "hdi/utils/scoped_timers.h"
+
+#include <QWindow>
+#include <QOpenGLContext>
+
+class OffscreenBuffer : public QWindow
+{
+public:
+    OffscreenBuffer()
+    {
+        setSurfaceType(QWindow::OpenGLSurface);
+
+        QOpenGLContext* globalContext = QOpenGLContext::globalShareContext();
+        _context = new QOpenGLContext(this);
+        _context->setFormat(globalContext->format());
+        _context->setShareContext(globalContext);
+
+        if (!_context->create())
+            qFatal("Cannot create requested OpenGL context.");
+
+        create();
+    }
+
+    QOpenGLContext* getContext() { return _context; }
+
+    void bindContext()
+    {
+        _context->makeCurrent(this);
+        if (!gladLoadGL()) {
+            qFatal("No OpenGL context is currently bound, therefore OpenGL function loading has failed.");
+        }
+    }
+
+    void releaseContext()
+    {
+        _context->doneCurrent();
+    }
+
+private:
+    QOpenGLContext* _context;
+};
+
+OffscreenBuffer* offBuffer;
 
 TsneAnalysis::TsneAnalysis() :
 _iterations(1000),
@@ -79,16 +122,23 @@ void TsneAnalysis::initGradientDescent()
 
     _isTsneRunning = true;
 
-    hdi::dr::SparseTSNEUserDefProbabilities<float>::Parameters tsneParams;
+    hdi::dr::TsneParameters tsneParams;
 
     tsneParams._embedding_dimensionality = _numDimensionsOutput;
     tsneParams._mom_switching_iter = _exaggerationIter;
     tsneParams._remove_exaggeration_iter = _exaggerationIter;
     tsneParams._exponential_decay_iter = 150;
     tsneParams._exaggeration_factor = 10 + _inputData.getNumPoints() / 5000.;
-    _gradientDescent.setTheta(std::min(0.5, std::max(0.0, (_inputData.getNumPoints() - 1000.0)*0.00005)));
+    _A_tSNE.setTheta(std::min(0.5, std::max(0.0, (_inputData.getNumPoints() - 1000.0)*0.00005)));
 
-    _gradientDescent.initialize(_probabilityDistribution, &_embedding, tsneParams);
+    // Create a context local to this thread that shares with the global share context
+    offBuffer = new OffscreenBuffer();
+    offBuffer->create();
+
+    // Initialize GPGPU-SNE
+    offBuffer->bindContext();
+    _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParams);
+    offBuffer->releaseContext();
 
     copyFloatOutput();
 }
@@ -98,7 +148,6 @@ void TsneAnalysis::embed()
 {
     double t = 0.0;
     {
-        
         qDebug() << "A-tSNE: Computing gradient descent..\n";
         _isGradientDescentRunning = true;
 
@@ -112,12 +161,22 @@ void TsneAnalysis::embed()
                 break;
             }
 
-            _gradientDescent.doAnIteration();
-            copyFloatOutput();
-            emit newEmbedding();
+            // Perform a GPGPU-SNE iteration
+            offBuffer->bindContext();
+            _GPGPU_tSNE.doAnIteration();
+            offBuffer->releaseContext();
+
+            if (iter % 10 == 0)
+            {
+                copyFloatOutput();
+                emit newEmbedding();
+            }
 
             qDebug() << "Time: " << t;
         }
+
+        copyFloatOutput();
+        emit newEmbedding();
         
         _isGradientDescentRunning = false;
         _isTsneRunning = false;
