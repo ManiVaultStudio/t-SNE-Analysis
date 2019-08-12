@@ -19,25 +19,29 @@ public:
     {
         setSurfaceType(QWindow::OpenGLSurface);
 
-        QOpenGLContext* globalContext = QOpenGLContext::globalShareContext();
-        _context = new QOpenGLContext(this);
-        _context->setFormat(globalContext->format());
-        _context->setShareContext(globalContext);
-
-        if (!_context->create())
-            qFatal("Cannot create requested OpenGL context.");
-
         create();
     }
 
     QOpenGLContext* getContext() { return _context; }
 
-    void bindContext()
+    void initialize()
     {
+        QOpenGLContext* globalContext = QOpenGLContext::globalShareContext();
+        _context = new QOpenGLContext(this);
+        _context->setFormat(globalContext->format());
+
+        if (!_context->create())
+            qFatal("Cannot create requested OpenGL context.");
+
         _context->makeCurrent(this);
         if (!gladLoadGL()) {
             qFatal("No OpenGL context is currently bound, therefore OpenGL function loading has failed.");
         }
+    }
+
+    void bindContext()
+    {
+        _context->makeCurrent(this);
     }
 
     void releaseContext()
@@ -133,20 +137,20 @@ void TsneAnalysis::initGradientDescent()
 
     // Create a context local to this thread that shares with the global share context
     offBuffer = new OffscreenBuffer();
-    offBuffer->create();
+    offBuffer->initialize();
 
     // Initialize GPGPU-SNE
     offBuffer->bindContext();
     _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParams);
-    offBuffer->releaseContext();
-
+    
     copyFloatOutput();
 }
 
 // Computing gradient descent
 void TsneAnalysis::embed()
 {
-    double t = 0.0;
+    double elapsed = 0;
+    double t = 0;
     {
         qDebug() << "A-tSNE: Computing gradient descent..\n";
         _isGradientDescentRunning = true;
@@ -162,18 +166,18 @@ void TsneAnalysis::embed()
             }
 
             // Perform a GPGPU-SNE iteration
-            offBuffer->bindContext();
             _GPGPU_tSNE.doAnIteration();
-            offBuffer->releaseContext();
 
-            if (iter % 10 == 0)
+            if (iter > 0 && iter % 10 == 0)
             {
                 copyFloatOutput();
                 emit newEmbedding();
             }
 
             qDebug() << "Time: " << t;
+            elapsed += t;
         }
+        offBuffer->releaseContext();
 
         copyFloatOutput();
         emit newEmbedding();
@@ -183,7 +187,7 @@ void TsneAnalysis::embed()
     }
 
     qDebug() << "--------------------------------------------------------------------------------";
-    qDebug() << "A-tSNE: Finished embedding of " << "tSNE Analysis" << " in: " << t / 1000 << " seconds ";
+    qDebug() << "A-tSNE: Finished embedding of " << "tSNE Analysis" << " in: " << elapsed / 1000 << " seconds ";
     qDebug() << "================================================================================";
 }
 
