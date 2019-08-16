@@ -96,7 +96,7 @@ void TsneAnalysis::initTSNE(const std::vector<float>& data, const int numDimensi
     {
         hdi::dr::HDJointProbabilityGenerator<float>::Parameters probGenParams;
         probGenParams._perplexity = _perplexity;
-        probGenParams._perplexity_multiplier = 3;
+        probGenParams._perplexity_multiplier = 1;
         probGenParams._num_trees = _numTrees;
         probGenParams._num_checks = _numChecks;
 
@@ -174,7 +174,9 @@ void TsneAnalysis::embed()
                 emit newEmbedding();
             }
 
-            qDebug() << "Time: " << t;
+            if (t > 1000)
+                qDebug() << "Time: " << t;
+
             elapsed += t;
         }
         offBuffer->releaseContext();
