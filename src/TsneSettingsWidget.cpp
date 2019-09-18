@@ -16,7 +16,7 @@ std::vector<bool> DimensionPickerWidget::getEnabledDimensions() const
     return enabledDimensions;
 }
 
-void DimensionPickerWidget::setDimensions(unsigned int numDimensions, std::vector<QString> names)
+void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std::vector<QString>& names)
 {
     bool hasNames = names.size() == numDimensions;
 
@@ -146,7 +146,7 @@ TsneSettingsWidget::TsneSettingsWidget() {
 
 
 // Communication with the dimension picker widget
-void TsneSettingsWidget::onNumDimensionsChanged(TsneAnalysisPlugin* analysis, unsigned int numDimensions, std::vector<QString> names)
+void TsneSettingsWidget::onNumDimensionsChanged(TsneAnalysisPlugin* analysis, unsigned int numDimensions, const std::vector<QString>& names)
 {
     _dimensionPickerWidget.setDimensions(numDimensions, names);
 }
