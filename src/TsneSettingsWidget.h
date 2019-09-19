@@ -7,9 +7,11 @@
 #include <QComboBox>
 #include <QCheckBox>
 #include <QPushButton>
+#include <QString>
 #include <QLineEdit>
 #include <QGridLayout>
 
+#include <memory> // For unique_ptr
 #include <vector>
 
 using namespace hdps::gui;
@@ -53,11 +55,17 @@ struct DimensionPickerWidget : QWidget
      */
     void setDimensions(unsigned int numDimensions, const std::vector<QString>& names);
 
+    void readSelectionFromFile(const QString&);
+
+    void writeSelectionToFile(const QString&);
+
 private:
     void clearWidget();
 
     std::vector<QCheckBox*> _checkBoxes;
     QGridLayout _layout;
+    std::vector<QString> _names;
+    std::unique_ptr<bool[]> _enabledDimensions;
 };
 
 
