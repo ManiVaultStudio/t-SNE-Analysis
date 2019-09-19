@@ -22,7 +22,7 @@ void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std:
 
     clearWidget();
 
-    for (int i = 0; i < numDimensions; i++)
+    for (unsigned int i = 0; i < numDimensions; i++)
     {
         QString name = hasNames ? names[i] : QString("Dim ") + QString::number(i);
         QCheckBox* widget = new QCheckBox(name);
@@ -32,13 +32,13 @@ void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std:
         widget->setChecked(true);
 
         _checkBoxes.push_back(widget);
-        int row = i % (numDimensions / 2);
-        int column = i / (numDimensions / 2);
+        const auto row = static_cast<int>(i % (numDimensions / 2));
+        const auto column = static_cast<int>(i / (numDimensions / 2));
 
         _layout.addWidget(widget, row, column);
     }
 
-    resize(160, 20 * numDimensions / 2);
+    resize(160, static_cast<int>(20 * numDimensions / 2));
 }
 
 void DimensionPickerWidget::clearWidget()
