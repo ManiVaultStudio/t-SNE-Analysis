@@ -219,37 +219,37 @@ void TsneSettingsWidget::onStartToggled(bool pressed)
     emit pressed ? startComputation() : stopComputation();
 }
 
-void TsneSettingsWidget::numIterationsChanged(const QString &value)
+void TsneSettingsWidget::numIterationsChanged(const QString &)
 {
     checkInputStyle(numIterations);
 }
 
-void TsneSettingsWidget::perplexityChanged(const QString &value)
+void TsneSettingsWidget::perplexityChanged(const QString &)
 {
     checkInputStyle(perplexity);
 }
 
-void TsneSettingsWidget::exaggerationChanged(const QString &value)
+void TsneSettingsWidget::exaggerationChanged(const QString &)
 {
     checkInputStyle(exaggeration);
 }
 
-void TsneSettingsWidget::expDecayChanged(const QString &value)
+void TsneSettingsWidget::expDecayChanged(const QString &)
 {
     checkInputStyle(expDecay);
 }
 
-void TsneSettingsWidget::numTreesChanged(const QString &value)
+void TsneSettingsWidget::numTreesChanged(const QString &)
 {
     checkInputStyle(numTrees);
 }
 
-void TsneSettingsWidget::numChecksChanged(const QString &value)
+void TsneSettingsWidget::numChecksChanged(const QString &)
 {
     checkInputStyle(numChecks);
 }
 
-void TsneSettingsWidget::thetaChanged(const QString& value)
+void TsneSettingsWidget::thetaChanged(const QString& )
 {
     checkInputStyle(theta);
 }
