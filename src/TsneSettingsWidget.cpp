@@ -146,7 +146,7 @@ TsneSettingsWidget::TsneSettingsWidget() {
 
 
 // Communication with the dimension picker widget
-void TsneSettingsWidget::onNumDimensionsChanged(TsneAnalysisPlugin* analysis, unsigned int numDimensions, const std::vector<QString>& names)
+void TsneSettingsWidget::onNumDimensionsChanged(TsneAnalysisPlugin*, unsigned int numDimensions, const std::vector<QString>& names)
 {
     _dimensionPickerWidget.setDimensions(numDimensions, names);
 }
