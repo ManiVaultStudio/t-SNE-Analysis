@@ -1,10 +1,46 @@
 #include "TsneSettingsWidget.h"
 
+#include <QFileDialog>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QDebug>
 #include <QScrollArea>
+
+#include <typeinfo>
+
+
+namespace
+{
+    template <typename T>
+    void AddPushButton(QHBoxLayout& layout, const QString& buttonText, const T slot)
+    {
+        auto pushButton = std::make_unique<QPushButton>(buttonText);
+        QObject::connect(&*pushButton, &QPushButton::clicked, [buttonText, slot]
+        {
+            try
+            {
+                slot();
+            }
+            catch (const std::exception& stdException)
+            {
+                qCritical()
+                    << "Exception \""
+                    << typeid(stdException).name()
+                    << "\" on "
+                    << buttonText
+                    << " button click: "
+                    << stdException.what();
+            }
+        });
+        layout.addWidget(pushButton.release());
+    }
+
+    QString GetSelectionFileFilter()
+    {
+        return QObject::tr("Text files (*.txt);;All files (*.*)");
+    }
+}
 
 std::vector<bool> DimensionPickerWidget::getEnabledDimensions() const
 {
@@ -18,7 +54,12 @@ std::vector<bool> DimensionPickerWidget::getEnabledDimensions() const
 
 void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std::vector<QString>& names)
 {
+    _enabledDimensions = std::make_unique<bool[]>(numDimensions);
+    std::fill_n(_enabledDimensions.get(), numDimensions, true);
+
     bool hasNames = names.size() == numDimensions;
+
+    _names = hasNames ? names : std::vector<QString>{};
 
     clearWidget();
 
@@ -40,6 +81,102 @@ void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std:
 
     resize(160, static_cast<int>(20 * numDimensions / 2));
 }
+
+
+void DimensionPickerWidget::readSelectionFromFile(const QString& fileName)
+{
+    const std::size_t numberOfDimensions = _names.size();
+
+    std::fill_n(_enabledDimensions.get(), numberOfDimensions, false);
+
+    if (!fileName.isEmpty())
+    {
+        QFile file(fileName);
+
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            while (!file.atEnd())
+            {
+                const auto timmedLine = file.readLine().trimmed();
+
+                if (!timmedLine.isEmpty())
+                {
+                    const auto name = QString::fromUtf8(timmedLine);
+                    std::size_t i{};
+
+                    [this, &name, &i]
+                    {
+                        for (const auto& existingName : _names)
+                        {
+                            if (name == existingName)
+                            {
+                                _enabledDimensions[i] = true;
+                                return;
+                            }
+                            ++i;
+                        }
+                        qWarning() << "Failed to select dimension (name not found): " << name;
+                    }();
+                }
+            }
+        }
+        else
+        {
+            qCritical() << "Load failed to open file: " << fileName;
+        }
+    }
+
+
+    if (_checkBoxes.size() == numberOfDimensions)
+    {
+        for (std::size_t i{}; i < numberOfDimensions; ++i)
+        {
+            _checkBoxes[i]->setChecked(_enabledDimensions[i]);
+        }
+    }
+}
+
+
+void DimensionPickerWidget::writeSelectionToFile(const QString& fileName)
+{
+    if (!fileName.isEmpty())
+    {
+        QFile file(fileName);
+
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            const std::size_t numberOfDimensions = _names.size();
+            Q_ASSERT(_enabledDimensions.get() != nullptr);
+
+            if (_checkBoxes.size() == numberOfDimensions)
+            {
+                for (std::size_t i{}; i < numberOfDimensions; ++i)
+                {
+                    const auto* const checkBox = _checkBoxes[i];
+
+                    if (checkBox != nullptr)
+                    {
+                        _enabledDimensions[i] = checkBox->isChecked();
+                    }
+                }
+            }
+
+            for (std::size_t i{}; i < numberOfDimensions; ++i)
+            {
+                if (_enabledDimensions[i])
+                {
+                    file.write(_names[i].toUtf8());
+                    file.write("\n");
+                }
+            }
+        }
+        else
+        {
+            qCritical() << "Save failed to open file: " << fileName;
+        }
+    }
+}
+
 
 void DimensionPickerWidget::clearWidget()
 {
@@ -123,6 +260,25 @@ TsneSettingsWidget::TsneSettingsWidget() {
     scroller->setWidget(&_dimensionPickerWidget);
     dimensionSelectionLayout->addWidget(scroller);
     dimensionSelectionBox->setLayout(dimensionSelectionLayout);
+
+    dimensionSelectionLayout->addLayout([this]
+    {
+        auto hboxLayout = std::make_unique<QHBoxLayout>();
+
+        AddPushButton(*hboxLayout, "Load", [this]
+        {
+            const auto fileName = QFileDialog::getOpenFileName(this,
+                QObject::tr("Dimension selection"), {}, GetSelectionFileFilter());
+            _dimensionPickerWidget.readSelectionFromFile(fileName);
+        });
+        AddPushButton(*hboxLayout, "Save", [this]
+        {
+            const auto fileName = QFileDialog::getSaveFileName(this,
+                QObject::tr("Dimension selection"), {}, GetSelectionFileFilter());
+            _dimensionPickerWidget.writeSelectionToFile(fileName);
+        });
+        return hboxLayout;
+    }().release());
 
     auto* const advancedSettingsLayout = new QGridLayout();
     advancedSettingsLayout->addWidget(exaggerationLabel, 0, 0);
