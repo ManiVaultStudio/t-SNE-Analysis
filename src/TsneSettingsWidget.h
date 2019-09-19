@@ -21,6 +21,12 @@ class TsneAnalysisPlugin;
  */
 struct DimensionPickerWidget : QWidget
 {
+    // Explicitly delete its copy and move member functions.
+    DimensionPickerWidget(const DimensionPickerWidget&) = delete;
+    DimensionPickerWidget(DimensionPickerWidget&&) = delete;
+    DimensionPickerWidget& operator=(const DimensionPickerWidget&) = delete;
+    DimensionPickerWidget& operator=(DimensionPickerWidget&&) = delete;
+
     DimensionPickerWidget()
     {
         setMinimumHeight(100);
@@ -63,6 +69,12 @@ class TsneSettingsWidget : public SettingsWidget
     Q_OBJECT
 
 public:
+    // Explicitly delete its copy and move member functions.
+    TsneSettingsWidget(const TsneSettingsWidget&) = delete;
+    TsneSettingsWidget(TsneSettingsWidget&&) = delete;
+    TsneSettingsWidget& operator=(const TsneSettingsWidget&) = delete;
+    TsneSettingsWidget& operator=(TsneSettingsWidget&&) = delete;
+
     TsneSettingsWidget();
 
     std::vector<bool> getEnabledDimensions();
