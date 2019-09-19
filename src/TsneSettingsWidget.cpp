@@ -25,7 +25,7 @@ void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std:
     for (unsigned int i = 0; i < numDimensions; i++)
     {
         QString name = hasNames ? names[i] : QString("Dim ") + QString::number(i);
-        QCheckBox* widget = new QCheckBox(name);
+        auto* const widget = new QCheckBox(name);
         widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
         widget->setMinimumHeight(20);
         widget->setToolTip(name);
@@ -109,22 +109,22 @@ TsneSettingsWidget::TsneSettingsWidget() {
     startButton.setCheckable(true);
 
     // Add options to their appropriate group box
-    QVBoxLayout* settingsLayout = new QVBoxLayout();
+    auto* const settingsLayout = new QVBoxLayout();
     settingsLayout->addWidget(iterationLabel);
     settingsLayout->addWidget(&numIterations);
     settingsLayout->addWidget(perplexityLabel);
     settingsLayout->addWidget(&perplexity);
     settingsBox->setLayout(settingsLayout);
 
-    QVBoxLayout* dimensionSelectionLayout = new QVBoxLayout();
-    QScrollArea* scroller = new QScrollArea();
+    auto* const dimensionSelectionLayout = new QVBoxLayout();
+    auto* const scroller = new QScrollArea();
     scroller->setMinimumHeight(50);
     scroller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
     scroller->setWidget(&_dimensionPickerWidget);
     dimensionSelectionLayout->addWidget(scroller);
     dimensionSelectionBox->setLayout(dimensionSelectionLayout);
 
-    QGridLayout* advancedSettingsLayout = new QGridLayout();
+    auto* const advancedSettingsLayout = new QGridLayout();
     advancedSettingsLayout->addWidget(exaggerationLabel, 0, 0);
     advancedSettingsLayout->addWidget(&exaggeration, 1, 0);
     advancedSettingsLayout->addWidget(expDecayLabel, 0, 1);
