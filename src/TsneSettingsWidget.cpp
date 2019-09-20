@@ -88,16 +88,14 @@ void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std:
 
 void DimensionPickerWidget::readSelectionFromFile(const QString& fileName)
 {
-    const std::size_t numberOfDimensions = _names.size();
-
-    std::fill_n(_enabledDimensions.get(), numberOfDimensions, false);
-
     if (!fileName.isEmpty())
     {
         QFile file(fileName);
 
         if (file.open(QIODevice::ReadOnly | QIODevice::Text))
         {
+            std::fill_n(_enabledDimensions.get(), _numDimensions, false);
+
             while (!file.atEnd())
             {
                 const auto timmedLine = file.readLine().trimmed();
@@ -122,19 +120,18 @@ void DimensionPickerWidget::readSelectionFromFile(const QString& fileName)
                     }();
                 }
             }
+
+            if (_checkBoxes != nullptr)
+            {
+                for (std::size_t i{}; i < _numDimensions; ++i)
+                {
+                    _checkBoxes[i].setChecked(_enabledDimensions[i]);
+                }
+            }
         }
         else
         {
             qCritical() << "Load failed to open file: " << fileName;
-        }
-    }
-
-
-    if (_checkBoxes != nullptr)
-    {
-        for (std::size_t i{}; i < numberOfDimensions; ++i)
-        {
-            _checkBoxes[i].setChecked(_enabledDimensions[i]);
         }
     }
 }
