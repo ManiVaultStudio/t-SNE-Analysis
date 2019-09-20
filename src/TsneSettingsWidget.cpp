@@ -1,11 +1,14 @@
 #include "TsneSettingsWidget.h"
 
-#include <QFileDialog>
-#include <QLabel>
-#include <QVBoxLayout>
-#include <QMessageBox>
+// Qt header files:
 #include <QDebug>
+#include <QFileDialog>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QMessageBox>
 #include <QScrollArea>
+#include <QVBoxLayout>
 
 #include <typeinfo>
 
