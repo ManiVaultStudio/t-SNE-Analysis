@@ -47,6 +47,8 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_library(${PROJECT} SHARED ${SOURCES})
 
+target_compile_definitions(${PROJECT} PRIVATE QT_MESSAGELOGCONTEXT)
+
 target_link_libraries(${PROJECT} Qt5::Widgets)
 target_link_libraries(${PROJECT} Qt5::WebEngineWidgets)
 target_link_libraries(${PROJECT} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/HDPS_Public.lib")
