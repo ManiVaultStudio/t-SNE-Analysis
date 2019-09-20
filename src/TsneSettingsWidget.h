@@ -2,14 +2,14 @@
 
 #include <widgets/SettingsWidget.h>
 
-#include <QObject>
-#include <QGroupBox>
-#include <QComboBox>
+// Qt header files:
 #include <QCheckBox>
+#include <QComboBox>
+#include <QGridLayout>
+#include <QLineEdit>
+#include <QObject>
 #include <QPushButton>
 #include <QString>
-#include <QLineEdit>
-#include <QGridLayout>
 
 #include <memory> // For unique_ptr
 #include <vector>
