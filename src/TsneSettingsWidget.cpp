@@ -16,10 +16,9 @@
 namespace
 {
     template <typename T>
-    void AddPushButton(QHBoxLayout& layout, const QString& buttonText, const T slot)
+    void ConnectPushButton(QPushButton& pushButton, const T slot)
     {
-        auto pushButton = std::make_unique<QPushButton>(buttonText);
-        QObject::connect(&*pushButton, &QPushButton::clicked, [buttonText, slot]
+        QObject::connect(&pushButton, &QPushButton::clicked, [slot, &pushButton]
         {
             try
             {
@@ -31,13 +30,22 @@ namespace
                     << "Exception \""
                     << typeid(stdException).name()
                     << "\" on "
-                    << buttonText
+                    << pushButton.text()
                     << " button click: "
                     << stdException.what();
             }
         });
+    }
+
+
+    template <typename T>
+    void AddPushButton(QHBoxLayout& layout, const QString& buttonText, const T slot)
+    {
+        auto pushButton = std::make_unique<QPushButton>(buttonText);
+        ConnectPushButton(*pushButton, slot);
         layout.addWidget(pushButton.release());
     }
+
 
     QString GetSelectionFileFilter()
     {
@@ -47,40 +55,32 @@ namespace
 
 std::vector<bool> DimensionPickerWidget::getEnabledDimensions() const
 {
-    std::vector<bool> enabledDimensions(_checkBoxes.size());
+    if (_checkBoxes == nullptr )
+    {
+        const bool* const begin = _enabledDimensions.get();
+        return std::vector<bool>(begin, begin + _numDimensions);
+    }
+    else
+    {
+        std::vector<bool> enabledDimensions(_numDimensions);
 
-    for (unsigned int i = 0; i < _checkBoxes.size(); i++)
-        enabledDimensions[i] = _checkBoxes[i]->isChecked();
+        for (unsigned int i = 0; i < _numDimensions; i++)
+            enabledDimensions[i] = _checkBoxes[i].isChecked();
 
-    return enabledDimensions;
+        return enabledDimensions;
+    }
+
 }
 
 void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std::vector<QString>& names)
 {
+    _numDimensions = numDimensions;
     _enabledDimensions = std::make_unique<bool[]>(numDimensions);
     std::fill_n(_enabledDimensions.get(), numDimensions, true);
 
     bool hasNames = names.size() == numDimensions;
 
     _names = hasNames ? names : std::vector<QString>{};
-
-    clearWidget();
-
-    for (unsigned int i = 0; i < numDimensions; i++)
-    {
-        QString name = hasNames ? names[i] : QString("Dim ") + QString::number(i);
-        auto* const widget = new QCheckBox(name);
-        widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-        widget->setMinimumHeight(20);
-        widget->setToolTip(name);
-        widget->setChecked(true);
-
-        _checkBoxes.push_back(widget);
-        const auto row = static_cast<int>(i % (numDimensions / 2));
-        const auto column = static_cast<int>(i / (numDimensions / 2));
-
-        _layout.addWidget(widget, row, column);
-    }
 
     resize(160, static_cast<int>(20 * numDimensions / 2));
 }
@@ -130,11 +130,11 @@ void DimensionPickerWidget::readSelectionFromFile(const QString& fileName)
     }
 
 
-    if (_checkBoxes.size() == numberOfDimensions)
+    if (_checkBoxes != nullptr)
     {
         for (std::size_t i{}; i < numberOfDimensions; ++i)
         {
-            _checkBoxes[i]->setChecked(_enabledDimensions[i]);
+            _checkBoxes[i].setChecked(_enabledDimensions[i]);
         }
     }
 }
@@ -148,23 +148,17 @@ void DimensionPickerWidget::writeSelectionToFile(const QString& fileName)
 
         if (file.open(QIODevice::WriteOnly | QIODevice::Text))
         {
-            const std::size_t numberOfDimensions = _names.size();
             Q_ASSERT(_enabledDimensions.get() != nullptr);
 
-            if (_checkBoxes.size() == numberOfDimensions)
+            if (_checkBoxes != nullptr)
             {
-                for (std::size_t i{}; i < numberOfDimensions; ++i)
+                for (std::size_t i{}; i < _numDimensions; ++i)
                 {
-                    const auto* const checkBox = _checkBoxes[i];
-
-                    if (checkBox != nullptr)
-                    {
-                        _enabledDimensions[i] = checkBox->isChecked();
-                    }
+                    _enabledDimensions[i] = _checkBoxes[i].isChecked();
                 }
             }
 
-            for (std::size_t i{}; i < numberOfDimensions; ++i)
+            for (std::size_t i{}; i < _numDimensions; ++i)
             {
                 if (_enabledDimensions[i])
                 {
@@ -181,18 +175,65 @@ void DimensionPickerWidget::writeSelectionToFile(const QString& fileName)
 }
 
 
-void DimensionPickerWidget::clearWidget()
+bool DimensionPickerWidget::showCheckBoxes()
 {
-    for (QCheckBox* widget : _checkBoxes)
+    constexpr auto maxNumDimensions = 1000;
+    if (_numDimensions > maxNumDimensions)
     {
-        _layout.removeWidget(widget);
-        delete widget;
+        const auto answer = QMessageBox::question(this,
+            tr("Show Dimension Selection"), 
+            tr("It may take quite some time to show the dimension selection, "
+                "because of the large number of dimensions (more than %1)\n\n"
+                "Do you want to continue?").arg(maxNumDimensions),
+            QMessageBox::Yes | QMessageBox::No);
+
+        if (answer != QMessageBox::Yes)
+        {
+            return false;
+        }
     }
 
-    _checkBoxes.clear();
+    const bool hasNames = !_names.empty();
+
+    _checkBoxes = std::make_unique<QCheckBox[]>(_numDimensions);
+
+    for (unsigned i = 0; i < _numDimensions; ++i)
+    {
+        const auto name = hasNames ? _names[i] : QString("Dim ") + QString::number(i);
+
+        auto& checkBox = _checkBoxes[i];
+        checkBox.setText(name);
+        checkBox.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+        checkBox.setMinimumHeight(20);
+        checkBox.setToolTip(name);
+        checkBox.setChecked(_enabledDimensions[i]);
+
+        const auto row = static_cast<int>(i % (_numDimensions / 2));
+        const auto column = static_cast<int>(i / (_numDimensions / 2));
+
+        _layout.addWidget(&checkBox, row, column);
+    }
+    return true;
 }
 
-TsneSettingsWidget::TsneSettingsWidget() {
+void DimensionPickerWidget::hideCheckBoxes()
+{
+    if (_checkBoxes != nullptr)
+    {
+        for (std::size_t i{}; i < _numDimensions; ++i)
+        {
+            _enabledDimensions[i] = _checkBoxes[i].isChecked();
+        }
+        _checkBoxes.reset();
+    }
+}
+
+
+TsneSettingsWidget::TsneSettingsWidget()
+    :
+    showPushButton("Show"),
+    hidePushButton("Hide")
+{
     setFixedWidth(200);
 
     connect(&dataOptions,   SIGNAL(currentIndexChanged(QString)), this, SIGNAL(dataSetPicked(QString)));
@@ -261,6 +302,38 @@ TsneSettingsWidget::TsneSettingsWidget() {
     scroller->setMinimumHeight(50);
     scroller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
     scroller->setWidget(&_dimensionPickerWidget);
+
+    hidePushButton.setEnabled(false);
+
+    dimensionSelectionLayout->addLayout([this]
+    {
+        auto hboxLayout = std::make_unique<QHBoxLayout>();
+
+        ConnectPushButton(showPushButton, [this]
+        {
+            showPushButton.setEnabled(false);
+            if (_dimensionPickerWidget.showCheckBoxes())
+            {
+                hidePushButton.setEnabled(true);
+            }
+            else
+            {
+                showPushButton.setEnabled(true);
+            }
+        });
+        ConnectPushButton(hidePushButton, [this]
+        {
+            hidePushButton.setEnabled(false);
+            _dimensionPickerWidget.hideCheckBoxes();
+            showPushButton.setEnabled(true);
+        });
+
+        hboxLayout->addWidget(&showPushButton);
+        hboxLayout->addWidget(&hidePushButton);
+
+        return hboxLayout;
+    }().release());
+
     dimensionSelectionLayout->addWidget(scroller);
     dimensionSelectionBox->setLayout(dimensionSelectionLayout);
 
