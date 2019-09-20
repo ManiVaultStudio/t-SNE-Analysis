@@ -59,13 +59,16 @@ struct DimensionPickerWidget : QWidget
 
     void writeSelectionToFile(const QString&);
 
-private:
-    void clearWidget();
+    bool showCheckBoxes();
 
-    std::vector<QCheckBox*> _checkBoxes;
+    void hideCheckBoxes();
+
+private:
+    std::unique_ptr<QCheckBox[]> _checkBoxes;
     QGridLayout _layout;
     std::vector<QString> _names;
     std::unique_ptr<bool[]> _enabledDimensions;
+    unsigned int _numDimensions{};
 };
 
 
@@ -120,4 +123,6 @@ public:
     QLineEdit numChecks;
     QLineEdit theta;
     QPushButton startButton;
+    QPushButton showPushButton;
+    QPushButton hidePushButton;
 };
