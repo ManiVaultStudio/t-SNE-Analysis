@@ -72,7 +72,7 @@ std::vector<bool> DimensionPickerWidget::getEnabledDimensions() const
 
 }
 
-void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std::vector<QString>& names)
+void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const QStringList& names)
 {
     _numDimensions = numDimensions;
     _enabledDimensions = std::make_unique<bool[]>(numDimensions);
@@ -80,7 +80,7 @@ void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std:
 
     bool hasNames = names.size() == numDimensions;
 
-    _names = hasNames ? names : std::vector<QString>{};
+    _names = hasNames ? names : QStringList();
 
     resize(160, static_cast<int>(20 * numDimensions / 2));
 }
@@ -375,7 +375,7 @@ TsneSettingsWidget::TsneSettingsWidget()
 
 
 // Communication with the dimension picker widget
-void TsneSettingsWidget::onNumDimensionsChanged(TsneAnalysisPlugin*, unsigned int numDimensions, const std::vector<QString>& names)
+void TsneSettingsWidget::onNumDimensionsChanged(TsneAnalysisPlugin*, unsigned int numDimensions, const QStringList& names)
 {
     _dimensionPickerWidget.setDimensions(numDimensions, names);
 }

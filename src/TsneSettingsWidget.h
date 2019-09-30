@@ -53,7 +53,7 @@ struct DimensionPickerWidget : QWidget
      * @param numDimensions Number of checkboxes to add
      * @param names         Names of the dimensions, can be an empty vector
      */
-    void setDimensions(unsigned int numDimensions, const std::vector<QString>& names);
+    void setDimensions(unsigned int numDimensions, const QStringList& names);
 
     void readSelectionFromFile(const QString&);
 
@@ -66,7 +66,7 @@ struct DimensionPickerWidget : QWidget
 private:
     std::unique_ptr<QCheckBox[]> _checkBoxes;
     QGridLayout _layout;
-    std::vector<QString> _names;
+    QStringList _names;
     std::unique_ptr<bool[]> _enabledDimensions;
     unsigned int _numDimensions{};
 };
@@ -92,7 +92,7 @@ public:
     bool hasValidSettings();
 
     QString currentData();
-    void onNumDimensionsChanged(TsneAnalysisPlugin* analysis, unsigned int numDimensions, const std::vector<QString>& names);
+    void onNumDimensionsChanged(TsneAnalysisPlugin* analysis, unsigned int numDimensions, const QStringList& names);
 private:
     void checkInputStyle(QLineEdit& input);
 
