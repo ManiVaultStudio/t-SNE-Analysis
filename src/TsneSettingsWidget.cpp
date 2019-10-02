@@ -1,5 +1,7 @@
 #include "TsneSettingsWidget.h"
 
+#include "DimensionSelectionWidget.h"
+
 // Qt header files:
 #include <QDebug>
 #include <QFileDialog>
@@ -10,226 +12,9 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 
-#include <typeinfo>
-
-
-namespace
-{
-    template <typename T>
-    void ConnectPushButton(QPushButton& pushButton, const T slot)
-    {
-        QObject::connect(&pushButton, &QPushButton::clicked, [slot, &pushButton]
-        {
-            try
-            {
-                slot();
-            }
-            catch (const std::exception& stdException)
-            {
-                qCritical()
-                    << "Exception \""
-                    << typeid(stdException).name()
-                    << "\" on "
-                    << pushButton.text()
-                    << " button click: "
-                    << stdException.what();
-            }
-        });
-    }
-
-
-    template <typename T>
-    void AddPushButton(QHBoxLayout& layout, const QString& buttonText, const T slot)
-    {
-        auto pushButton = std::make_unique<QPushButton>(buttonText);
-        ConnectPushButton(*pushButton, slot);
-        layout.addWidget(pushButton.release());
-    }
-
-
-    QString GetSelectionFileFilter()
-    {
-        return QObject::tr("Text files (*.txt);;All files (*.*)");
-    }
-}
-
-std::vector<bool> DimensionPickerWidget::getEnabledDimensions() const
-{
-    if (_checkBoxes == nullptr )
-    {
-        const bool* const begin = _enabledDimensions.get();
-        return std::vector<bool>(begin, begin + _numDimensions);
-    }
-    else
-    {
-        std::vector<bool> enabledDimensions(_numDimensions);
-
-        for (unsigned int i = 0; i < _numDimensions; i++)
-            enabledDimensions[i] = _checkBoxes[i].isChecked();
-
-        return enabledDimensions;
-    }
-
-}
-
-void DimensionPickerWidget::setDimensions(unsigned int numDimensions, const std::vector<QString>& names)
-{
-    _numDimensions = numDimensions;
-    _enabledDimensions = std::make_unique<bool[]>(numDimensions);
-    std::fill_n(_enabledDimensions.get(), numDimensions, true);
-
-    bool hasNames = names.size() == numDimensions;
-
-    _names = hasNames ? names : std::vector<QString>{};
-
-    resize(160, static_cast<int>(20 * numDimensions / 2));
-}
-
-
-void DimensionPickerWidget::readSelectionFromFile(const QString& fileName)
-{
-    if (!fileName.isEmpty())
-    {
-        QFile file(fileName);
-
-        if (file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            std::fill_n(_enabledDimensions.get(), _numDimensions, false);
-
-            while (!file.atEnd())
-            {
-                const auto timmedLine = file.readLine().trimmed();
-
-                if (!timmedLine.isEmpty())
-                {
-                    const auto name = QString::fromUtf8(timmedLine);
-                    std::size_t i{};
-
-                    [this, &name, &i]
-                    {
-                        for (const auto& existingName : _names)
-                        {
-                            if (name == existingName)
-                            {
-                                _enabledDimensions[i] = true;
-                                return;
-                            }
-                            ++i;
-                        }
-                        qWarning() << "Failed to select dimension (name not found): " << name;
-                    }();
-                }
-            }
-
-            if (_checkBoxes != nullptr)
-            {
-                for (std::size_t i{}; i < _numDimensions; ++i)
-                {
-                    _checkBoxes[i].setChecked(_enabledDimensions[i]);
-                }
-            }
-        }
-        else
-        {
-            qCritical() << "Load failed to open file: " << fileName;
-        }
-    }
-}
-
-
-void DimensionPickerWidget::writeSelectionToFile(const QString& fileName)
-{
-    if (!fileName.isEmpty())
-    {
-        QFile file(fileName);
-
-        if (file.open(QIODevice::WriteOnly | QIODevice::Text))
-        {
-            Q_ASSERT(_enabledDimensions.get() != nullptr);
-
-            if (_checkBoxes != nullptr)
-            {
-                for (std::size_t i{}; i < _numDimensions; ++i)
-                {
-                    _enabledDimensions[i] = _checkBoxes[i].isChecked();
-                }
-            }
-
-            for (std::size_t i{}; i < _numDimensions; ++i)
-            {
-                if (_enabledDimensions[i])
-                {
-                    file.write(_names[i].toUtf8());
-                    file.write("\n");
-                }
-            }
-        }
-        else
-        {
-            qCritical() << "Save failed to open file: " << fileName;
-        }
-    }
-}
-
-
-bool DimensionPickerWidget::showCheckBoxes()
-{
-    constexpr auto maxNumDimensions = 1000;
-    if (_numDimensions > maxNumDimensions)
-    {
-        const auto answer = QMessageBox::question(this,
-            tr("Show Dimension Selection"), 
-            tr("It may take quite some time to show the dimension selection, "
-                "because of the large number of dimensions (more than %1)\n\n"
-                "Do you want to continue?").arg(maxNumDimensions),
-            QMessageBox::Yes | QMessageBox::No);
-
-        if (answer != QMessageBox::Yes)
-        {
-            return false;
-        }
-    }
-
-    const bool hasNames = !_names.empty();
-
-    _checkBoxes = std::make_unique<QCheckBox[]>(_numDimensions);
-
-    for (unsigned i = 0; i < _numDimensions; ++i)
-    {
-        const auto name = hasNames ? _names[i] : QString("Dim ") + QString::number(i);
-
-        auto& checkBox = _checkBoxes[i];
-        checkBox.setText(name);
-        checkBox.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-        checkBox.setMinimumHeight(20);
-        checkBox.setToolTip(name);
-        checkBox.setChecked(_enabledDimensions[i]);
-
-        const auto row = static_cast<int>(i % (_numDimensions / 2));
-        const auto column = static_cast<int>(i / (_numDimensions / 2));
-
-        _layout.addWidget(&checkBox, row, column);
-    }
-    return true;
-}
-
-void DimensionPickerWidget::hideCheckBoxes()
-{
-    if (_checkBoxes != nullptr)
-    {
-        for (std::size_t i{}; i < _numDimensions; ++i)
-        {
-            _enabledDimensions[i] = _checkBoxes[i].isChecked();
-        }
-        _checkBoxes.reset();
-    }
-}
 
 
 TsneSettingsWidget::TsneSettingsWidget()
-    :
-    showPushButton("Show"),
-    hidePushButton("Hide")
 {
     setFixedWidth(200);
 
@@ -247,7 +32,6 @@ TsneSettingsWidget::TsneSettingsWidget()
     // Create group boxes for grouping together various settings
     QGroupBox* settingsBox = new QGroupBox("Basic settings");
     QGroupBox* advancedSettingsBox = new QGroupBox("Advanced Settings");
-    QGroupBox* dimensionSelectionBox = new QGroupBox("Dimension Selection");
     
     advancedSettingsBox->setCheckable(true);
     advancedSettingsBox->setChecked(false);
@@ -294,65 +78,6 @@ TsneSettingsWidget::TsneSettingsWidget()
     settingsLayout->addWidget(&perplexity);
     settingsBox->setLayout(settingsLayout);
 
-    auto* const dimensionSelectionLayout = new QVBoxLayout();
-    auto* const scroller = new QScrollArea();
-    scroller->setMinimumHeight(50);
-    scroller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
-    scroller->setWidget(&_dimensionPickerWidget);
-
-    hidePushButton.setEnabled(false);
-
-    dimensionSelectionLayout->addLayout([this]
-    {
-        auto hboxLayout = std::make_unique<QHBoxLayout>();
-
-        ConnectPushButton(showPushButton, [this]
-        {
-            showPushButton.setEnabled(false);
-            if (_dimensionPickerWidget.showCheckBoxes())
-            {
-                hidePushButton.setEnabled(true);
-            }
-            else
-            {
-                showPushButton.setEnabled(true);
-            }
-        });
-        ConnectPushButton(hidePushButton, [this]
-        {
-            hidePushButton.setEnabled(false);
-            _dimensionPickerWidget.hideCheckBoxes();
-            showPushButton.setEnabled(true);
-        });
-
-        hboxLayout->addWidget(&showPushButton);
-        hboxLayout->addWidget(&hidePushButton);
-
-        return hboxLayout;
-    }().release());
-
-    dimensionSelectionLayout->addWidget(scroller);
-    dimensionSelectionBox->setLayout(dimensionSelectionLayout);
-
-    dimensionSelectionLayout->addLayout([this]
-    {
-        auto hboxLayout = std::make_unique<QHBoxLayout>();
-
-        AddPushButton(*hboxLayout, "Load", [this]
-        {
-            const auto fileName = QFileDialog::getOpenFileName(this,
-                QObject::tr("Dimension selection"), {}, GetSelectionFileFilter());
-            _dimensionPickerWidget.readSelectionFromFile(fileName);
-        });
-        AddPushButton(*hboxLayout, "Save", [this]
-        {
-            const auto fileName = QFileDialog::getSaveFileName(this,
-                QObject::tr("Dimension selection"), {}, GetSelectionFileFilter());
-            _dimensionPickerWidget.writeSelectionToFile(fileName);
-        });
-        return hboxLayout;
-    }().release());
-
     auto* const advancedSettingsLayout = new QGridLayout();
     advancedSettingsLayout->addWidget(exaggerationLabel, 0, 0);
     advancedSettingsLayout->addWidget(&exaggeration, 1, 0);
@@ -367,7 +92,7 @@ TsneSettingsWidget::TsneSettingsWidget()
     // Add all the parts of the settings widget together
     addWidget(&dataOptions);
     addWidget(settingsBox);
-    addWidget(dimensionSelectionBox);
+    addWidget(&_dimensionSelectionWidget);
     addWidget(advancedSettingsBox);
     addWidget(&startButton);
 }
@@ -377,12 +102,12 @@ TsneSettingsWidget::TsneSettingsWidget()
 // Communication with the dimension picker widget
 void TsneSettingsWidget::onNumDimensionsChanged(TsneAnalysisPlugin*, unsigned int numDimensions, const std::vector<QString>& names)
 {
-    _dimensionPickerWidget.setDimensions(numDimensions, names);
+    _dimensionSelectionWidget.setDimensions(numDimensions, names);
 }
 
 std::vector<bool> TsneSettingsWidget::getEnabledDimensions()
 {
-    return _dimensionPickerWidget.getEnabledDimensions();
+    return _dimensionSelectionWidget.getEnabledDimensions();
 }
 
 

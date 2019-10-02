@@ -2,6 +2,8 @@
 
 #include <widgets/SettingsWidget.h>
 
+#include "DimensionSelectionWidget.h"
+
 // Qt header files:
 #include <QCheckBox>
 #include <QComboBox>
@@ -17,60 +19,6 @@
 using namespace hdps::gui;
 
 class TsneAnalysisPlugin;
-
-/**
- * Widget containing checkboxes for enabling/disabling certain dimensions of the data.
- */
-struct DimensionPickerWidget : QWidget
-{
-    // Explicitly delete its copy and move member functions.
-    DimensionPickerWidget(const DimensionPickerWidget&) = delete;
-    DimensionPickerWidget(DimensionPickerWidget&&) = delete;
-    DimensionPickerWidget& operator=(const DimensionPickerWidget&) = delete;
-    DimensionPickerWidget& operator=(DimensionPickerWidget&&) = delete;
-
-    DimensionPickerWidget()
-    {
-        setMinimumHeight(100);
-        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
-
-        setLayout(&_layout);
-    }
-
-    /**
-     * Returns a list of booleans that represent whether the dimension
-     * at that index is enabled or not.
-     *
-     * @return List of enabled dimensions
-     */
-    std::vector<bool> getEnabledDimensions() const;
-
-    /**
-     * Adds check boxes to the widgets for every dimension.
-     * Names for the dimensions can be provided. If no names are provided
-     * the dimensions will be named according to their index.
-     *
-     * @param numDimensions Number of checkboxes to add
-     * @param names         Names of the dimensions, can be an empty vector
-     */
-    void setDimensions(unsigned int numDimensions, const std::vector<QString>& names);
-
-    void readSelectionFromFile(const QString&);
-
-    void writeSelectionToFile(const QString&);
-
-    bool showCheckBoxes();
-
-    void hideCheckBoxes();
-
-private:
-    std::unique_ptr<QCheckBox[]> _checkBoxes;
-    QGridLayout _layout;
-    std::vector<QString> _names;
-    std::unique_ptr<bool[]> _enabledDimensions;
-    unsigned int _numDimensions{};
-};
-
 
 /**
  * Main settings widget
@@ -112,7 +60,7 @@ private slots:
     void thetaChanged(const QString& value);
 
 public:
-    DimensionPickerWidget _dimensionPickerWidget;
+    hdps::DimensionSelectionWidget _dimensionSelectionWidget;
 
     QComboBox dataOptions;
     QLineEdit numIterations;
@@ -123,6 +71,4 @@ public:
     QLineEdit numChecks;
     QLineEdit theta;
     QPushButton startButton;
-    QPushButton showPushButton;
-    QPushButton hidePushButton;
 };
