@@ -18,6 +18,14 @@ endif(MSVC)
 find_package(Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
 set(SOURCES
+    src/ModelResetter.h
+    src/ModelResetter.cpp
+    src/DimensionSelectionHolder.h
+    src/DimensionSelectionHolder.cpp
+    src/DimensionSelectionItemModel.h
+    src/DimensionSelectionItemModel.cpp
+    src/DimensionSelectionWidget.h
+    src/DimensionSelectionWidget.cpp
     src/TsneAnalysisPlugin.h
     src/TsneAnalysisPlugin.cpp
     src/TsneAnalysisPlugin.json
@@ -29,6 +37,12 @@ set(SOURCES
 )
 
 source_group( Plugin FILES ${SOURCES})
+
+set(UI_FILES
+    ui/DimensionSelectionWidget.ui
+)
+
+QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
 include_directories("$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/include/")
 include_directories ("lib/HDI/include")
@@ -45,7 +59,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     include_directories ("lib/Flann/Linux/include")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-add_library(${PROJECT} SHARED ${SOURCES})
+add_library(${PROJECT} SHARED ${SOURCES} ${UI_FILES})
 
 target_compile_definitions(${PROJECT} PRIVATE QT_MESSAGELOGCONTEXT)
 
