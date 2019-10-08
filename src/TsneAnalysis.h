@@ -54,6 +54,7 @@ private:
 
 signals:
     void newEmbedding();
+    void computationStopped();
 
 private:
     // TSNE structures

@@ -97,7 +97,11 @@ TsneSettingsWidget::TsneSettingsWidget()
     addWidget(&startButton);
 }
 
-
+void TsneSettingsWidget::computationStopped()
+{
+    startButton.setText("Start Computation");
+    startButton.setChecked(false);
+}
 
 // Communication with the dimension picker widget
 void TsneSettingsWidget::onNumDimensionsChanged(TsneAnalysisPlugin*, unsigned int numDimensions, const std::vector<QString>& names)

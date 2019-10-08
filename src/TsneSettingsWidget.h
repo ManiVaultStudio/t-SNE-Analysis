@@ -49,6 +49,9 @@ signals:
     void stopComputation();
     void dataSetPicked(QString);
 
+public slots:
+    void computationStopped();
+
 private slots:
     void onStartToggled(bool pressed);
     void numIterationsChanged(const QString &value);

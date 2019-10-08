@@ -186,6 +186,8 @@ void TsneAnalysis::embed()
         
         _isGradientDescentRunning = false;
         _isTsneRunning = false;
+
+        emit computationStopped();
     }
 
     qDebug() << "--------------------------------------------------------------------------------";
