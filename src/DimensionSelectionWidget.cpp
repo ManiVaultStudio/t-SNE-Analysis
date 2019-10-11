@@ -7,6 +7,7 @@
 #include "ModelResetter.h"
 
 // Qt header files:
+#include <QAbstractEventDispatcher>
 #include <QDebug>
 #include <QFileDialog>
 #include <QString>
@@ -125,10 +126,24 @@ namespace hdps
     public:
         const Ui_DimensionSelectionWidget _ui;
 
-        std::unique_ptr<DimensionSelectionHolder> _holder;
+        std::unique_ptr<DimensionSelectionHolder> _holder = std::make_unique<DimensionSelectionHolder>();
 
         std::unique_ptr<DimensionSelectionItemModel> _itemModel;
 
+        QMetaObject::Connection m_awakeConnection;
+
+
+    private:
+        void updateLabel()
+        {
+            const auto& holder = *_holder;
+
+            _ui.label->setText(QObject::tr("%1 available, %2 visible, %3 selected").
+                arg(holder.getNumberOfDimensions()).
+                arg(holder.getNumberOfDimensions()).
+                arg(holder.getNumberOfSelectedDimensions()) );
+        }
+    public:
         Impl(QWidget& widget)
             :
             _ui([&widget]
@@ -138,6 +153,7 @@ namespace hdps
             return ui;
         }())
         {
+            updateLabel();
 
             connectPushButton(*_ui.loadPushButton, [this, &widget]
             {
@@ -153,7 +169,22 @@ namespace hdps
                 writeSelectionToFile(fileName, *_holder);
             });
 
+            // Reset the view "on idle".
+            m_awakeConnection = connect(
+                QAbstractEventDispatcher::instance(),
+                &QAbstractEventDispatcher::awake,
+                [this]
+            {
+                updateLabel();
+            });
         }
+
+
+        ~Impl()
+        {
+            disconnect(m_awakeConnection);
+        }
+
 
         void setDimensions(
             const unsigned numberOfDimensions, const std::vector<QString>& names)
