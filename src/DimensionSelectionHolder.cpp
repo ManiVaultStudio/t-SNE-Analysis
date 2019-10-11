@@ -1,4 +1,7 @@
+// Its own header file.
 #include "DimensionSelectionHolder.h"
+
+#include <algorithm> // For count_if.
 
 namespace
 {
@@ -42,6 +45,13 @@ namespace hdps
         return _numberOfDimensions;
     }
 
+
+    unsigned DimensionSelectionHolder::getNumberOfSelectedDimensions() const noexcept
+    {
+        const bool* const enabledDimensions = _enabledDimensions.get();
+        return _numberOfDimensions == 0 ? 0 :
+            std::count(enabledDimensions, enabledDimensions + _numberOfDimensions, true);
+    }
 
     QString DimensionSelectionHolder::getName(const std::size_t i) const
     {

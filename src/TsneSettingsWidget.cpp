@@ -16,7 +16,9 @@
 
 TsneSettingsWidget::TsneSettingsWidget()
 {
-    setFixedWidth(200);
+    const auto minimumWidth = 200;
+    setMinimumWidth(minimumWidth);
+    setMaximumWidth(2 * minimumWidth);
 
     connect(&dataOptions,   SIGNAL(currentIndexChanged(QString)), this, SIGNAL(dataSetPicked(QString)));
     connect(&startButton,   &QPushButton::toggled, this, &TsneSettingsWidget::onStartToggled);

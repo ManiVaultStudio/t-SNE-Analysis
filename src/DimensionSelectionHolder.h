@@ -16,6 +16,7 @@ namespace hdps
         unsigned _numberOfDimensions{};
 
     public:
+        DimensionSelectionHolder() = default;
 
         explicit DimensionSelectionHolder(const unsigned numberOfDimensions);
 
@@ -24,6 +25,8 @@ namespace hdps
             const unsigned numberOfDimensions);
 
         unsigned getNumberOfDimensions() const noexcept;
+
+        unsigned getNumberOfSelectedDimensions() const noexcept;
 
         QString getName(const std::size_t) const;
 
