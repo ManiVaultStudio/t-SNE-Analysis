@@ -16,6 +16,8 @@ namespace hdps
         unsigned _numberOfDimensions{};
 
     public:
+        // C++ "Rule of Zero": implicitly defaulted move-constructor and move assignment are just fine.
+
         DimensionSelectionHolder() = default;
 
         explicit DimensionSelectionHolder(const unsigned numberOfDimensions);
