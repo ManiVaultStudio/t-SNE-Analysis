@@ -126,7 +126,7 @@ namespace hdps
     public:
         const Ui_DimensionSelectionWidget _ui;
 
-        std::unique_ptr<DimensionSelectionHolder> _holder = std::make_unique<DimensionSelectionHolder>();
+        DimensionSelectionHolder _holder;
 
         std::unique_ptr<DimensionSelectionItemModel> _itemModel;
 
@@ -136,7 +136,7 @@ namespace hdps
     private:
         void updateLabel()
         {
-            const auto& holder = *_holder;
+            const auto& holder = _holder;
 
             _ui.label->setText(QObject::tr("%1 available, %2 visible, %3 selected").
                 arg(holder.getNumberOfDimensions()).
@@ -159,14 +159,14 @@ namespace hdps
             {
                 const auto fileName = QFileDialog::getOpenFileName(&widget,
                     QObject::tr("Dimension selection"), {}, getSelectionFileFilter());
-                readSelectionFromFile(fileName, _itemModel.get(), *_holder);
+                readSelectionFromFile(fileName, _itemModel.get(), _holder);
             });
 
             connectPushButton(*_ui.savePushButton, [this, &widget]
             {
                 const auto fileName = QFileDialog::getSaveFileName(&widget,
                     QObject::tr("Dimension selection"), {}, getSelectionFileFilter());
-                writeSelectionToFile(fileName, *_holder);
+                writeSelectionToFile(fileName, _holder);
             });
 
             // Reset the view "on idle".
@@ -191,7 +191,7 @@ namespace hdps
         {
             if (names.size() == numberOfDimensions)
             {
-                _holder = std::make_unique<DimensionSelectionHolder>(
+                _holder = DimensionSelectionHolder(
                     names.data(),
                     numberOfDimensions);
 
@@ -199,9 +199,9 @@ namespace hdps
             else
             {
                 assert(names.empty());
-                _holder = std::make_unique<DimensionSelectionHolder>(numberOfDimensions);
+                _holder = DimensionSelectionHolder(numberOfDimensions);
             }
-            auto itemModel = std::make_unique<DimensionSelectionItemModel>(*_holder);
+            auto itemModel = std::make_unique<DimensionSelectionItemModel>(_holder);
             _ui.treeView->setModel(&*itemModel);
             _itemModel = std::move(itemModel);
         }
@@ -209,7 +209,7 @@ namespace hdps
 
         std::vector<bool> getEnabledDimensions() const
         {
-            return _holder->getEnabledDimensions();
+            return _holder.getEnabledDimensions();
         }
 
 
