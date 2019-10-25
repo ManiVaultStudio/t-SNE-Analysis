@@ -8,6 +8,11 @@
 
 namespace hdps
 {
+    struct StatisticsPerDimension
+    {
+        double mean;
+        double meanOfNonZero;
+    };
 
     class DimensionSelectionHolder
     {
@@ -16,6 +21,9 @@ namespace hdps
         unsigned _numberOfDimensions{};
 
     public:
+        std::vector<StatisticsPerDimension> _statistics;
+
+        
         // C++ "Rule of Zero": implicitly defaulted move-constructor and move assignment are just fine.
 
         DimensionSelectionHolder() = default;

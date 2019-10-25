@@ -8,8 +8,24 @@
 #include <QString>
 
 // Standard C++ header files:
+#include <cmath> // For isnan
 #include <vector>
 
+namespace
+{
+    QVariant ToVariant(const double value)
+    {
+        return std::isnan(value) ? QVariant{} : value;
+    }
+
+    enum class ColumnEnum
+    {
+        Name,
+        Mean,
+        MeanOfZeroValues,
+        count
+    };
+}
 
 namespace hdps
 {
@@ -32,7 +48,7 @@ namespace hdps
 
     int DimensionSelectionItemModel::columnCount(const QModelIndex &) const noexcept
     {
-        return 1;
+        return static_cast<int>(ColumnEnum::count);
     }
 
 
@@ -56,16 +72,19 @@ namespace hdps
             if (modelIndex.isValid())
             {
                 const auto row = static_cast<unsigned>(modelIndex.row());
+                assert(row < _holder.getNumberOfDimensions());
                 const auto column = static_cast<unsigned>(modelIndex.column());
 
-                if ((role == Qt::DisplayRole) && (column == 0))
+                if (role == Qt::DisplayRole)
                 {
-                    if (row < _holder.getNumberOfDimensions())
+                    switch (column)
                     {
-                        if (column == 0)
-                        {
-                            return _holder.getName(row);
-                        }
+                    case ColumnEnum::Name:
+                        return _holder.getName(row);
+                    case ColumnEnum::Mean:
+                        return _holder._statistics.empty() ? QVariant{} : ToVariant(_holder._statistics[row].mean);
+                    case ColumnEnum::MeanOfZeroValues:
+                        return _holder._statistics.empty() ? QVariant{} : ToVariant(_holder._statistics[row].meanOfNonZero);
                     }
                 }
                 if ((role == Qt::CheckStateRole) && (column == 0))
@@ -120,6 +139,28 @@ namespace hdps
             return false;
         }
         return QAbstractItemModel::setData(modelIndex, value, role);
+    }
+
+    QVariant DimensionSelectionItemModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
+    {
+        try
+        {
+            if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
+            {
+                switch (section)
+                {
+                case ColumnEnum::Name: return tr("Name");
+                case ColumnEnum::Mean: return tr("Mean");
+                case ColumnEnum::MeanOfZeroValues: return tr("Mean non-zero");
+                }
+            }
+        }
+        catch (const std::exception&)
+        {
+            assert(!"Exceptions are not allowed here!");
+        }
+        return QAbstractItemModel::headerData(section, orientation, role);
+
     }
 
 } // namespace hdps

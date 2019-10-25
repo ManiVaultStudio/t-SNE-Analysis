@@ -23,6 +23,7 @@ namespace hdps
         QVariant data(const QModelIndex &, int) const override;
 
         // Overrides of non-pure virtual member function of QAbstractItemModel
+        QVariant headerData(int, Qt::Orientation, int) const override;
         Qt::ItemFlags flags(const QModelIndex&) const noexcept override;
         bool setData(const QModelIndex &, const QVariant&, int) override;
     };

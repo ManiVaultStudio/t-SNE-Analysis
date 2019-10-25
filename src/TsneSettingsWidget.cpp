@@ -105,10 +105,9 @@ void TsneSettingsWidget::computationStopped()
     startButton.setChecked(false);
 }
 
-// Communication with the dimension picker widget
-void TsneSettingsWidget::onNumDimensionsChanged(TsneAnalysisPlugin*, unsigned int numDimensions, const std::vector<QString>& names)
+void TsneSettingsWidget::dataChanged(const PointsPlugin& rawData)
 {
-    _dimensionSelectionWidget.setDimensions(numDimensions, names);
+    _dimensionSelectionWidget.dataChanged(rawData);
 }
 
 std::vector<bool> TsneSettingsWidget::getEnabledDimensions()
