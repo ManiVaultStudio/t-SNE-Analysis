@@ -11,6 +11,7 @@
 #include <QAbstractEventDispatcher>
 #include <QDebug>
 #include <QFileDialog>
+#include <QSortFilterProxyModel>
 #include <QString>
 
 // Standard C++ header files:
@@ -25,6 +26,56 @@ namespace hdps
 {
     namespace
     {
+        class ProxyModel final : public QSortFilterProxyModel
+        {
+            const DimensionSelectionHolder& _holder;
+
+        public:
+            explicit ProxyModel(const DimensionSelectionHolder& holder)
+                :
+                _holder(holder)
+            {
+            }
+        private:
+            bool lessThan(const QModelIndex &modelIndex1, const QModelIndex &modelIndex2) const override
+            {
+                const auto column = modelIndex1.column();
+
+                if ((column == modelIndex2.column())  && (column >= 0) && (column < static_cast<int>(DimensionSelectionItemModel::ColumnEnum::count) ))
+                {
+                    const auto row1 = modelIndex1.row();
+                    const auto row2 = modelIndex2.row();
+
+                    switch ( static_cast<DimensionSelectionItemModel::ColumnEnum>(column))
+                    {
+                    case DimensionSelectionItemModel::ColumnEnum::Name:
+                    {
+                        return _holder.lessThanName(row1, row2);
+                    }
+                    case DimensionSelectionItemModel::ColumnEnum::Mean:
+                    {
+                        if (_holder._statistics.empty())
+                        {
+                            break;
+                        }
+                        return _holder._statistics[row1].mean < _holder._statistics[row2].mean;
+                    }
+                    case DimensionSelectionItemModel::ColumnEnum::MeanOfZeroValues:
+                    {
+                        if (_holder._statistics.empty())
+                        {
+                            break;
+                        }
+                        return _holder._statistics[row1].meanOfNonZero < _holder._statistics[row2].meanOfNonZero;
+                    }
+                    }
+                }
+                return QSortFilterProxyModel::lessThan(modelIndex1, modelIndex2);
+            }
+        };
+
+
+
         QString getSelectionFileFilter()
         {
             return QObject::tr("Text files (*.txt);;All files (*.*)");
@@ -130,7 +181,8 @@ namespace hdps
 
         DimensionSelectionHolder _holder;
 
-        std::unique_ptr<DimensionSelectionItemModel> _itemModel;
+        std::unique_ptr<DimensionSelectionItemModel> _dimensionSelectionItemModel;
+        std::unique_ptr<ProxyModel> _proxyModel;
 
         QMetaObject::Connection m_awakeConnection;
 
@@ -163,7 +215,7 @@ namespace hdps
             {
                 const auto fileName = QFileDialog::getOpenFileName(&widget,
                     QObject::tr("Dimension selection"), {}, getSelectionFileFilter());
-                readSelectionFromFile(fileName, _itemModel.get(), _holder);
+                readSelectionFromFile(fileName, _proxyModel.get(), _holder);
             });
 
             connectPushButton(*_ui.savePushButton, [this, &widget]
@@ -175,7 +227,7 @@ namespace hdps
 
             connectPushButton(*_ui.computeStatisticsPushButton, [this]
             {
-                const ModelResetter modelResetter(_itemModel.get());
+                const ModelResetter modelResetter(_proxyModel.get());
 
                 auto& statistics = _holder._statistics;
                 statistics.clear();
@@ -247,9 +299,13 @@ namespace hdps
                 assert(names.empty());
                 _holder = DimensionSelectionHolder(numberOfDimensions);
             }
-            auto itemModel = std::make_unique<DimensionSelectionItemModel>(_holder);
-            _ui.treeView->setModel(&*itemModel);
-            _itemModel = std::move(itemModel);
+            auto dimensionSelectionItemModel = std::make_unique<DimensionSelectionItemModel>(_holder);
+            auto proxyModel = std::make_unique<ProxyModel>(_holder);
+            proxyModel->setSourceModel(&*dimensionSelectionItemModel);
+            _ui.treeView->header()->setSortIndicator(-1, Qt::AscendingOrder);
+            _ui.treeView->setModel(&*proxyModel);
+            _proxyModel = std::move(proxyModel);
+            _dimensionSelectionItemModel = std::move(dimensionSelectionItemModel);
         }
 
 
@@ -264,8 +320,6 @@ namespace hdps
             _pointsPlugin = &pointsPlugin;
             const auto numberOfDimensions = pointsPlugin.getNumDimensions();
             setDimensions(numberOfDimensions, pointsPlugin.getDimensionNames());
-
-
         }
     };
 

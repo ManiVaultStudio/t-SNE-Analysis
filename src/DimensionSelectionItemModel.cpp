@@ -18,13 +18,6 @@ namespace
         return std::isnan(value) ? QVariant{} : value;
     }
 
-    enum class ColumnEnum
-    {
-        Name,
-        Mean,
-        MeanOfZeroValues,
-        count
-    };
 }
 
 namespace hdps
