@@ -12,6 +12,14 @@ namespace hdps
         DimensionSelectionHolder& _holder;
 
     public:
+        enum class ColumnEnum: int
+        {
+            Name,
+            Mean,
+            MeanOfZeroValues,
+            count
+        };
+
         explicit DimensionSelectionItemModel(DimensionSelectionHolder&);
 
     private:

@@ -40,6 +40,8 @@ namespace hdps
 
         QString getName(const std::size_t) const;
 
+        bool lessThanName(std::size_t, std::size_t) const noexcept;
+
         void disableAllDimensions();
 
         bool tryToEnableDimensionByName(const QString& name);

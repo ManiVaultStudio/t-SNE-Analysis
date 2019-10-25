@@ -60,6 +60,12 @@ namespace hdps
     }
 
 
+    bool DimensionSelectionHolder::lessThanName(const std::size_t leftIndex, const std::size_t rightIndex) const noexcept
+    {
+        return  (_names == nullptr) ? (leftIndex < rightIndex) : (_names[leftIndex] < _names[rightIndex]);
+    }
+
+
     void DimensionSelectionHolder::disableAllDimensions()
     {
         if (_numberOfDimensions > 0)
