@@ -5,6 +5,8 @@
 #include <memory> // For unique_ptr
 #include <vector>
 
+class PointsPlugin;
+
 namespace hdps
 {
     class DimensionSelectionWidget : public QWidget
@@ -23,7 +25,7 @@ namespace hdps
         DimensionSelectionWidget& operator=(const DimensionSelectionWidget&) = delete;
         DimensionSelectionWidget& operator=(DimensionSelectionWidget&&) = delete;
 
-        void setDimensions(unsigned numberOfDimensions, const std::vector<QString>& names);
+        void dataChanged(const PointsPlugin&);
 
         std::vector<bool> getEnabledDimensions() const;
     };

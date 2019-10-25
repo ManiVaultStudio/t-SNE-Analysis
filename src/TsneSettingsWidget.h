@@ -40,7 +40,7 @@ public:
     bool hasValidSettings();
 
     QString currentData();
-    void onNumDimensionsChanged(TsneAnalysisPlugin* analysis, unsigned int numDimensions, const std::vector<QString>& names);
+    void dataChanged(const PointsPlugin& rawData);
 private:
     void checkInputStyle(QLineEdit& input);
 
