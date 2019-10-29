@@ -15,6 +15,8 @@
 #include <QString>
 
 // Standard C++ header files:
+#include <algorithm>
+#include <execution>
 #include <limits>
 #include <vector>
 
@@ -238,13 +240,15 @@ namespace hdps
                     const auto numberOfDimensions = pointsPlugin.getNumDimensions();
                     const auto numberOfPoints = pointsPlugin.getNumPoints();
 
-                    statistics.reserve(numberOfDimensions);
+                    statistics.resize(numberOfDimensions);
+                    const auto* const statisticsData = statistics.data();
 
-                    for (unsigned i{}; i < numberOfDimensions; ++i)
+                    (void) std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions, [statisticsData, &pointsPlugin, numberOfDimensions, numberOfPoints](auto& statisticsPerDimension)
                     {
                         double sum{};
                         unsigned numberOfNonZeroValues{};
 
+                        const auto i = &statisticsPerDimension - statisticsData;
                         for (unsigned j{}; j < numberOfPoints; ++j)
                         {
                             const auto value = pointsPlugin[j * numberOfDimensions + i];
@@ -257,12 +261,12 @@ namespace hdps
                         }
 
                         const auto quiet_NaN = std::numeric_limits<double>::quiet_NaN();
-                        statistics.push_back(StatisticsPerDimension
+                        statisticsPerDimension = StatisticsPerDimension
                             {
                             (numberOfPoints == 0) ? quiet_NaN : (sum / numberOfPoints),
                             (numberOfNonZeroValues == 0) ? quiet_NaN : (sum / numberOfNonZeroValues)
-                            });
-                    }
+                            };
+                    });
                 }
 
             });
