@@ -9,13 +9,18 @@
 
 // Qt header files:
 #include <QAbstractEventDispatcher>
+#include <QApplication>
+#include <QClipboard>
 #include <QDebug>
 #include <QFileDialog>
+#include <QMenu>
 #include <QSortFilterProxyModel>
 #include <QString>
+#include <QTime>
 
 // Standard C++ header files:
 #include <algorithm>
+#include <cmath>
 #include <execution>
 #include <limits>
 #include <vector>
@@ -173,6 +178,47 @@ namespace hdps
             }
         }
 
+        void CopyModelToClipboard(const QAbstractItemModel& model)
+        {
+            
+            QString result;
+            const auto quote = QChar::fromLatin1('"');
+            const auto tabChar = QChar::fromLatin1('\t');
+            const auto linebreakChar = QChar::fromLatin1('\n');
+
+            const auto columnCount = model.columnCount();
+
+            for (int columnIndex = 0; columnIndex < columnCount; ++columnIndex)
+            {
+                if (columnIndex != 0)
+                {
+                    result += tabChar;
+                }
+
+                QString header = model.headerData(columnIndex, Qt::Horizontal).toString();
+                result += quote + header + quote;
+            }
+            result += linebreakChar;
+
+            const auto rowCount = model.rowCount();
+
+            for (int rowIndex = 0; rowIndex < rowCount; ++rowIndex)
+            {
+                for (int columnIndex = 0; columnIndex < columnCount; ++columnIndex)
+                {
+                    if (columnIndex != 0)
+                    {
+                        result += tabChar;
+                    }
+
+                    result += model.data(model.index(rowIndex, columnIndex)).toString();
+                }
+                result += linebreakChar;
+            }
+            QApplication::clipboard()->setText(result);
+
+        }
+
     }  // End of namespace.
 
 
@@ -236,40 +282,91 @@ namespace hdps
 
                 if (_pointsPlugin != nullptr)
                 {
+                    QTime time;
+
+                    time.start();
                     const auto& pointsPlugin = *_pointsPlugin;
                     const auto numberOfDimensions = pointsPlugin.getNumDimensions();
                     const auto numberOfPoints = pointsPlugin.getNumPoints();
 
-                    statistics.resize(numberOfDimensions);
-                    const auto* const statisticsData = statistics.data();
+                    constexpr static auto quiet_NaN = std::numeric_limits<double>::quiet_NaN();
 
-                    (void) std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions, [statisticsData, &pointsPlugin, numberOfDimensions, numberOfPoints](auto& statisticsPerDimension)
+                    if (numberOfPoints == 0)
                     {
-                        double sum{};
-                        unsigned numberOfNonZeroValues{};
+                        statistics.resize(numberOfDimensions, { quiet_NaN, quiet_NaN, quiet_NaN });
+                    }
+                    else
+                    {
+                        statistics.resize(numberOfDimensions);
+                        const auto* const statisticsData = statistics.data();
 
-                        const auto i = &statisticsPerDimension - statisticsData;
-                        for (unsigned j{}; j < numberOfPoints; ++j)
+                        (void)std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions,
+                            [statisticsData, &pointsPlugin, numberOfDimensions, numberOfPoints](auto& statisticsPerDimension)
                         {
-                            const auto value = pointsPlugin[j * numberOfDimensions + i];
+                            thread_local const std::unique_ptr<double []> data(new double[numberOfPoints]);
 
-                            if (value != 0.0)
                             {
-                                sum += value;
-                                ++numberOfNonZeroValues;
+                                const auto i = &statisticsPerDimension - statisticsData;
+
+                                for (unsigned j{}; j < numberOfPoints; ++j)
+                                {
+                                    data[j] = pointsPlugin[j * numberOfDimensions + i];
+                                }
                             }
-                        }
 
-                        const auto quiet_NaN = std::numeric_limits<double>::quiet_NaN();
-                        statisticsPerDimension = StatisticsPerDimension
+                            double sum{};
+                            unsigned numberOfNonZeroValues{};
+
+                            for (unsigned j{}; j < numberOfPoints; ++j)
                             {
-                            (numberOfPoints == 0) ? quiet_NaN : (sum / numberOfPoints),
-                            (numberOfNonZeroValues == 0) ? quiet_NaN : (sum / numberOfNonZeroValues)
+                                const auto value = data[j];
+
+                                if (value != 0.0)
+                                {
+                                    sum += value;
+                                    ++numberOfNonZeroValues;
+                                }
+                            }
+                            const auto mean = sum / numberOfPoints;
+
+                            double sumOfSquares{};
+
+                            for (unsigned j{}; j < numberOfPoints; ++j)
+                            {
+                                const auto value = data[j] - mean;
+                                sumOfSquares += value * value;
+                            }
+
+                            static_assert(quiet_NaN != quiet_NaN);
+
+                            statisticsPerDimension = StatisticsPerDimension
+                            {
+                            mean,
+                            (numberOfNonZeroValues == 0) ? quiet_NaN : (sum / numberOfNonZeroValues),
+                            std::sqrt(sumOfSquares / (numberOfPoints - 1))
                             };
-                    });
+                        });
+                    }
+                    qDebug()
+                        << " Duration: " << time.elapsed() << " microsecond(s)";
                 }
 
             });
+
+            assert(_ui.tableView->contextMenuPolicy() == Qt::CustomContextMenu);
+
+            connect(_ui.tableView, &QWidget::customContextMenuRequested, [this](const QPoint&)
+            {
+                if (_proxyModel != nullptr)
+                {
+                    QMenu menu;
+
+                    menu.addAction(tr("Copy table"), [this] {CopyModelToClipboard(*_proxyModel); });
+                    menu.exec(QCursor::pos());
+                }
+            }
+            );
+
 
             // Reset the view "on idle".
             m_awakeConnection = connect(

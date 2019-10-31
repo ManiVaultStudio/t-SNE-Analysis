@@ -17,6 +17,7 @@ namespace hdps
             Name,
             Mean,
             MeanOfZeroValues,
+            StandardDeviation,
             count
         };
 

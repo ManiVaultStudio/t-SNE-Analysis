@@ -12,6 +12,7 @@ namespace hdps
     {
         double mean;
         double meanOfNonZero;
+        double standardDeviation;
     };
 
     class DimensionSelectionHolder

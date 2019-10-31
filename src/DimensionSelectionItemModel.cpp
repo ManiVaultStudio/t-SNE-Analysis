@@ -15,7 +15,7 @@ namespace
 {
     QVariant ToVariant(const double value)
     {
-        return std::isnan(value) ? QVariant{} : value;
+        return std::isnan(value) ? QVariant{} : QString::number(value, 'f', 2);
     }
 
 }
@@ -78,6 +78,8 @@ namespace hdps
                         return _holder._statistics.empty() ? QVariant{} : ToVariant(_holder._statistics[row].mean);
                     case ColumnEnum::MeanOfZeroValues:
                         return _holder._statistics.empty() ? QVariant{} : ToVariant(_holder._statistics[row].meanOfNonZero);
+                    case ColumnEnum::StandardDeviation:
+                        return _holder._statistics.empty() ? QVariant{} : ToVariant(_holder._statistics[row].standardDeviation);
                     }
                 }
                 if ((role == Qt::CheckStateRole) && (column == 0))
@@ -145,6 +147,7 @@ namespace hdps
                 case ColumnEnum::Name: return tr("Name");
                 case ColumnEnum::Mean: return tr("Mean");
                 case ColumnEnum::MeanOfZeroValues: return tr("Mean non-zero");
+                case ColumnEnum::StandardDeviation: return tr("Standard deviation");
                 }
             }
         }
