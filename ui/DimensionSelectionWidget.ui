@@ -71,30 +71,24 @@
        </widget>
       </item>
       <item row="1" column="0" colspan="2">
-       <widget class="QTreeView" name="treeView">
-        <property name="editTriggers">
-         <set>QAbstractItemView::NoEditTriggers</set>
+       <widget class="QTableView" name="tableView">
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
         </property>
-        <property name="rootIsDecorated">
-         <bool>false</bool>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
         </property>
-        <property name="itemsExpandable">
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <property name="showGrid">
          <bool>false</bool>
         </property>
         <property name="sortingEnabled">
          <bool>true</bool>
         </property>
-        <property name="headerHidden">
+        <attribute name="verticalHeaderVisible">
          <bool>false</bool>
-        </property>
-        <property name="expandsOnDoubleClick">
-         <bool>false</bool>
-        </property>
-        <attribute name="headerVisible">
-         <bool>true</bool>
-        </attribute>
-        <attribute name="headerShowSortIndicator" stdset="0">
-         <bool>true</bool>
         </attribute>
        </widget>
       </item>

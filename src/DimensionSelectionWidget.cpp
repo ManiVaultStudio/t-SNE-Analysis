@@ -306,8 +306,8 @@ namespace hdps
             auto dimensionSelectionItemModel = std::make_unique<DimensionSelectionItemModel>(_holder);
             auto proxyModel = std::make_unique<ProxyModel>(_holder);
             proxyModel->setSourceModel(&*dimensionSelectionItemModel);
-            _ui.treeView->header()->setSortIndicator(-1, Qt::AscendingOrder);
-            _ui.treeView->setModel(&*proxyModel);
+            _ui.tableView->horizontalHeader()->setSortIndicator(-1, Qt::AscendingOrder);
+            _ui.tableView->setModel(&*proxyModel);
             _proxyModel = std::move(proxyModel);
             _dimensionSelectionItemModel = std::move(dimensionSelectionItemModel);
         }
