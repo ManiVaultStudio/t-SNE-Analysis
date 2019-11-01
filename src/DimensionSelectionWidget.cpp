@@ -83,9 +83,9 @@ namespace hdps
 
 
         template <typename T>
-        void connectPushButton(QPushButton& pushButton, const T slot)
+        void connectButtonClicked(QAbstractButton& button, const T slot)
         {
-            QObject::connect(&pushButton, &QAbstractButton::clicked, [slot, &pushButton]
+            QObject::connect(&button, &QAbstractButton::clicked, [slot, &button]
             {
                 try
                 {
@@ -97,7 +97,7 @@ namespace hdps
                         << "Exception \""
                         << typeid(stdException).name()
                         << "\" on "
-                        << pushButton.text()
+                        << button.text()
                         << " button click: "
                         << stdException.what();
                 }
@@ -275,21 +275,21 @@ namespace hdps
         {
             updateLabel();
 
-            connectPushButton(*_ui.loadPushButton, [this, &widget]
+            connectButtonClicked(*_ui.loadPushButton, [this, &widget]
             {
                 const auto fileName = QFileDialog::getOpenFileName(&widget,
                     QObject::tr("Dimension selection"), {}, getSelectionFileFilter());
                 readSelectionFromFile(fileName, _proxyModel.get(), _holder);
             });
 
-            connectPushButton(*_ui.savePushButton, [this, &widget]
+            connectButtonClicked(*_ui.savePushButton, [this, &widget]
             {
                 const auto fileName = QFileDialog::getSaveFileName(&widget,
                     QObject::tr("Dimension selection"), {}, getSelectionFileFilter());
                 writeSelectionToFile(fileName, _holder);
             });
 
-            connectPushButton(*_ui.computeStatisticsPushButton, [this]
+            connectButtonClicked(*_ui.computeStatisticsPushButton, [this]
             {
                 const ModelResetter modelResetter(_proxyModel.get());
 
