@@ -75,11 +75,9 @@ namespace hdps
                     case ColumnEnum::Name:
                         return _holder.getName(row);
                     case ColumnEnum::Mean:
-                        return _holder._statistics.empty() ? QVariant{} : ToVariant(_holder._statistics[row].mean);
-                    case ColumnEnum::MeanOfZeroValues:
-                        return _holder._statistics.empty() ? QVariant{} : ToVariant(_holder._statistics[row].meanOfNonZero);
+                        return _holder._statistics.empty() ? QVariant{} : ToVariant(_holder._statistics[row].mean[_holder._ignoreZeroValues ? 1 : 0]);
                     case ColumnEnum::StandardDeviation:
-                        return _holder._statistics.empty() ? QVariant{} : ToVariant(_holder._statistics[row].standardDeviation);
+                        return _holder._statistics.empty() ? QVariant{} : ToVariant(_holder._statistics[row].standardDeviation[_holder._ignoreZeroValues ? 1 : 0]);
                     }
                 }
                 if ((role == Qt::CheckStateRole) && (column == 0))
@@ -146,7 +144,6 @@ namespace hdps
                 {
                 case ColumnEnum::Name: return tr("Name");
                 case ColumnEnum::Mean: return tr("Mean");
-                case ColumnEnum::MeanOfZeroValues: return tr("Mean non-zero");
                 case ColumnEnum::StandardDeviation: return tr("Standard deviation");
                 }
             }

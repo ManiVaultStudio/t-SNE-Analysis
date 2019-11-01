@@ -10,9 +10,10 @@ namespace hdps
 {
     struct StatisticsPerDimension
     {
-        double mean;
-        double meanOfNonZero;
-        double standardDeviation;
+        // mean[0] and standardDeviation[0] include zero-valued data.
+        // mean[1] and standardDeviation[1] ignore zero-valued data.
+        double mean[2];
+        double standardDeviation[2];
     };
 
     class DimensionSelectionHolder
@@ -23,7 +24,7 @@ namespace hdps
 
     public:
         std::vector<StatisticsPerDimension> _statistics;
-
+        bool _ignoreZeroValues{};
         
         // C++ "Rule of Zero": implicitly defaulted move-constructor and move assignment are just fine.
 

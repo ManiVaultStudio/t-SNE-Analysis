@@ -65,15 +65,8 @@ namespace hdps
                         {
                             break;
                         }
-                        return _holder._statistics[row1].mean < _holder._statistics[row2].mean;
-                    }
-                    case DimensionSelectionItemModel::ColumnEnum::MeanOfZeroValues:
-                    {
-                        if (_holder._statistics.empty())
-                        {
-                            break;
-                        }
-                        return _holder._statistics[row1].meanOfNonZero < _holder._statistics[row2].meanOfNonZero;
+                        return _holder._statistics[row1].mean[_holder._ignoreZeroValues ? 1 : 0] < 
+                            _holder._statistics[row2].mean[_holder._ignoreZeroValues ? 1 : 0];
                     }
                     }
                 }
@@ -92,7 +85,7 @@ namespace hdps
         template <typename T>
         void connectPushButton(QPushButton& pushButton, const T slot)
         {
-            QObject::connect(&pushButton, &QPushButton::clicked, [slot, &pushButton]
+            QObject::connect(&pushButton, &QAbstractButton::clicked, [slot, &pushButton]
             {
                 try
                 {
@@ -106,6 +99,29 @@ namespace hdps
                         << "\" on "
                         << pushButton.text()
                         << " button click: "
+                        << stdException.what();
+                }
+            });
+        }
+
+
+        template <typename T>
+        void connectButtonToggled(QAbstractButton& button, const T slot)
+        {
+            QObject::connect(&button, &QAbstractButton::toggled, [slot, &button](const bool checked)
+            {
+                try
+                {
+                    slot(checked);
+                }
+                catch (const std::exception& stdException)
+                {
+                    qCritical()
+                        << "Exception \""
+                        << typeid(stdException).name()
+                        << "\" on "
+                        << button.text()
+                        << " button toggle: "
                         << stdException.what();
                 }
             });
@@ -293,59 +309,77 @@ namespace hdps
 
                     if (numberOfPoints == 0)
                     {
-                        statistics.resize(numberOfDimensions, { quiet_NaN, quiet_NaN, quiet_NaN });
+                        statistics.resize(numberOfDimensions, { quiet_NaN, quiet_NaN, quiet_NaN, quiet_NaN });
                     }
                     else
                     {
                         statistics.resize(numberOfDimensions);
                         const auto* const statisticsData = statistics.data();
 
-                        (void)std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions,
-                            [statisticsData, &pointsPlugin, numberOfDimensions, numberOfPoints](auto& statisticsPerDimension)
+                        if (numberOfPoints == 1)
                         {
-                            thread_local const std::unique_ptr<double []> data(new double[numberOfPoints]);
-
+                            (void)std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions,
+                                [statisticsData, &pointsPlugin](auto& statisticsPerDimension)
                             {
                                 const auto i = &statisticsPerDimension - statisticsData;
+                                
+                                const auto dataValue = pointsPlugin[i];
+                                statisticsPerDimension = { {dataValue, dataValue}, {quiet_NaN, quiet_NaN} };
+                            });
+                        }
+                        else
+                        {
+                            (void)std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions,
+                                [statisticsData, &pointsPlugin, numberOfDimensions, numberOfPoints](auto& statisticsPerDimension)
+                            {
+                                thread_local const std::unique_ptr<double[]> data(new double[numberOfPoints]);
+                                {
+                                    const auto i = &statisticsPerDimension - statisticsData;
+
+                                    for (unsigned j{}; j < numberOfPoints; ++j)
+                                    {
+                                        data[j] = pointsPlugin[j * numberOfDimensions + i];
+                                    }
+                                }
+
+                                double sum{};
+                                unsigned numberOfNonZeroValues{};
 
                                 for (unsigned j{}; j < numberOfPoints; ++j)
                                 {
-                                    data[j] = pointsPlugin[j * numberOfDimensions + i];
+                                    const auto value = data[j];
+
+                                    if (value != 0.0)
+                                    {
+                                        sum += value;
+                                        ++numberOfNonZeroValues;
+                                    }
                                 }
-                            }
+                                const auto mean = sum / numberOfPoints;
 
-                            double sum{};
-                            unsigned numberOfNonZeroValues{};
+                                double sumOfSquares{};
 
-                            for (unsigned j{}; j < numberOfPoints; ++j)
-                            {
-                                const auto value = data[j];
-
-                                if (value != 0.0)
+                                for (unsigned j{}; j < numberOfPoints; ++j)
                                 {
-                                    sum += value;
-                                    ++numberOfNonZeroValues;
+                                    const auto value = data[j] - mean;
+                                    sumOfSquares += value * value;
                                 }
-                            }
-                            const auto mean = sum / numberOfPoints;
 
-                            double sumOfSquares{};
+                                static_assert(quiet_NaN != quiet_NaN);
 
-                            for (unsigned j{}; j < numberOfPoints; ++j)
-                            {
-                                const auto value = data[j] - mean;
-                                sumOfSquares += value * value;
-                            }
-
-                            static_assert(quiet_NaN != quiet_NaN);
-
-                            statisticsPerDimension = StatisticsPerDimension
-                            {
-                            mean,
-                            (numberOfNonZeroValues == 0) ? quiet_NaN : (sum / numberOfNonZeroValues),
-                            std::sqrt(sumOfSquares / (numberOfPoints - 1))
-                            };
-                        });
+                                statisticsPerDimension = StatisticsPerDimension
+                                {
+                                    {
+                                        mean,
+                                        (numberOfNonZeroValues == 0) ? quiet_NaN : (sum / numberOfNonZeroValues)
+                                    },
+                                    {
+                                        std::sqrt(sumOfSquares / (numberOfPoints - 1)),
+                                        (numberOfNonZeroValues == 0) ? quiet_NaN : std::sqrt(sumOfSquares / numberOfNonZeroValues)
+                                    }
+                                };
+                            });
+                        }
                     }
                     qDebug()
                         << " Duration: " << time.elapsed() << " microsecond(s)";
@@ -367,6 +401,11 @@ namespace hdps
             }
             );
 
+            connectButtonToggled(*_ui.ignoreZeroValuesCheckBox, [this](const bool checked)
+            {
+                const ModelResetter modelResetter(_proxyModel.get());
+                _holder._ignoreZeroValues = checked;
+            });
 
             // Reset the view "on idle".
             m_awakeConnection = connect(
