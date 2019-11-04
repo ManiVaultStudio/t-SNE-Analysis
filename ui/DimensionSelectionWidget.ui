@@ -42,7 +42,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="nameMatchingLineEdit"/>
+         <widget class="QLineEdit" name="nameMatchesLineEdit"/>
         </item>
        </layout>
       </item>
