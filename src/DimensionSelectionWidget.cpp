@@ -407,6 +407,15 @@ namespace hdps
                 _holder._ignoreZeroValues = checked;
             });
 
+            connect(_ui.nameMatchesLineEdit, &QLineEdit::textChanged, [this](const QString & text)
+            {
+                if (_proxyModel != nullptr)
+                {
+                    const ModelResetter modelResetter(&*_proxyModel);
+                    _proxyModel->setFilterRegExp(text);
+                }
+            });
+
             // Reset the view "on idle".
             m_awakeConnection = connect(
                 QAbstractEventDispatcher::instance(),
