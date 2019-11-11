@@ -37,7 +37,10 @@ void TsneAnalysisPlugin::dataChanged(const QString name)
     if (name != _settings->currentData()) {
         return;
     }
-    dataSetPicked(name);
+
+    IndexSet& set = (IndexSet&)_core->requestSet(name);
+    PointsPlugin& rawData = set.getData();
+    _settings->dataChanged(set.getData());
 }
 
 void TsneAnalysisPlugin::dataRemoved(const QString name)
