@@ -5,7 +5,7 @@
 #include "DimensionSelectionHolder.h"
 #include "DimensionSelectionItemModel.h"
 #include "ModelResetter.h"
-#include "PointsPlugin.h"
+#include "PointData.h"
 
 // Qt header files:
 #include <QAbstractEventDispatcher>
@@ -250,7 +250,7 @@ namespace hdps
 
         QMetaObject::Connection m_awakeConnection;
 
-        const PointsPlugin* _pointsPlugin = nullptr;
+        const PointData* _pointData = nullptr;
 
 
     private:
@@ -296,14 +296,14 @@ namespace hdps
                 auto& statistics = _holder._statistics;
                 statistics.clear();
 
-                if (_pointsPlugin != nullptr)
+                if (_pointData != nullptr)
                 {
                     QTime time;
 
                     time.start();
-                    const auto& pointsPlugin = *_pointsPlugin;
-                    const auto numberOfDimensions = pointsPlugin.getNumDimensions();
-                    const auto numberOfPoints = pointsPlugin.getNumPoints();
+                    const auto& pointData = *_pointData;
+                    const auto numberOfDimensions = pointData.getNumDimensions();
+                    const auto numberOfPoints = pointData.getNumPoints();
 
                     constexpr static auto quiet_NaN = std::numeric_limits<double>::quiet_NaN();
 
@@ -319,18 +319,18 @@ namespace hdps
                         if (numberOfPoints == 1)
                         {
                             (void)std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions,
-                                [statisticsData, &pointsPlugin](auto& statisticsPerDimension)
+                                [statisticsData, &pointData](auto& statisticsPerDimension)
                             {
                                 const auto i = &statisticsPerDimension - statisticsData;
                                 
-                                const auto dataValue = pointsPlugin[i];
+                                const auto dataValue = pointData[i];
                                 statisticsPerDimension = { {dataValue, dataValue}, {quiet_NaN, quiet_NaN} };
                             });
                         }
                         else
                         {
                             (void)std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions,
-                                [statisticsData, &pointsPlugin, numberOfDimensions, numberOfPoints](auto& statisticsPerDimension)
+                                [statisticsData, &pointData, numberOfDimensions, numberOfPoints](auto& statisticsPerDimension)
                             {
                                 thread_local const std::unique_ptr<double[]> data(new double[numberOfPoints]);
                                 {
@@ -338,7 +338,7 @@ namespace hdps
 
                                     for (unsigned j{}; j < numberOfPoints; ++j)
                                     {
-                                        data[j] = pointsPlugin[j * numberOfDimensions + i];
+                                        data[j] = pointData[j * numberOfDimensions + i];
                                     }
                                 }
 
@@ -464,11 +464,11 @@ namespace hdps
         }
 
 
-        void dataChanged(const PointsPlugin& pointsPlugin)
+        void dataChanged(const PointData& pointData)
         {
-            _pointsPlugin = &pointsPlugin;
-            const auto numberOfDimensions = pointsPlugin.getNumDimensions();
-            setDimensions(numberOfDimensions, pointsPlugin.getDimensionNames());
+            _pointData = &pointData;
+            const auto numberOfDimensions = pointData.getNumDimensions();
+            setDimensions(numberOfDimensions, pointData.getDimensionNames());
         }
     };
 
@@ -482,9 +482,9 @@ namespace hdps
     DimensionSelectionWidget::~DimensionSelectionWidget() = default;
 
 
-    void DimensionSelectionWidget::dataChanged(const PointsPlugin& pointsPlugin)
+    void DimensionSelectionWidget::dataChanged(const PointData& pointData)
     {
-        _pImpl->dataChanged(pointsPlugin);
+        _pImpl->dataChanged(pointData);
     }
 
     std::vector<bool> DimensionSelectionWidget::getEnabledDimensions() const

@@ -2,6 +2,8 @@
 
 #include <widgets/SettingsWidget.h>
 
+#include "PointData.h"
+
 #include "DimensionSelectionWidget.h"
 
 // Qt header files:
@@ -40,7 +42,7 @@ public:
     bool hasValidSettings();
 
     QString currentData();
-    void dataChanged(const PointsPlugin& rawData);
+    void dataChanged(const PointData& rawData);
 private:
     void checkInputStyle(QLineEdit& input);
 

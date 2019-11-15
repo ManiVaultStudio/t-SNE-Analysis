@@ -105,7 +105,7 @@ void TsneSettingsWidget::computationStopped()
     startButton.setChecked(false);
 }
 
-void TsneSettingsWidget::dataChanged(const PointsPlugin& rawData)
+void TsneSettingsWidget::dataChanged(const PointData& rawData)
 {
     _dimensionSelectionWidget.dataChanged(rawData);
 }
