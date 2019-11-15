@@ -96,7 +96,7 @@ void TsneAnalysis::initTSNE(const std::vector<float>& data, const int numDimensi
     {
         hdi::dr::HDJointProbabilityGenerator<float>::Parameters probGenParams;
         probGenParams._perplexity = _perplexity;
-        probGenParams._perplexity_multiplier = 1;
+        probGenParams._perplexity_multiplier = 3;
         probGenParams._num_trees = _numTrees;
         probGenParams._num_checks = _numChecks;
 
@@ -132,7 +132,7 @@ void TsneAnalysis::initGradientDescent()
     tsneParams._mom_switching_iter = _exaggerationIter;
     tsneParams._remove_exaggeration_iter = _exaggerationIter;
     tsneParams._exponential_decay_iter = 150;
-    tsneParams._exaggeration_factor = 10 + _inputData.getNumPoints() / 5000.;
+    tsneParams._exaggeration_factor = 4 + _inputData.getNumPoints() / 60000.0;
     _A_tSNE.setTheta(std::min(0.5, std::max(0.0, (_inputData.getNumPoints() - 1000.0)*0.00005)));
 
     // Create a context local to this thread that shares with the global share context
