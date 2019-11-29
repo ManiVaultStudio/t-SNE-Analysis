@@ -7,6 +7,9 @@
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 #include <windows.h>
+
+#include <set>
+
 // =============================================================================
 // View
 // =============================================================================
@@ -85,20 +88,33 @@ void TsneAnalysisPlugin::startComputation()
     QString setName = _settings->dataOptions.currentText();
     const IndexSet& set = dynamic_cast<const IndexSet&>(_core->requestSet(setName));
     const PointData& points = set.getData<PointData>();
+	
+	std::vector<bool> enabledDimensions = _settings->getEnabledDimensions();
+
+	unsigned int numDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 
     // Create list of data from the enabled dimensions
     std::vector<float> data;
     
-    std::vector<bool> enabledDimensions = _settings->getEnabledDimensions();
+	data.reserve(points.getNumPoints() * numDimensions);
+	
+	const auto selectionSet = std::set<std::uint32_t>(set.indices.begin(), set.indices.end());
+
     for (int i = 0; i < points.getNumPoints(); i++)
     {
         for (int j = 0; j < points.getNumDimensions(); j++)
         {
-            if (enabledDimensions[j])
-                data.push_back(points[i * points.getNumDimensions() + j]);
+			if (enabledDimensions[j]) {
+				const auto index	= i * points.getNumDimensions() + j;
+				const auto selected = selectionSet.find(index) != selectionSet.end();
+
+				if (set.isFull() || selected) {
+					data.push_back(points[index]);
+				}
+			}
         }
     }
-    unsigned int numDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; } );
+    
 
     _embedSetName = _core->createDerivedData("Points", "Embedding", points.getName());
     const IndexSet& embedSet = dynamic_cast<const IndexSet&>(_core->requestSet(_embedSetName));
