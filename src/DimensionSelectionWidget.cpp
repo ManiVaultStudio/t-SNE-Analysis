@@ -268,27 +268,25 @@ namespace hdps
             :
             _ui([&widget]
         {
-            Ui_DimensionSelectionWidget ui;
+            Ui_DimensionSelectionWidget ui{};
             ui.setupUi(&widget);
             return ui;
         }())
         {
-            QHeaderView *const verticalHeader = _ui.tableView->verticalHeader();
-
-            if (verticalHeader != nullptr)
+            if (QHeaderView *const header = _ui.tableView->verticalHeader(); header != nullptr)
             {
                 // Reduce height of cells by 33%. The cells were really too high, originally!
-                verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
-                const auto originalDefaultSectionSize = verticalHeader->defaultSectionSize();
-                verticalHeader->setDefaultSectionSize((2 * originalDefaultSectionSize)/3);
+                header->setSectionResizeMode(QHeaderView::Fixed);
+                const auto originalDefaultSectionSize = header->defaultSectionSize();
+                header->setDefaultSectionSize((2 * originalDefaultSectionSize)/3);
             }
 
-            QHeaderView *const horizontalHeader = _ui.tableView->horizontalHeader();
-            if (horizontalHeader != nullptr)
+            if (QHeaderView *const header = _ui.tableView->horizontalHeader(); header != nullptr)
             {
                 // Especially the header text looks much better, when left-aligned.
-                horizontalHeader->setDefaultAlignment(Qt::AlignLeft);
+                header->setDefaultAlignment(Qt::AlignLeft);
             }
+
             updateLabel();
 
             connectButtonClicked(*_ui.loadPushButton, [this, &widget]
