@@ -105,9 +105,9 @@ void TsneSettingsWidget::computationStopped()
     startButton.setChecked(false);
 }
 
-void TsneSettingsWidget::dataChanged(const PointData& rawData)
+void TsneSettingsWidget::dataChanged(const Points& points)
 {
-    _dimensionSelectionWidget.dataChanged(rawData);
+    _dimensionSelectionWidget.dataChanged(points);
 }
 
 std::vector<bool> TsneSettingsWidget::getEnabledDimensions()

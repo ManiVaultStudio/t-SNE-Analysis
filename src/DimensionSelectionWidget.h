@@ -5,7 +5,7 @@
 #include <memory> // For unique_ptr
 #include <vector>
 
-class PointData;
+class Points;
 
 namespace hdps
 {
@@ -25,7 +25,7 @@ namespace hdps
         DimensionSelectionWidget& operator=(const DimensionSelectionWidget&) = delete;
         DimensionSelectionWidget& operator=(DimensionSelectionWidget&&) = delete;
 
-        void dataChanged(const PointData&);
+        void dataChanged(const Points&);
 
         std::vector<bool> getEnabledDimensions() const;
     };
