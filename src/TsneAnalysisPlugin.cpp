@@ -40,10 +40,9 @@ void TsneAnalysisPlugin::dataChanged(const QString name)
         return;
     }
 
-    IndexSet& set = (IndexSet&)_core->requestSet(name);
+    Points& points = _core->requestData<Points>(name);
 
-    PointData& rawData = set.getData<PointData>();
-    _settings->dataChanged(rawData);
+    _settings->dataChanged(points);
 }
 
 void TsneAnalysisPlugin::dataRemoved(const QString name)
@@ -71,10 +70,9 @@ SettingsWidget* const TsneAnalysisPlugin::getSettings()
 
 void TsneAnalysisPlugin::dataSetPicked(const QString& name)
 {
-    IndexSet& set = (IndexSet&)_core->requestSet(name);
-    PointData& rawData = set.getData<PointData>();
+    Points& points = _core->requestData<Points>(name);
 
-    _settings->dataChanged(rawData);
+    _settings->dataChanged(points);
 }
 
 void TsneAnalysisPlugin::startComputation()
@@ -83,8 +81,7 @@ void TsneAnalysisPlugin::startComputation()
 
     // Run the computation
     QString setName = _settings->dataOptions.currentText();
-    const IndexSet& set = dynamic_cast<const IndexSet&>(_core->requestSet(setName));
-    const PointData& points = set.getData<PointData>();
+    const Points& points = _core->requestData<Points>(setName);
 
     // Create list of data from the enabled dimensions
     std::vector<float> data;
@@ -100,12 +97,11 @@ void TsneAnalysisPlugin::startComputation()
     }
     unsigned int numDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; } );
 
-    _embedSetName = _core->createDerivedData("Points", "Embedding", points.getName());
-    const IndexSet& embedSet = dynamic_cast<const IndexSet&>(_core->requestSet(_embedSetName));
-    PointData& embedPoints = embedSet.getData<PointData>();
-
-    embedPoints.setData(nullptr, 0, 2);
-    _core->notifyDataAdded(_embedSetName);
+    _embeddingName = _core->createDerivedData("Points", "Embedding", points.getName());
+    Points& embedding = _core->requestData<Points>(_embeddingName);
+    
+    embedding.setData(nullptr, 0, 2);
+    _core->notifyDataAdded(_embeddingName);
 
     // Compute t-SNE with the given data
     _tsne.initTSNE(data, numDimensions);
@@ -115,12 +111,11 @@ void TsneAnalysisPlugin::startComputation()
 
 void TsneAnalysisPlugin::onNewEmbedding() {
     const TsneData& outputData = _tsne.output();
-    const IndexSet& embedSet = dynamic_cast<const IndexSet&>(_core->requestSet(_embedSetName));
-    PointData& embedPoints = embedSet.getData<PointData>();
+    Points& embedding = _core->requestData<Points>(_embeddingName);
+    
+    embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
 
-    embedPoints.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
-
-    _core->notifyDataChanged(_embedSetName);
+    _core->notifyDataChanged(_embeddingName);
 }
 
 void TsneAnalysisPlugin::initializeTsne() {

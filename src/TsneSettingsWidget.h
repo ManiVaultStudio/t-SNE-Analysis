@@ -42,7 +42,7 @@ public:
     bool hasValidSettings();
 
     QString currentData();
-    void dataChanged(const PointData& rawData);
+    void dataChanged(const Points& points);
 private:
     void checkInputStyle(QLineEdit& input);
 
