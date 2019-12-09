@@ -128,6 +128,38 @@ namespace hdps
         }
 
 
+        void readExclusionFromFile(const QString& fileName, DimensionSelectionProxyModel& proxyModel)
+        {
+            if (!fileName.isEmpty())
+            {
+                QFile file(fileName);
+
+                if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+                {
+                    const ModelResetter modelResetter(&proxyModel);
+
+                    std::deque<QString> strings;
+
+                    while (!file.atEnd())
+                    {
+                        const auto trimmedLine = file.readLine().trimmed();
+
+                        if (!trimmedLine.isEmpty())
+                        {
+                            strings.push_back(QString::fromUtf8(trimmedLine));
+                        }
+                    }
+
+                    proxyModel.SetExclusion(std::vector<QString>(strings.cbegin(), strings.cend()));
+
+                }
+                else
+                {
+                    qCritical() << "Load exclusion failed to open file: " << fileName;
+                }
+            }
+        }
+
         void writeSelectionToFile(const QString& fileName, const DimensionSelectionHolder& holder)
         {
             if (!fileName.isEmpty())
@@ -437,21 +469,30 @@ namespace hdps
 
             connectButtonClicked(*_ui.loadExclusionListPushButton, [this, &widget]
             {
-                QMessageBox::information(&widget, tr("Work in progress"), tr("Sorry, not yet implemented!")); // TODO
-                const auto fileName = QFileDialog::getOpenFileName(&widget,
-                    QObject::tr("Exclusion list"), {}, getSelectionFileFilter());
+                if (_proxyModel != nullptr)
+                {
+                    const auto fileName = QFileDialog::getOpenFileName(&widget,
+                        QObject::tr("Exclusion list"), {}, getSelectionFileFilter());
+
+                    readExclusionFromFile(fileName, *_proxyModel);
+                }
             });
 
-            connectButtonClicked(*_ui.applyExclusionListCheckBox, [this, &widget]
+            connectButtonToggled(*_ui.applyExclusionListCheckBox, [this, &widget](const bool checked)
             {
-                QMessageBox::information(&widget, tr("Work in progress"), tr("Sorry, not yet implemented!")); // TODO
+                if (_proxyModel != nullptr)
+                {
+                    const ModelResetter modelResetter(&*_proxyModel);
+                    _proxyModel->SetFilterShouldAppyExclusion(checked);
+
+                }
             });
 
             connectButtonToggled(*_ui.showOnlySelectedDimensionsCheckBox, [this, &widget](const bool checked)
             {
                 if (_proxyModel != nullptr)
                 {
-                    const ModelResetter modelResetter(_proxyModel.get());
+                    const ModelResetter modelResetter(&*_proxyModel);
                     _proxyModel->SetFilterShouldAcceptOnlySelected(checked);
                 }
             });
