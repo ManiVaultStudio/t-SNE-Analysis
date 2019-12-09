@@ -24,6 +24,7 @@ namespace hdps
 
     public:
         std::vector<StatisticsPerDimension> _statistics;
+        std::vector<double> distinctStandardDeviationsWithAndWithoutZero[2];
         bool _ignoreZeroValues{};
         
         // C++ "Rule of Zero": implicitly defaulted move-constructor and move assignment are just fine.
