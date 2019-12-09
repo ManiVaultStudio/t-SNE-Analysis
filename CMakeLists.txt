@@ -24,6 +24,8 @@ set(SOURCES
     src/DimensionSelectionHolder.cpp
     src/DimensionSelectionItemModel.h
     src/DimensionSelectionItemModel.cpp
+    src/DimensionSelectionProxyModel.h
+    src/DimensionSelectionProxyModel.cpp
     src/DimensionSelectionWidget.h
     src/DimensionSelectionWidget.cpp
     src/TsneAnalysisPlugin.h
