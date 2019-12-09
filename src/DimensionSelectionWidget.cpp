@@ -211,17 +211,44 @@ namespace hdps
 
         const PointData* _pointData = nullptr;
 
-
     private:
         void updateLabel()
         {
             const auto& holder = _holder;
+            const auto numberOfDimensions = holder.getNumberOfDimensions();
+            const int numberOfVisibleDimensions = (_proxyModel == nullptr) ?
+                0 : _proxyModel->rowCount();
 
             _ui.label->setText(QObject::tr("%1 available, %2 visible, %3 selected").
-                arg(holder.getNumberOfDimensions()).
-                arg(holder.getNumberOfDimensions()).
+                arg(numberOfDimensions).
+                arg(numberOfVisibleDimensions).
                 arg(holder.getNumberOfSelectedDimensions()) );
         }
+
+        void updateSlider()
+        {
+            auto& slider = *(_ui.horizontalSlider);
+            const auto numberOfDistinctStandardDeviations = _holder.distinctStandardDeviationsWithAndWithoutZero[_holder._ignoreZeroValues ? 1 : 0].size();
+            const bool isSliderValueAtMaximum = (slider.value() == slider.maximum());
+
+            if ((numberOfDistinctStandardDeviations > 0) && (numberOfDistinctStandardDeviations <= std::numeric_limits<int>::max()))
+            {
+                const auto newMaximum = static_cast<int>(numberOfDistinctStandardDeviations) - 1;
+                if (newMaximum != slider.maximum())
+                {
+                    slider.setMaximum(newMaximum);
+                    qDebug() << "Dimension Selection slider maximum value: " << newMaximum;
+                    slider.setValue(isSliderValueAtMaximum ? newMaximum : 0);
+
+                }
+            }
+            else
+            {
+                slider.setValue(isSliderValueAtMaximum ? 1 : 0);
+                slider.setMaximum(1);
+            }
+        }
+
     public:
         Impl(QWidget& widget)
             :
@@ -305,7 +332,7 @@ namespace hdps
                             (void)std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions,
                                 [statisticsData, &pointData, numberOfDimensions, numberOfPoints](auto& statisticsPerDimension)
                             {
-                                thread_local const std::unique_ptr<double[]> data(new double[numberOfPoints]);
+                                const std::unique_ptr<double[]> data(new double[numberOfPoints]);
                                 {
                                     const auto i = &statisticsPerDimension - statisticsData;
 
@@ -375,13 +402,7 @@ namespace hdps
 
 
                         assert(_ui.horizontalSlider->minimum() == 0);
-
-                        const auto numberOfDistinctStandardDeviations = _holder.distinctStandardDeviationsWithAndWithoutZero[_holder._ignoreZeroValues ? 1 : 0].size();
-
-                        if ((numberOfDistinctStandardDeviations > 0) && (numberOfDistinctStandardDeviations <= std::numeric_limits<int>::max()))
-                        {
-                            _ui.horizontalSlider->setMaximum(numberOfDistinctStandardDeviations - 1);
-                        }
+                        updateSlider();
                     }
 
                 }
@@ -406,7 +427,7 @@ namespace hdps
             {
                 const ModelResetter modelResetter(_proxyModel.get());
                 _holder._ignoreZeroValues = checked;
-                _ui.horizontalSlider->setMaximum(_holder.distinctStandardDeviationsWithAndWithoutZero[checked ? 1 : 0].size() - 1);
+                updateSlider();
             });
 
             connect(_ui.nameMatchesLineEdit, &QLineEdit::textChanged, [this](const QString & text)
@@ -486,6 +507,7 @@ namespace hdps
             _ui.tableView->horizontalHeader()->setSortIndicator(-1, Qt::AscendingOrder);
             _ui.tableView->setModel(&*proxyModel);
             _proxyModel = std::move(proxyModel);
+            updateSlider();
             _dimensionSelectionItemModel = std::move(dimensionSelectionItemModel);
         }
 
