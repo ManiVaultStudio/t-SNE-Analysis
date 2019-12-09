@@ -15,6 +15,7 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QMenu>
+#include <QMessageBox>
 #include <QSortFilterProxyModel>
 #include <QString>
 #include <QTime>
@@ -249,6 +250,25 @@ namespace hdps
             }
         }
 
+        template <bool selectVisible>
+        void selectDimensionsBasedOnVisibility()
+        {
+            const auto n = _holder.getNumberOfDimensions();
+
+            if (n > INT_MAX)
+            {
+                assert(!"Number of dimensions too large -- Qt uses int!");
+            }
+            else
+            {
+                for (unsigned i{}; i < n; ++i)
+                {
+                    _holder.setDimensionEnabled(i, _proxyModel->filterAcceptsRow(i, QModelIndex()) == selectVisible);
+                }
+                const ModelResetter modelResetter(_proxyModel.get());
+            }
+        }
+
     public:
         Impl(QWidget& widget)
             :
@@ -384,30 +404,58 @@ namespace hdps
                     qDebug()
                         << " Duration: " << time.elapsed() << " microsecond(s)";
 
+                    for (unsigned i{}; i <= 1; ++i)
                     {
-                        for (unsigned i{}; i <= 1; ++i)
+                        std::set<double> distinctStandardDeviations;
+
+                        for (const auto& statisticsPerDimension : _holder._statistics)
                         {
-                            std::set<double> distinctStandardDeviations;
-
-                            for (const auto& statisticsPerDimension : _holder._statistics)
+                            if (!std::isnan(statisticsPerDimension.standardDeviation[i]))
                             {
-                                if (!std::isnan(statisticsPerDimension.standardDeviation[i]))
-                                {
-                                    distinctStandardDeviations.insert(statisticsPerDimension.standardDeviation[i]);
-                                }
+                                distinctStandardDeviations.insert(statisticsPerDimension.standardDeviation[i]);
                             }
-
-                            _holder.distinctStandardDeviationsWithAndWithoutZero[i].assign(distinctStandardDeviations.cbegin(), distinctStandardDeviations.cend());
                         }
 
-
-                        assert(_ui.horizontalSlider->minimum() == 0);
-                        updateSlider();
+                        _holder.distinctStandardDeviationsWithAndWithoutZero[i].assign(distinctStandardDeviations.cbegin(), distinctStandardDeviations.cend());
                     }
 
+                    assert(_ui.horizontalSlider->minimum() == 0);
+                    updateSlider();
                 }
 
             });
+
+            connectButtonClicked(*_ui.selectVisibleDimensionsPushButton, [this]
+            {
+                selectDimensionsBasedOnVisibility<true>();
+            });
+
+            connectButtonClicked(*_ui.selectNonVisibleDimensionsPushButton, [this]
+            {
+                selectDimensionsBasedOnVisibility<false>();
+            });
+
+            connectButtonClicked(*_ui.loadExclusionListPushButton, [this, &widget]
+            {
+                QMessageBox::information(&widget, tr("Work in progress"), tr("Sorry, not yet implemented!")); // TODO
+                const auto fileName = QFileDialog::getOpenFileName(&widget,
+                    QObject::tr("Exclusion list"), {}, getSelectionFileFilter());
+            });
+
+            connectButtonClicked(*_ui.applyExclusionListCheckBox, [this, &widget]
+            {
+                QMessageBox::information(&widget, tr("Work in progress"), tr("Sorry, not yet implemented!")); // TODO
+            });
+
+            connectButtonToggled(*_ui.showOnlySelectedDimensionsCheckBox, [this, &widget](const bool checked)
+            {
+                if (_proxyModel != nullptr)
+                {
+                    const ModelResetter modelResetter(_proxyModel.get());
+                    _proxyModel->SetFilterShouldAcceptOnlySelected(checked);
+                }
+            });
+
 
             assert(_ui.tableView->contextMenuPolicy() == Qt::CustomContextMenu);
 

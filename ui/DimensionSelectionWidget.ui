@@ -47,6 +47,20 @@
        </layout>
       </item>
       <item>
+       <widget class="QCheckBox" name="showOnlySelectedDimensionsCheckBox">
+        <property name="text">
+         <string>Show only selected dimensions</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="applyExclusionListCheckBox">
+        <property name="text">
+         <string>Apply exclusion list</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="ignoreZeroValuesCheckBox">
         <property name="text">
          <string>Ignore zero values for statistics</string>
@@ -70,6 +84,9 @@
         </item>
         <item>
          <widget class="QSlider" name="horizontalSlider">
+          <property name="maximum">
+           <number>1</number>
+          </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -150,18 +167,49 @@
        </layout>
       </item>
       <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QPushButton" name="selectVisibleDimensionsPushButton">
+          <property name="text">
+           <string>Select visible dimensions</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="selectNonVisibleDimensionsPushButton">
+          <property name="text">
+           <string>Select non-visible dimensions</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="QPushButton" name="loadPushButton">
           <property name="text">
-           <string>Load</string>
+           <string>Load selection...</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="savePushButton">
           <property name="text">
-           <string>Save</string>
+           <string>Save selection...</string>
           </property>
          </widget>
         </item>
@@ -177,6 +225,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="loadExclusionListPushButton">
+          <property name="text">
+           <string>Load exclusion list...</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

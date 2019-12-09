@@ -79,14 +79,19 @@ namespace hdps
         {
             // Note: When _minimumStandardDeviation is -infinity, we accept rows with standardDeviation = NaN.
 
-            // The default implementation returns true if the value held by the relevant item matches
-            // the filter string, wildcard string or regular expression
-            return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+            if (!_filterShouldAcceptOnlySelected || _holder.isDimensionEnabled(sourceRow))
+            {
+                // The default implementation returns true if the value held by the relevant item matches
+                // the filter string, wildcard string or regular expression
+                return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+            }
         }
-        else
-        {
-            return false;
-        }
+        return false;
+    }
+
+    void DimensionSelectionProxyModel::SetFilterShouldAcceptOnlySelected(const bool arg)
+    {
+        _filterShouldAcceptOnlySelected = arg;
     }
 
 } // namespace hdps

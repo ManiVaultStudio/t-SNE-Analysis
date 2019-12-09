@@ -102,6 +102,11 @@ namespace hdps
     }
 
 
+    void DimensionSelectionHolder::setDimensionEnabled(const std::size_t i, const bool enabled)
+    {
+        _enabledDimensions[i] = enabled;
+    }
+
     std::vector<bool> DimensionSelectionHolder::getEnabledDimensions() const
     {
         const bool* const enabledDimensions = _enabledDimensions.get();
