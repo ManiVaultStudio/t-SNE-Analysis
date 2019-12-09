@@ -53,6 +53,8 @@ namespace hdps
 
         void toggleDimensionEnabled(std::size_t);
 
+        void setDimensionEnabled(std::size_t, bool);
+
         std::vector<bool> getEnabledDimensions() const;
     };
 
