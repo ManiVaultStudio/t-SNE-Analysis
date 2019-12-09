@@ -4,6 +4,7 @@
 
 #include "DimensionSelectionHolder.h"
 #include "DimensionSelectionItemModel.h"
+#include "DimensionSelectionProxyModel.h"
 #include "ModelResetter.h"
 #include "PointData.h"
 
@@ -34,82 +35,6 @@ namespace hdps
 {
     namespace
     {
-        class ProxyModel final : public QSortFilterProxyModel
-        {
-            const DimensionSelectionHolder& _holder;
-            double _minimumStandardDeviation = -std::numeric_limits<double>::infinity();
-
-        public:
-            explicit ProxyModel(const DimensionSelectionHolder& holder)
-                :
-                _holder(holder)
-            {
-            }
-
-            void SetMinimumStandardDeviation(const double minimumStandardDeviation)
-            {
-                _minimumStandardDeviation = minimumStandardDeviation;
-            }
-
-        private:
-            bool lessThan(const QModelIndex &modelIndex1, const QModelIndex &modelIndex2) const override
-            {
-                const auto column = modelIndex1.column();
-
-                if ((column == modelIndex2.column())  && (column >= 0) && (column < static_cast<int>(DimensionSelectionItemModel::ColumnEnum::count) ))
-                {
-                    const auto row1 = modelIndex1.row();
-                    const auto row2 = modelIndex2.row();
-
-                    switch ( static_cast<DimensionSelectionItemModel::ColumnEnum>(column))
-                    {
-                    case DimensionSelectionItemModel::ColumnEnum::Name:
-                    {
-                        return _holder.lessThanName(row1, row2);
-                    }
-                    case DimensionSelectionItemModel::ColumnEnum::Mean:
-                    {
-                        if (_holder._statistics.empty())
-                        {
-                            break;
-                        }
-                        return _holder._statistics[row1].mean[_holder._ignoreZeroValues ? 1 : 0] < 
-                            _holder._statistics[row2].mean[_holder._ignoreZeroValues ? 1 : 0];
-                    }
-                    case DimensionSelectionItemModel::ColumnEnum::StandardDeviation:
-                    {
-                        if (_holder._statistics.empty())
-                        {
-                            break;
-                        }
-                        return _holder._statistics[row1].standardDeviation[_holder._ignoreZeroValues ? 1 : 0] <
-                            _holder._statistics[row2].standardDeviation[_holder._ignoreZeroValues ? 1 : 0];
-                    }
-                    }
-                }
-                return QSortFilterProxyModel::lessThan(modelIndex1, modelIndex2);
-            }
-
-            bool filterAcceptsRow(const int sourceRow, const QModelIndex &sourceParent) const override
-            {
-                if ((_minimumStandardDeviation <= -std::numeric_limits<double>::infinity()) ||
-                    (_holder._statistics[sourceRow].standardDeviation[_holder._ignoreZeroValues ? 1 : 0] >= _minimumStandardDeviation))
-                {
-                    // Note: When _minimumStandardDeviation is -infinity, we accept rows with standardDeviation = NaN.
-
-                    // The default implementation returns true if the value held by the relevant item matches
-                    // the filter string, wildcard string or regular expression
-                    return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        };
-
-
-
         QString getSelectionFileFilter()
         {
             return QObject::tr("Text files (*.txt);;All files (*.*)");
@@ -280,7 +205,7 @@ namespace hdps
         DimensionSelectionHolder _holder;
 
         std::unique_ptr<DimensionSelectionItemModel> _dimensionSelectionItemModel;
-        std::unique_ptr<ProxyModel> _proxyModel;
+        std::unique_ptr<DimensionSelectionProxyModel> _proxyModel;
 
         QMetaObject::Connection m_awakeConnection;
 
@@ -453,7 +378,7 @@ namespace hdps
 
                         const auto numberOfDistinctStandardDeviations = _holder.distinctStandardDeviationsWithAndWithoutZero[_holder._ignoreZeroValues ? 1 : 0].size();
 
-                        if (numberOfDistinctStandardDeviations > 0)
+                        if ((numberOfDistinctStandardDeviations > 0) && (numberOfDistinctStandardDeviations <= std::numeric_limits<int>::max()))
                         {
                             _ui.horizontalSlider->setMaximum(numberOfDistinctStandardDeviations - 1);
                         }
@@ -556,7 +481,7 @@ namespace hdps
                 _holder = DimensionSelectionHolder(numberOfDimensions);
             }
             auto dimensionSelectionItemModel = std::make_unique<DimensionSelectionItemModel>(_holder);
-            auto proxyModel = std::make_unique<ProxyModel>(_holder);
+            auto proxyModel = std::make_unique<DimensionSelectionProxyModel>(_holder);
             proxyModel->setSourceModel(&*dimensionSelectionItemModel);
             _ui.tableView->horizontalHeader()->setSortIndicator(-1, Qt::AscendingOrder);
             _ui.tableView->setModel(&*proxyModel);
