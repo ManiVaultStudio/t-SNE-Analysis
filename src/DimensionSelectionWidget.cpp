@@ -271,9 +271,8 @@ namespace hdps
                 {
                     slider.setMaximum(newMaximum);
                     qDebug() << "Dimension Selection slider maximum value: " << newMaximum;
-                    slider.setValue(isSliderValueAtMaximum ? newMaximum : 0);
-
                 }
+                slider.setValue(isSliderValueAtMaximum ? newMaximum : 0);
             }
             else
             {
