@@ -242,7 +242,7 @@ namespace hdps
 
         QMetaObject::Connection m_awakeConnection;
 
-        const PointData* _pointData = nullptr;
+        const Points* _pointData = nullptr;
 
     private:
         void updateLabel()
@@ -606,11 +606,11 @@ namespace hdps
         }
 
 
-        void dataChanged(const PointData& pointData)
+        void dataChanged(const Points& points)
         {
-            _pointData = &pointData;
-            const auto numberOfDimensions = pointData.getNumDimensions();
-            setDimensions(numberOfDimensions, pointData.getDimensionNames());
+            _pointData = &points;
+            const auto numberOfDimensions = points.getNumDimensions();
+            setDimensions(numberOfDimensions, points.getDimensionNames());
         }
     };
 
@@ -624,9 +624,9 @@ namespace hdps
     DimensionSelectionWidget::~DimensionSelectionWidget() = default;
 
 
-    void DimensionSelectionWidget::dataChanged(const PointData& pointData)
+    void DimensionSelectionWidget::dataChanged(const Points& points)
     {
-        _pImpl->dataChanged(pointData);
+        _pImpl->dataChanged(points);
     }
 
     std::vector<bool> DimensionSelectionWidget::getEnabledDimensions() const

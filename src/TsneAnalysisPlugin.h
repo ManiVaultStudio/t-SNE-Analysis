@@ -39,7 +39,7 @@ private:
 
     TsneAnalysis _tsne;
     std::unique_ptr<TsneSettingsWidget> _settings;
-    QString _embedSetName;
+    QString _embeddingName;
 };
 
 // =============================================================================
