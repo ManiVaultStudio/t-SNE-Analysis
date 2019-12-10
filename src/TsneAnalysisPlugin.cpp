@@ -93,9 +93,9 @@ void TsneAnalysisPlugin::startComputation()
     // Create list of data from the enabled dimensions
     std::vector<float> data;
 
-    auto selection = set.indices;
+    auto selection = points.indices;
 
-    if (set.isFull()) {
+    if (points.isFull()) {
         std::vector<std::uint32_t> all(points.getNumPoints());
         std::iota(std::begin(all), std::end(all), 0);
 
