@@ -25,7 +25,7 @@ public:
     void dataChanged(const QString name) Q_DECL_OVERRIDE;
     void dataRemoved(const QString name) Q_DECL_OVERRIDE;
     void selectionChanged(const QString dataName) Q_DECL_OVERRIDE;
-    hdps::DataTypes supportedDataTypes() const Q_DECL_OVERRIDE;
+    QStringList supportedDataKinds() Q_DECL_OVERRIDE;
 
     SettingsWidget* const getSettings() override;
 public slots:

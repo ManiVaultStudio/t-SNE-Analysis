@@ -59,11 +59,11 @@ void TsneAnalysisPlugin::selectionChanged(const QString dataName)
 }
 
 
-DataTypes TsneAnalysisPlugin::supportedDataTypes() const
+QStringList TsneAnalysisPlugin::supportedDataKinds()
 {
-    DataTypes supportedTypes;
-    supportedTypes.append(PointType);
-    return supportedTypes;
+    QStringList supportedKinds;
+    supportedKinds << "Points";
+    return supportedKinds;
 }
 
 SettingsWidget* const TsneAnalysisPlugin::getSettings()
