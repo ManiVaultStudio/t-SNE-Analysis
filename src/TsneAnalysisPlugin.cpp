@@ -6,7 +6,10 @@
 #include <QtDebug>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
-#include <windows.h>
+
+#ifdef WIN32
+    #include <windows.h>
+#endif // WIN32
 
 #include <set>
 

@@ -34,9 +34,11 @@ public:
             qFatal("Cannot create requested OpenGL context.");
 
         _context->makeCurrent(this);
+#ifndef __APPLE__
         if (!gladLoadGL()) {
             qFatal("No OpenGL context is currently bound, therefore OpenGL function loading has failed.");
         }
+#endif // __APPLE__
     }
 
     void bindContext()

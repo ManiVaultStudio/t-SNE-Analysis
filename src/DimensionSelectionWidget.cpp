@@ -23,7 +23,8 @@
 // Standard C++ header files:
 #include <algorithm>
 #include <cmath>
-#include <execution>
+#include <deque>
+//#include <execution>
 #include <limits>
 #include <vector>
 
@@ -369,7 +370,7 @@ namespace hdps
 
                         if (numberOfPoints == 1)
                         {
-                            (void)std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions,
+                            (void)std::for_each_n(/*std::execution::par_unseq,*/ statistics.begin(), numberOfDimensions,
                                 [statisticsData, &pointData](auto& statisticsPerDimension)
                             {
                                 const auto i = &statisticsPerDimension - statisticsData;
@@ -380,7 +381,7 @@ namespace hdps
                         }
                         else
                         {
-                            (void)std::for_each_n(std::execution::par_unseq, statistics.begin(), numberOfDimensions,
+                            (void)std::for_each_n(/*std::execution::par_unseq, */statistics.begin(), numberOfDimensions,
                                 [statisticsData, &pointData, numberOfDimensions, numberOfPoints](auto& statisticsPerDimension)
                             {
                                 const std::unique_ptr<double[]> data(new double[numberOfPoints]);
