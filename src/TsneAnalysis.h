@@ -6,12 +6,12 @@
 #include "hdi/dimensionality_reduction/sparse_tsne_user_def_probabilities.h"
 #include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h"
 
-#include <QThread>
+#include <QObject>
 
 #include <vector>
 #include <string>
 
-class TsneAnalysis : public QThread
+class TsneAnalysis : public QObject
 {
     Q_OBJECT
 public:
@@ -34,6 +34,14 @@ public:
     inline int perplexity() { return _perplexity; }
     inline int numDimensionsOutput() { return _numDimensionsOutput; }
 
+    void start()
+    {
+        run();
+    }
+    bool isRunning()
+    {
+        return _isRunning;
+    }
     void initTSNE(const std::vector<float>& data, const int numDimensions);
     void stopGradientDescent();
     void markForDeletion();
@@ -45,7 +53,7 @@ public:
     inline bool isMarkedForDeletion() { return _isMarkedForDeletion; }
 
 private:
-    void run() override;
+    void run();
 
     void computeGradientDescent();
     void initGradientDescent();
@@ -82,4 +90,5 @@ private:
     bool _isMarkedForDeletion;
 
     int _continueFromIteration;
+    bool _isRunning;
 };

@@ -153,15 +153,7 @@ void TsneAnalysisPlugin::stopComputation() {
     {
         // Request interruption of the computation
         _tsne.stopGradientDescent();
-        _tsne.exit();
 
-        // Wait until the thread has terminated (max. 3 seconds)
-        if (!_tsne.wait(3000))
-        {
-            qDebug() << "tSNE computation thread did not close in time, terminating...";
-            _tsne.terminate();
-            _tsne.wait();
-        }
         qDebug() << "tSNE computation stopped.";
     }
 }

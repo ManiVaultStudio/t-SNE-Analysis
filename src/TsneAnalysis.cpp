@@ -68,7 +68,8 @@ _verbose(false),
 _isGradientDescentRunning(false),
 _isTsneRunning(false),
 _isMarkedForDeletion(false),
-_continueFromIteration(0)
+_continueFromIteration(0),
+_isRunning(false)
 {
     
 }
@@ -198,7 +199,9 @@ void TsneAnalysis::embed()
 }
 
 void TsneAnalysis::run() {
+    _isRunning = true;
     computeGradientDescent();
+    _isRunning = false;
 }
 
 // Copy tSNE output to our output
