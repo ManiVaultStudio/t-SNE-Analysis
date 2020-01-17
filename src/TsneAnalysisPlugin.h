@@ -3,6 +3,7 @@
 #include <AnalysisPlugin.h>
 
 #include "TsneAnalysis.h"
+
 class TsneSettingsWidget;
 
 using namespace hdps::plugin;
@@ -42,7 +43,9 @@ private:
     void initializeTsne();
 
     TsneAnalysis _tsne;
-    std::unique_ptr<TsneSettingsWidget> _settings;
+    HsneAnalysis _hsne;
+
+    std::unique_ptr<GeneralSettingsWidget> _settings;
     QString _embeddingName;
 };
 
