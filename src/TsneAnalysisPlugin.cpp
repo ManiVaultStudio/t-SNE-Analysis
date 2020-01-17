@@ -40,23 +40,23 @@ void TsneAnalysisPlugin::init()
 
 void TsneAnalysisPlugin::dataAdded(const QString name)
 {
-    _settings->dataOptions.addItem(name);
+    _settings->addDataItem(name);
 }
 
 void TsneAnalysisPlugin::dataChanged(const QString name)
 {
-    if (name != _settings->currentData()) {
+    if (name != _settings->getCurrentDataItem()) {
         return;
     }
 
     Points& points = _core->requestData<Points>(name);
 
-    _settings->dataChanged(points);
+    _settings->getDimensionSelectionWidget().dataChanged(points);
 }
 
 void TsneAnalysisPlugin::dataRemoved(const QString name)
 {
-
+    _settings->removeDataItem(name);
 }
 
 void TsneAnalysisPlugin::selectionChanged(const QString dataName)
@@ -81,7 +81,7 @@ void TsneAnalysisPlugin::dataSetPicked(const QString& name)
 {
     Points& points = _core->requestData<Points>(name);
 
-    _settings->dataChanged(points);
+    _settings->getDimensionSelectionWidget().dataChanged(points);
 }
 
 void TsneAnalysisPlugin::onKnnAlgorithmPicked(const int index)
@@ -96,13 +96,13 @@ void TsneAnalysisPlugin::onDistanceMetricPicked(const int index)
 
 void TsneAnalysisPlugin::startComputation()
 {
-    initializeTsne();
+    //FIXME initializeTsne();
 
     // Run the computation
-    QString setName = _settings->dataOptions.currentText();
+    QString setName = _settings->getCurrentDataItem();
     const Points& points = _core->requestData<Points>(setName);
 
-    std::vector<bool> enabledDimensions = _settings->getEnabledDimensions();
+    std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
 
     unsigned int numDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 
@@ -157,14 +157,14 @@ void TsneAnalysisPlugin::onNewEmbedding() {
     _core->notifyDataChanged(_embeddingName);
 }
 
-void TsneAnalysisPlugin::initializeTsne() {
-    // Initialize the tSNE computation with the settings from the settings widget
-    _tsne.setIterations(_settings->numIterations.text().toInt());
-    _tsne.setPerplexity(_settings->perplexity.text().toInt());
-    _tsne.setExaggerationIter(_settings->exaggeration.text().toInt());
-    _tsne.setNumTrees(_settings->numTrees.text().toInt());
-    _tsne.setNumChecks(_settings->numChecks.text().toInt());
-}
+//void TsneAnalysisPlugin::initializeTsne() {
+//    // Initialize the tSNE computation with the settings from the settings widget
+//    _tsne.setIterations(_settings->numIterations.text().toInt());
+//    _tsne.setPerplexity(_settings->perplexity.text().toInt());
+//    _tsne.setExaggerationIter(_settings->exaggeration.text().toInt());
+//    _tsne.setNumTrees(_settings->numTrees.text().toInt());
+//    _tsne.setNumChecks(_settings->numChecks.text().toInt());
+//}
 
 void TsneAnalysisPlugin::stopComputation() {
     if (_tsne.isRunning())

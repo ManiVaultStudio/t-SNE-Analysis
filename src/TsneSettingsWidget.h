@@ -42,7 +42,6 @@ public:
     std::vector<bool> getEnabledDimensions();
     bool hasValidSettings();
 
-    QString currentData();
     void dataChanged(const Points& points);
 private:
     void checkInputStyle(QLineEdit& input);
@@ -56,7 +55,7 @@ public slots:
     void computationStopped();
 
 private slots:
-    void onStartToggled(bool pressed);
+    //void onStartToggled(bool pressed);
     void numIterationsChanged(const QString &value);
     void perplexityChanged(const QString &value);
     void exaggerationChanged(const QString &value);

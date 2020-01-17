@@ -1,5 +1,6 @@
 #include "TsneSettingsWidget.h"
 
+
 #include "DimensionSelectionWidget.h"
 #include "TsneAnalysisPlugin.h"
 
@@ -114,7 +115,6 @@ _analysisPlugin(analysisPlugin)
     advancedSettingsBox->setLayout(advancedSettingsLayout);
 
     // Add all the parts of the settings widget together
-    addWidget(&dataOptions);
     addWidget(settingsBox);
     addWidget(&_dimensionSelectionWidget);
     addWidget(advancedSettingsBox);
@@ -135,12 +135,6 @@ void TsneSettingsWidget::dataChanged(const Points& points)
 std::vector<bool> TsneSettingsWidget::getEnabledDimensions()
 {
     return _dimensionSelectionWidget.getEnabledDimensions();
-}
-
-
-QString TsneSettingsWidget::currentData()
-{
-    return dataOptions.currentText();
 }
 
 // Check if all input values are valid

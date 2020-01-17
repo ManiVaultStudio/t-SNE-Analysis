@@ -35,6 +35,8 @@ set(SOURCES
     src/TsneAnalysis.cpp
     src/TsneSettingsWidget.h
     src/TsneSettingsWidget.cpp
+    src/GeneralSettingsWidget.h
+    src/GeneralSettingsWidget.cpp
     src/TsneData.h
 )
 
