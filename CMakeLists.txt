@@ -38,6 +38,8 @@ set(SOURCES
     src/GeneralSettingsWidget.h
     src/GeneralSettingsWidget.cpp
     src/TsneData.h
+    src/HsneAnalysis.h
+    src/HsneAnalysis.cpp
 )
 
 source_group( Plugin FILES ${SOURCES})
