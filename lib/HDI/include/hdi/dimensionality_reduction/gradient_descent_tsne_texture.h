@@ -55,6 +55,9 @@ namespace hdi {
     */
     class GradientDescentTSNETexture {
     public:
+#ifndef __APPLE__
+      typedef enum { RASTER, COMPUTE_SHADER, AUTO_DETECT } GpgpuSneType;
+#endif
       typedef float scalar_type;
       typedef std::vector<hdi::data::MapMemEff<uint32_t, float>> sparse_scalar_matrix_type;
       typedef std::vector<scalar_type> scalar_vector_type;
@@ -62,10 +65,17 @@ namespace hdi {
 
     public:
       GradientDescentTSNETexture();
+
+#ifndef __APPLE__
+      //! Override the default compute type.
+      void setType(GpgpuSneType _tsneType);
+#endif
       //! Initialize the class with a list of distributions. A joint-probability distribution will be computed as in the tSNE algorithm
       void initialize(const sparse_scalar_matrix_type& probabilities, data::Embedding<scalar_type>* embedding, TsneParameters params = TsneParameters());
       //! Initialize the class with a joint-probability distribution. Note that it must be provided non initialized and with the weight of each row equal to 2.
       void initializeWithJointProbabilityDistribution(const sparse_scalar_matrix_type& distribution, data::Embedding<scalar_type>* embedding, TsneParameters params = TsneParameters());
+      //! Change the runtime modifiable tsne parameters
+      void updateParams(TsneParameters params);
       //! Reset the internal state of the class but it keeps the inserted data-points
       void reset();
       //! Reset the class and remove all the data points
@@ -99,17 +109,15 @@ namespace hdi {
       //! Set the adaptive texture scaling
       void setResolutionFactor(float factor) {
 #ifndef __APPLE__
-        if (GLAD_GL_VERSION_4_3)
-        {
+        if (_gpgpu_type == COMPUTE_SHADER)
           _gpgpu_compute_tsne.setScalingFactor(factor);
-        }
-		else if (GLAD_GL_VERSION_3_3)
-#endif // __APPLE__
-        {
+        else
           _gpgpu_raster_tsne.setScalingFactor(factor);
-        }
+#else
+        _gpgpu_raster_tsne.setScalingFactor(factor);
+#endif
       }
-
+      bool isInitialized() { return _initialized == true; }
       //! Exageration baseline
       double& exaggeration_baseline() { return _exaggeration_baseline; }
       const double& exaggeration_baseline()const { return _exaggeration_baseline; }
@@ -136,9 +144,9 @@ namespace hdi {
 
     private:
       data::Embedding<scalar_type>* _embedding; //! embedding
-	  data::Embedding<scalar_type>::scalar_vector_type* _embedding_container;
-	  // TH: the below does not work in VS2013
-	  // typename data::Embedding<scalar_type>::scalar_vector_type* _embedding_container;
+      data::Embedding<scalar_type>::scalar_vector_type* _embedding_container;
+      // TH: the below does not work in VS2013
+      // typename data::Embedding<scalar_type>::scalar_vector_type* _embedding_container;
       bool _initialized; //! Initialization flag
 
       double _exaggeration_baseline;
@@ -149,6 +157,7 @@ namespace hdi {
 
 #ifndef __APPLE__
       GpgpuSneCompute _gpgpu_compute_tsne;
+      GpgpuSneType _gpgpu_type;
 #endif // __APPLE__
       GpgpuSneRaster _gpgpu_raster_tsne;
 

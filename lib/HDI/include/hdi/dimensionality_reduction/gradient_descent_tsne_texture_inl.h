@@ -73,8 +73,30 @@ namespace hdi {
       _logger(nullptr),
       _exaggeration_baseline(1)
     {
-
+#ifndef __APPLE__
+      _gpgpu_type = AUTO_DETECT;
+#endif
     }
+
+#ifndef __APPLE__
+    void GradientDescentTSNETexture::setType(GpgpuSneType tsne_type) {
+      if (tsne_type == AUTO_DETECT)
+      {
+        //resolve the optimal type to use based on the available OpenGL version
+        if (GLAD_GL_VERSION_4_3)
+        {
+          _gpgpu_type = COMPUTE_SHADER;
+        }
+        else if (GLAD_GL_VERSION_3_3)
+        {
+          std::cout << "Compute shaders not available, using rasterization fallback" << std::endl;
+          _gpgpu_type = RASTER;
+        }
+      }
+      else
+        _gpgpu_type = tsne_type;
+    }
+#endif
 
     void GradientDescentTSNETexture::reset() {
       _initialized = false;
@@ -116,19 +138,20 @@ namespace hdi {
       utils::secureLogValue(_logger, "Number of data points", _P.size());
 
       computeHighDimensionalDistribution(probabilities);
-      initializeEmbeddingPosition(params._seed, params._rngRange);
+      if (!params._presetEmbedding) {
+        initializeEmbeddingPosition(params._seed);
+      }
 
 #ifndef __APPLE__
-      if (GLAD_GL_VERSION_4_3)
-      {
+      if (_gpgpu_type == AUTO_DETECT)
+        setType(AUTO_DETECT); // resolves whether to use Compute Shader or Raster version
+      if (_gpgpu_type == COMPUTE_SHADER)
         _gpgpu_compute_tsne.initialize(_embedding, _params, _P);
-      }
-      else if (GLAD_GL_VERSION_3_3)
-#endif // __APPLE__
-      {
-        std::cout << "Compute shaders not available, using rasterization fallback" << std::endl;
+      else// (_tsne_type == RASTER)
         _gpgpu_raster_tsne.initialize(_embedding, _params, _P);
-      }
+#else
+      _gpgpu_raster_tsne.initialize(_embedding, _params, _P);
+#endif
 
       _iteration = 0;
 
@@ -155,23 +178,33 @@ namespace hdi {
       initializeEmbeddingPosition(params._seed, params._rngRange);
 
 #ifndef __APPLE__
-      if (GLAD_GL_VERSION_4_3)
-      {
-        utils::secureLog(_logger, "Init GPGPU gradient descent using compute shaders.");
+      if (_gpgpu_type == AUTO_DETECT)
+        setType(AUTO_DETECT); // resolves whether to use Compute Shader or Raster version
+      if (_gpgpu_type == COMPUTE_SHADER)
         _gpgpu_compute_tsne.initialize(_embedding, _params, _P);
-      }
-      else if (GLAD_GL_VERSION_3_3)
-#endif // __APPLE__
-      {
-        utils::secureLog(_logger, "Init GPU gradient descent. Compute shaders not available, using rasterization fallback.");
+      else// (_tsne_type == RASTER)
         _gpgpu_raster_tsne.initialize(_embedding, _params, _P);
-      }
-
+#else
+      _gpgpu_raster_tsne.initialize(_embedding, _params, _P);
+#endif
 
       _iteration = 0;
 
       _initialized = true;
       utils::secureLog(_logger, "Initialization complete!");
+    }
+
+    void GradientDescentTSNETexture::updateParams(TsneParameters params) {
+      if (!_initialized) {
+        throw std::runtime_error("GradientDescentTSNETexture must be initialized before updating the tsne parameters");
+      }
+      _params = params;
+#ifndef __APPLE__
+      _gpgpu_compute_tsne.updateParams(params);
+#else
+
+      _gpgpu_raster_tsne.updateParams(params);
+#endif
     }
 
     void GradientDescentTSNETexture::computeHighDimensionalDistribution(const sparse_scalar_matrix_type& probabilities) {
@@ -255,15 +288,13 @@ namespace hdi {
     void GradientDescentTSNETexture::doAnIterationImpl(double mult) {
       // Compute gradient of the KL function using a compute shader approach
 #ifndef __APPLE__
-      if (GLAD_GL_VERSION_4_3)
-      {
+      if (_gpgpu_type == COMPUTE_SHADER)
         _gpgpu_compute_tsne.compute(_embedding, exaggerationFactor(), _iteration, mult);
-      }
-      else if (GLAD_GL_VERSION_3_3)
-#endif // __APPLE__
-      {
+      else
         _gpgpu_raster_tsne.compute(_embedding, exaggerationFactor(), _iteration, mult);
-      }
+#else
+      _gpgpu_raster_tsne.compute(_embedding, exaggerationFactor(), _iteration, mult);
+#endif
       ++_iteration;
     }
 
@@ -278,9 +309,9 @@ namespace hdi {
         for (int i = j + 1; i < n; ++i) {
           const double euclidean_dist_sq(
             utils::euclideanDistanceSquared<float>(
-              _embedding->getContainer().begin() + j*_params._embedding_dimensionality,
+              _embedding->getContainer().begin() + j * _params._embedding_dimensionality,
               _embedding->getContainer().begin() + (j + 1)*_params._embedding_dimensionality,
-              _embedding->getContainer().begin() + i*_params._embedding_dimensionality,
+              _embedding->getContainer().begin() + i * _params._embedding_dimensionality,
               _embedding->getContainer().begin() + (i + 1)*_params._embedding_dimensionality
               )
           );
@@ -298,7 +329,7 @@ namespace hdi {
       //}
 
       double kl = 0;
-      
+
       for (int i = 0; i < n; ++i) {
         for (const auto& pij : _P[i]) {
           uint32_t j = pij.first;
@@ -306,9 +337,9 @@ namespace hdi {
           // Calculate Qij
           const double euclidean_dist_sq(
             utils::euclideanDistanceSquared<float>(
-              _embedding->getContainer().begin() + j*_params._embedding_dimensionality,
+              _embedding->getContainer().begin() + j * _params._embedding_dimensionality,
               _embedding->getContainer().begin() + (j + 1)*_params._embedding_dimensionality,
-              _embedding->getContainer().begin() + i*_params._embedding_dimensionality,
+              _embedding->getContainer().begin() + i * _params._embedding_dimensionality,
               _embedding->getContainer().begin() + (i + 1)*_params._embedding_dimensionality
               )
           );
@@ -320,7 +351,7 @@ namespace hdi {
           //{
           //  std::cout << "KLC: " << klc << " i: " << i << "neighbour: " << neighbour_id << std::endl;
           //}
-          
+
           kl += klc;
         }
       }
