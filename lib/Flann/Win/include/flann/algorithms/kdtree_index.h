@@ -36,6 +36,8 @@
 #include <cassert>
 #include <cstring>
 #include <stdarg.h>
+#include <cmath>
+#include <random>
 
 #include "flann/general.h"
 #include "flann/algorithms/nn_index.h"
@@ -264,7 +266,9 @@ protected:
         /* Construct the randomized trees. */
         for (int i = 0; i < trees_; i++) {
             /* Randomize the order of vectors to allow for unbiased sampling. */
-            std::random_shuffle(ind.begin(), ind.end());
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(ind.begin(), ind.end(), g);
             tree_roots_[i] = divideTree(&ind[0], int(size_) );
         }
         delete[] mean_;
@@ -298,15 +302,19 @@ private:
          * Point data
          */
         ElementType* point;
-        /**
-         * The child nodes.
-         */
-        Node* child1, * child2;
+		/**
+		* The child nodes.
+		*/
+		Node* child1, *child2;
+		Node(){
+			child1 = NULL;
+			child2 = NULL;
+		}
+		~Node() {
+			if (child1 != NULL) { child1->~Node(); child1 = NULL; }
 
-        ~Node() {
-        	if (child1!=NULL) child1->~Node();
-        	if (child2!=NULL) child2->~Node();
-        }
+			if (child2 != NULL) { child2->~Node(); child2 = NULL; }
+		}
 
     private:
     	template<typename Archive>
@@ -663,7 +671,7 @@ private:
             ElementType max_span = 0;
             size_t div_feat = 0;
             for (size_t i=0;i<veclen_;++i) {
-                ElementType span = abs(point[i]-leaf_point[i]);
+                ElementType span = std::abs(point[i]-leaf_point[i]);
                 if (span > max_span) {
                     max_span = span;
                     div_feat = i;
