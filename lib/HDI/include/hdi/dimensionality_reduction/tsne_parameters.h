@@ -42,6 +42,7 @@ namespace hdi {
         _seed(-1),
         _rngRange(0.1f),
         _embedding_dimensionality(2),
+        _iterations(1000),
         _minimum_gain(0.1),
         _eta(200),
         _momentum(0.2),
@@ -50,12 +51,13 @@ namespace hdi {
         _exaggeration_factor(4),
         _remove_exaggeration_iter(250),
         _exponential_decay_iter(150),
-        _presetEmbedding(false)
+        _perplexity(30.0)
       { }
 
       int _seed;
       float _rngRange;
       int _embedding_dimensionality;
+      int _iterations;
 
       double _minimum_gain;
       double _eta;                                //! constant multiplicator of the gradient
@@ -65,7 +67,7 @@ namespace hdi {
       double _exaggeration_factor;                //! exaggeration factor for the attractive forces. Note: it shouldn't be too high when few points are used
       unsigned int _remove_exaggeration_iter;     //! iterations with complete exaggeration of the attractive forces
       unsigned int _exponential_decay_iter;       //! iterations required to remove the exaggeration using an exponential decay
-      bool _presetEmbedding;					  //! Used at initialization to use the input embedding positions 
+      double _perplexity;                         //! Perplexity of data, probably between 5 and 50
     };
   }
 }

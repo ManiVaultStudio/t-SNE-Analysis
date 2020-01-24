@@ -33,10 +33,9 @@
 #ifndef SET_INTERSECTION_TREE_H
 #define SET_INTERSECTION_TREE_H
 
-#ifdef PREPROC_USE_ROARING
-
-#include "roaring.hh"
+#include <random>
 #include <queue>
+#include "roaring/roaring.hh"
 
 namespace hdi{
   namespace data{
@@ -66,8 +65,7 @@ namespace hdi{
       };
 
     public:
-
-      SetIntersectionTree():_max_bucket_size(50),_n_queries(0),_n_node_visited(0),_n_node_traversed(0){}
+      SetIntersectionTree():_max_bucket_size(50),_n_queries(0),_n_node_visited(0),_n_node_traversed(0), urng(rng()) {}
       void build(const std::vector<Roaring>& sets);
 
       void getNonDuplicatedPoints(std::vector<uint32_t>& idxes, std::vector<uint32_t>& repetitions)const;
@@ -103,9 +101,10 @@ namespace hdi{
       uint32_t        _max_depth;
       uint32_t        _tot_num_duplicates;
       uint32_t        _max_in_bucket;
-
       uint32_t        _max_bucket_size;
 
+      std::random_device rng;
+      std::mt19937 urng;
 
       mutable uint32_t        _n_queries;
       mutable uint32_t        _n_node_visited;
@@ -115,6 +114,4 @@ namespace hdi{
   }
 }
 
-#endif
-
-#endif
+#endif // SET_INTERSECTION_TREE_H

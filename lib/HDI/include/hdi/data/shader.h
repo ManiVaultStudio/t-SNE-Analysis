@@ -3,11 +3,10 @@
 #ifdef __APPLE__
     #include <OpenGL/gl3.h>
 #else // __APPLE__
-    #include "hdi/utils/glad/glad.h"
+    #include "hdi/utils/glad.h"
 #endif // __APPLE__
 
 #include <exception>
-
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -78,6 +77,7 @@ public:
   void addShader(ShaderType type, const char* source);
   void build();
   std::string getError();
+  std::string getBinary();
 
   bool isCreated();
   bool isLinked();
@@ -99,8 +99,13 @@ public:
   void uniform3f(const char* name, float v0, float v1, float v2);
   void uniform3f(const char* name, const float* v);
   void uniform3fv(const char* name, int count, const float* values);
+  void uniform3i(const char* name, int v0, int v1, int v2);
+  void uniform3ui(const char* name, unsigned int v0, unsigned int v1, unsigned int v2);
   void uniform4f(const char* name, float v0, float v1, float v2, float v3);
+  void uniform4i(const char* name, int v0, int v1, int v2, int v3);
+  void uniform4ui(const char* name, unsigned int v0, unsigned int v1, unsigned int v2, unsigned int v3);
   void uniformMatrix4f(const char* name, const float* m);
+  GLint getUniformLocation(const char* name);
 
 private:
   void link();
@@ -109,7 +114,6 @@ private:
   void detachAll();
 
   std::string getInfoLog();
-  GLint getUniformLocation(const char* name);
 
 private:
   GLuint _handle;

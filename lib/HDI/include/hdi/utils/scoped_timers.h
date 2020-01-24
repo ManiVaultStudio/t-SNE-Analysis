@@ -42,7 +42,7 @@ namespace hdi{
   namespace utils{
 
     template <class T, class UnitOfMeas = Milliseconds>
-    class ScopedTimer{
+    class ScopedTimer {
     public:
       //! start the timer
       ScopedTimer(T& elapsed_time);
@@ -55,7 +55,7 @@ namespace hdi{
     };
 
     template <class T, class UnitOfMeas = Milliseconds>
-    class ScopedIncrementalTimer{
+    class ScopedIncrementalTimer {
     public:
       //! start the timer
       ScopedIncrementalTimer(T& elapsed_time);
@@ -67,6 +67,19 @@ namespace hdi{
       T&     _elapsed_time;
     };
 
+    template <class T, class I = size_t, class UnitOfMeas = Milliseconds>
+    class ScopedAveragingTimer {
+    public:
+      //! start the timer
+      ScopedAveragingTimer(T& elapsed_time, I& iterations);
+      //! stop the timer and save the elapsedTime
+      ~ScopedAveragingTimer();
+
+    private:
+      Timer   _timer;
+      T&     _elapsed_time;
+      I&     _iterations;
+    };
   }
 }
 
