@@ -1,14 +1,10 @@
 #include "TsneAnalysis.h"
-
 #include <vector>
 #include <assert.h>
-
 #include "TsneAnalysisPlugin.h"
 #include <QDebug>
-
 #include "hdi/dimensionality_reduction/tsne_parameters.h"
 #include "hdi/utils/scoped_timers.h"
-
 #include <QWindow>
 #include <QOpenGLContext>
 
@@ -123,7 +119,6 @@ void TsneAnalysis::initTSNE(const std::vector<float>& data, const int numDimensi
 void TsneAnalysis::initGradientDescent()
 {
     _continueFromIteration = 0;
-
     _isTsneRunning = true;
 
     hdi::dr::TsneParameters tsneParams;
@@ -166,7 +161,7 @@ void TsneAnalysis::embed()
             }
 
             // Perform a GPGPU-SNE iteration
-            _GPGPU_tSNE.doAnIteration();
+            _GPGPU_tSNE.iterate();
 
             if (iter > 0 && iter % 10 == 0)
             {
