@@ -66,6 +66,23 @@ namespace hdi{
       _timer.stop();
       _elapsed_time += static_cast<T>(_timer.elapsedTime<UnitOfMeas>());
     }
+
+    template <class T, class I, class UnitOfMeas>
+    ScopedAveragingTimer<T, I, UnitOfMeas>::ScopedAveragingTimer(T& elapsed_time, I& iterations) :
+      _elapsed_time(elapsed_time),
+      _iterations(iterations)
+    {
+      _timer.start();
+    }
+
+    template <class T, class I, class UnitOfMeas>
+    ScopedAveragingTimer<T, I, UnitOfMeas>::~ScopedAveragingTimer(){
+      _timer.stop();
+      _iterations += static_cast<I>(1);
+      _elapsed_time = _elapsed_time
+        + (static_cast<T>(_timer.elapsedTime<UnitOfMeas>()) - _elapsed_time) 
+        / static_cast<T>(_iterations);
+    }
   }
 }
 

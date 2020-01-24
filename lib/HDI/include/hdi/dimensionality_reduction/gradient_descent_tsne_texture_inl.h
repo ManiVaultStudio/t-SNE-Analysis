@@ -47,316 +47,201 @@
 #define __block
 #endif
 
+#define FORCE_RASTERIZER_FALLBACK 0
+
 #pragma warning( push )
 #pragma warning( disable : 4267)
-#pragma warning( push )
 #pragma warning( disable : 4291)
-#pragma warning( push )
 #pragma warning( disable : 4996)
-#pragma warning( push )
 #pragma warning( disable : 4018)
-#pragma warning( push )
 #pragma warning( disable : 4244)
 //#define FLANN_USE_CUDA
 #include "flann/flann.h"
 #pragma warning( pop )
-#pragma warning( pop )
-#pragma warning( pop )
-#pragma warning( pop )
-#pragma warning( pop )
 
-namespace hdi {
-  namespace dr {
+namespace hdi::dr {
+  GradientDescentTSNETexture::GradientDescentTSNETexture()
+  : AbstractGradientDescentTSNE() { }
 
-    GradientDescentTSNETexture::GradientDescentTSNETexture() :
-      _initialized(false),
-      _logger(nullptr),
-      _exaggeration_baseline(1)
-    {
-#ifndef __APPLE__
-      _gpgpu_type = AUTO_DETECT;
-#endif
+  GradientDescentTSNETexture::~GradientDescentTSNETexture() { }
+
+  void GradientDescentTSNETexture::getEmbeddingPosition(scalar_vector_t& embedding_position, data_handle_t handle) const {
+    if (!_initialized) {
+      throw std::logic_error("Algorithm must be initialized beforehand!");
     }
-
-#ifndef __APPLE__
-    void GradientDescentTSNETexture::setType(GpgpuSneType tsne_type) {
-      if (tsne_type == AUTO_DETECT)
-      {
-        //resolve the optimal type to use based on the available OpenGL version
-        if (GLAD_GL_VERSION_4_3)
-        {
-          _gpgpu_type = COMPUTE_SHADER;
-        }
-        else if (GLAD_GL_VERSION_3_3)
-        {
-          std::cout << "Compute shaders not available, using rasterization fallback" << std::endl;
-          _gpgpu_type = RASTER;
-        }
-      }
-      else
-        _gpgpu_type = tsne_type;
+    embedding_position.resize(_params._embedding_dimensionality);
+    for (int i = 0; i < _params._embedding_dimensionality; ++i) {
+      (*_embedding_container)[i] = (*_embedding_container)[handle*_params._embedding_dimensionality + i];
     }
-#endif
+  }
 
-    void GradientDescentTSNETexture::reset() {
-      _initialized = false;
-    }
+  /////////////////////////////////////////////////////////////////////////
 
-    void GradientDescentTSNETexture::clear() {
-      _embedding->clear();
-      _initialized = false;
-    }
-
-    void GradientDescentTSNETexture::getEmbeddingPosition(scalar_vector_type& embedding_position, data_handle_type handle) const {
-      if (!_initialized) {
-        throw std::logic_error("Algorithm must be initialized before ");
-      }
-      embedding_position.resize(_params._embedding_dimensionality);
-      for (int i = 0; i < _params._embedding_dimensionality; ++i) {
-        (*_embedding_container)[i] = (*_embedding_container)[handle*_params._embedding_dimensionality + i];
-      }
-    }
-
-
-    /////////////////////////////////////////////////////////////////////////
-
-
-    void GradientDescentTSNETexture::initialize(const sparse_scalar_matrix_type& probabilities, data::Embedding<scalar_type>* embedding, TsneParameters params) {
-      utils::secureLog(_logger, "Initializing tSNE...");
-      {//Aux data
-        _params = params;
-        unsigned int size = probabilities.size();
-        unsigned int size_sq = probabilities.size()*probabilities.size();
-
-        _embedding = embedding;
-        _embedding_container = &(embedding->getContainer());
-        _embedding->resize(_params._embedding_dimensionality, size);
-        _P.clear();
-        _P.resize(size);
-      }
-
-      utils::secureLogValue(_logger, "Number of data points", _P.size());
-
-      computeHighDimensionalDistribution(probabilities);
-      if (!params._presetEmbedding) {
-        initializeEmbeddingPosition(params._seed);
-      }
-
-#ifndef __APPLE__
-      if (_gpgpu_type == AUTO_DETECT)
-        setType(AUTO_DETECT); // resolves whether to use Compute Shader or Raster version
-      if (_gpgpu_type == COMPUTE_SHADER)
-        _gpgpu_compute_tsne.initialize(_embedding, _params, _P);
-      else// (_tsne_type == RASTER)
-        _gpgpu_raster_tsne.initialize(_embedding, _params, _P);
-#else
-      _gpgpu_raster_tsne.initialize(_embedding, _params, _P);
-#endif
-
-      _iteration = 0;
-
-      _initialized = true;
-      utils::secureLog(_logger, "Initialization complete!");
-    }
-
-    void GradientDescentTSNETexture::initializeWithJointProbabilityDistribution(const sparse_scalar_matrix_type& distribution, data::Embedding<scalar_type>* embedding, TsneParameters params) {
-      utils::secureLog(_logger, "Initializing tSNE with a user-defined joint-probability distribution...");
-      {//Aux data
-        _params = params;
-        unsigned int size = distribution.size();
-        unsigned int size_sq = distribution.size()*distribution.size();
-
-        _embedding = embedding;
-        _embedding_container = &(embedding->getContainer());
-        _embedding->resize(_params._embedding_dimensionality, size);
-        _P.resize(size);
-      }
-
-      utils::secureLogValue(_logger, "Number of data points", _P.size());
-
-      _P = distribution;
-      initializeEmbeddingPosition(params._seed, params._rngRange);
-
-#ifndef __APPLE__
-      if (_gpgpu_type == AUTO_DETECT)
-        setType(AUTO_DETECT); // resolves whether to use Compute Shader or Raster version
-      if (_gpgpu_type == COMPUTE_SHADER)
-        _gpgpu_compute_tsne.initialize(_embedding, _params, _P);
-      else// (_tsne_type == RASTER)
-        _gpgpu_raster_tsne.initialize(_embedding, _params, _P);
-#else
-      _gpgpu_raster_tsne.initialize(_embedding, _params, _P);
-#endif
-
-      _iteration = 0;
-
-      _initialized = true;
-      utils::secureLog(_logger, "Initialization complete!");
-    }
-
-    void GradientDescentTSNETexture::updateParams(TsneParameters params) {
-      if (!_initialized) {
-        throw std::runtime_error("GradientDescentTSNETexture must be initialized before updating the tsne parameters");
-      }
+  void GradientDescentTSNETexture::initialize(const sparse_scalar_matrix_t& probabilities, data::Embedding<scalar_t>* embedding, TsneParameters params) {
+    utils::secureLog(_logger, "Initializing tSNE...");
+    {//Aux data
       _params = params;
-#ifndef __APPLE__
-      _gpgpu_compute_tsne.updateParams(params);
-#else
+      unsigned int size = probabilities.size();
+      unsigned int size_sq = probabilities.size()*probabilities.size();
 
-      _gpgpu_raster_tsne.updateParams(params);
-#endif
+      _embedding = embedding;
+      _embedding_container = &(embedding->getContainer());
+
+      // Add padding to embedding data for vec4 on gpu
+      _embedding->resize(_params._embedding_dimensionality, size, 0, 0);
+      _P.clear();
+      _P.resize(size);
     }
 
-    void GradientDescentTSNETexture::computeHighDimensionalDistribution(const sparse_scalar_matrix_type& probabilities) {
-      utils::secureLog(_logger, "Computing high-dimensional joint probability distribution...");
+    utils::secureLogValue(_logger, "Number of data points", _P.size());
 
-      const int n = getNumberOfDataPoints();
-      for (int j = 0; j < n; ++j) {
-        for (auto& elem : probabilities[j]) {
-          scalar_type v0 = elem.second;
-          auto iter = probabilities[elem.first].find(j);
-          scalar_type v1 = 0.;
-          if (iter != probabilities[elem.first].end())
-            v1 = iter->second;
+    computeHighDimensionalDistribution(probabilities);
+    initializeEmbeddingPosition(params._seed, params._rngRange);
 
-          _P[j][elem.first] = static_cast<scalar_type>((v0 + v1)*0.5);
-          _P[elem.first][j] = static_cast<scalar_type>((v0 + v1)*0.5);
+#ifndef __APPLE__
+    if (GLAD_GL_VERSION_4_3 && !FORCE_RASTERIZER_FALLBACK)
+    {
+      _gpgpu_compute_tsne.initialize(_embedding, _params, _P);
+    }
+    else if (GLAD_GL_VERSION_3_3 || FORCE_RASTERIZER_FALLBACK)
+#endif // __APPLE__
+    {
+      std::cout << "Compute shaders not available, using rasterization fallback" << std::endl;
+      _gpgpu_raster_tsne.initialize(_embedding, _params, _P);
+    }
+
+    _iteration = 0;
+
+    _initialized = true;
+    utils::secureLog(_logger, "Initialization complete!");
+  }
+
+  void GradientDescentTSNETexture::initializeWithJointProbabilityDistribution(const sparse_scalar_matrix_t& distribution, data::Embedding<scalar_t>* embedding, TsneParameters params) {
+    utils::secureLog(_logger, "Initializing tSNE with a user-defined joint-probability distribution...");
+    {//Aux data
+      _params = params;
+      unsigned int size = distribution.size();
+      unsigned int size_sq = distribution.size()*distribution.size();
+
+      _embedding = embedding;
+      _embedding_container = &(embedding->getContainer());
+      _embedding->resize(_params._embedding_dimensionality, size, _params._embedding_dimensionality == 3 ? 1 : 0);
+      _P.resize(size);
+    }
+
+    utils::secureLogValue(_logger, "Number of data points", _P.size());
+
+    _P = distribution;
+    initializeEmbeddingPosition(params._seed, params._rngRange);
+
+#ifndef __APPLE__
+    if (GLAD_GL_VERSION_4_3 && !FORCE_RASTERIZER_FALLBACK)
+    {
+      utils::secureLog(_logger, "Init GPGPU gradient descent using compute shaders.");
+      _gpgpu_compute_tsne.initialize(_embedding, _params, _P);
+    }
+    else if (GLAD_GL_VERSION_3_3 || FORCE_RASTERIZER_FALLBACK)
+#endif // __APPLE__
+    {
+      utils::secureLog(_logger, "Init GPU gradient descent. Compute shaders not available, using rasterization fallback.");
+      _gpgpu_raster_tsne.initialize(_embedding, _params, _P);
+    }
+
+    _iteration = 0;
+
+    _initialized = true;
+    utils::secureLog(_logger, "Initialization complete!");
+  }
+
+  void GradientDescentTSNETexture::computeHighDimensionalDistribution(const sparse_scalar_matrix_t& probabilities) {
+    utils::secureLog(_logger, "Computing high-dimensional joint probability distribution...");
+
+    const int n = getNumberOfDataPoints();
+    for (int j = 0; j < n; ++j) {
+      for (auto& elem : probabilities[j]) {
+        scalar_t v0 = elem.second;
+        auto iter = probabilities[elem.first].find(j);
+        scalar_t v1 = 0.;
+        if (iter != probabilities[elem.first].end())
+          v1 = iter->second;
+
+        _P[j][elem.first] = static_cast<scalar_t>((v0 + v1)*0.5);
+        _P[elem.first][j] = static_cast<scalar_t>((v0 + v1)*0.5);
+      }
+    }
+  }
+
+
+  void GradientDescentTSNETexture::initializeEmbeddingPosition(int seed, double multiplier) {
+    utils::secureLog(_logger, "Initializing the embedding...");
+    if (seed < 0) {
+      std::srand(static_cast<unsigned int>(time(NULL)));
+    } else {
+      std::srand(seed);
+    }
+
+    for (int i = 0; i < _embedding->numDataPoints(); ++i) {
+      std::vector<double> d(_embedding->numDimensions(), 0.0);
+      double radius;
+      do {
+        radius = 0.0;
+        for (auto& dim : d) {
+          dim =  2 * (rand() / ((double)RAND_MAX + 1)) - 1; 
+          radius += (dim * dim);
         }
+      } while ((radius >= 1.0) || (radius == 0.0));
+
+      radius = sqrt(-2 * log(radius) / radius);
+      for (int j = 0; j < _embedding->numDimensions(); ++j) {
+        _embedding->dataAt(i, j) = d[j] * radius * multiplier;
       }
     }
+  }
 
-
-    void GradientDescentTSNETexture::initializeEmbeddingPosition(int seed, double multiplier) {
-      utils::secureLog(_logger, "Initializing the embedding...");
-
-      if (seed < 0) {
-        std::srand(static_cast<unsigned int>(time(NULL)));
-      }
-      else {
-        std::srand(seed);
-      }
-
-      for (int i = 0; i < _embedding->numDataPoints(); ++i) {
-        double x(0.);
-        double y(0.);
-        double radius(0.);
-        do {
-          x = 2 * (rand() / ((double)RAND_MAX + 1)) - 1;
-          y = 2 * (rand() / ((double)RAND_MAX + 1)) - 1;
-          radius = (x * x) + (y * y);
-        } while ((radius >= 1.0) || (radius == 0.0));
-
-        radius = sqrt(-2 * log(radius) / radius);
-        x *= radius * multiplier;
-        y *= radius * multiplier;
-        _embedding->dataAt(i, 0) = x;
-        _embedding->dataAt(i, 1) = y;
-      }
+  void GradientDescentTSNETexture::iterate(double mult) {
+    if (!_initialized) {
+      throw std::logic_error("Cannot compute a gradient descent iteration on unitialized data");
     }
 
-    void GradientDescentTSNETexture::doAnIteration(double mult) {
-      if (!_initialized) {
-        throw std::logic_error("Cannot compute a gradient descent iteration on unitialized data");
-      }
-
-      if (_iteration == _params._mom_switching_iter) {
-        utils::secureLog(_logger, "Switch to final momentum...");
-      }
-      if (_iteration == _params._remove_exaggeration_iter) {
-        utils::secureLog(_logger, "Remove exaggeration...");
-      }
-
-      doAnIterationImpl(mult);
+    if (_iteration == _params._mom_switching_iter) {
+      utils::secureLog(_logger, "Switch to final momentum...");
+    }
+    if (_iteration == _params._remove_exaggeration_iter) {
+      utils::secureLog(_logger, "Remove exaggeration...");
     }
 
-    double GradientDescentTSNETexture::exaggerationFactor() {
-      scalar_type exaggeration = _exaggeration_baseline;
+    doAnIterationImpl(mult);
+  }
 
-      if (_iteration <= _params._remove_exaggeration_iter) {
-        exaggeration = _params._exaggeration_factor;
-      }
-      else if (_iteration <= (_params._remove_exaggeration_iter + _params._exponential_decay_iter)) {
-        //double decay = std::exp(-scalar_type(_iteration-_params._remove_exaggeration_iter)/30.);
-        double decay = 1. - double(_iteration - _params._remove_exaggeration_iter) / _params._exponential_decay_iter;
-        exaggeration = _exaggeration_baseline + (_params._exaggeration_factor - _exaggeration_baseline)*decay;
-        //utils::secureLogValue(_logger,"Exaggeration decay...",exaggeration);
-      }
+  double GradientDescentTSNETexture::exaggerationFactor() const {
+    scalar_t exaggeration = _exaggeration_baseline;
 
-      return exaggeration;
+    if (_iteration <= _params._remove_exaggeration_iter) {
+      exaggeration = _params._exaggeration_factor;
+    }
+    else if (_iteration <= (_params._remove_exaggeration_iter + _params._exponential_decay_iter)) {
+      //double decay = std::exp(-scalar_t(_iteration-_params._remove_exaggeration_iter)/30.);
+      double decay = 1. - double(_iteration - _params._remove_exaggeration_iter) / _params._exponential_decay_iter;
+      exaggeration = _exaggeration_baseline + (_params._exaggeration_factor - _exaggeration_baseline)*decay;
+      //utils::secureLogValue(_logger,"Exaggeration decay...",exaggeration);
     }
 
-    void GradientDescentTSNETexture::doAnIterationImpl(double mult) {
-      // Compute gradient of the KL function using a compute shader approach
+    return exaggeration;
+  }
+
+  void GradientDescentTSNETexture::doAnIterationImpl(double mult) {
+    // Compute gradient of the KL function using a compute shader approach
 #ifndef __APPLE__
-      if (_gpgpu_type == COMPUTE_SHADER)
-        _gpgpu_compute_tsne.compute(_embedding, exaggerationFactor(), _iteration, mult);
-      else
-        _gpgpu_raster_tsne.compute(_embedding, exaggerationFactor(), _iteration, mult);
-#else
+    if (GLAD_GL_VERSION_4_3 && !FORCE_RASTERIZER_FALLBACK)
+    {
+      _gpgpu_compute_tsne.compute(_embedding, exaggerationFactor(), _iteration, mult);
+    }
+    else if (GLAD_GL_VERSION_3_3 || FORCE_RASTERIZER_FALLBACK)
+#endif // __APPLE__
+    {
       _gpgpu_raster_tsne.compute(_embedding, exaggerationFactor(), _iteration, mult);
-#endif
-      ++_iteration;
     }
-
-    double GradientDescentTSNETexture::computeKullbackLeiblerDivergence() {
-      const int n = _embedding->numDataPoints();
-
-      //std::vector<float> _Q(n * n);
-      double sum_Q = 0;
-      for (int j = 0; j < n; ++j) {
-        //_Q[j*n + j] = 0;
-
-        for (int i = j + 1; i < n; ++i) {
-          const double euclidean_dist_sq(
-            utils::euclideanDistanceSquared<float>(
-              _embedding->getContainer().begin() + j * _params._embedding_dimensionality,
-              _embedding->getContainer().begin() + (j + 1)*_params._embedding_dimensionality,
-              _embedding->getContainer().begin() + i * _params._embedding_dimensionality,
-              _embedding->getContainer().begin() + (i + 1)*_params._embedding_dimensionality
-              )
-          );
-          const double v = 1. / (1. + euclidean_dist_sq);
-
-          //_Q[j*n + i] = static_cast<float>(v);
-          //_Q[i*n + j] = static_cast<float>(v);
-          sum_Q += v * 2;
-        }
-      }
-
-      //double sum_Q = 0;
-      //for (auto& v : _Q) {
-      //  sum_Q += v;
-      //}
-
-      double kl = 0;
-
-      for (int i = 0; i < n; ++i) {
-        for (const auto& pij : _P[i]) {
-          uint32_t j = pij.first;
-
-          // Calculate Qij
-          const double euclidean_dist_sq(
-            utils::euclideanDistanceSquared<float>(
-              _embedding->getContainer().begin() + j * _params._embedding_dimensionality,
-              _embedding->getContainer().begin() + (j + 1)*_params._embedding_dimensionality,
-              _embedding->getContainer().begin() + i * _params._embedding_dimensionality,
-              _embedding->getContainer().begin() + (i + 1)*_params._embedding_dimensionality
-              )
-          );
-          const double v = 1. / (1. + euclidean_dist_sq);
-
-          double p = pij.second / (2 * n);
-          float klc = p * std::log(p / (v / sum_Q));
-          //if (klc > 0.00001)
-          //{
-          //  std::cout << "KLC: " << klc << " i: " << i << "neighbour: " << neighbour_id << std::endl;
-          //}
-
-          kl += klc;
-        }
-      }
-      return kl;
-    }
+    ++_iteration;
   }
 }
 #endif

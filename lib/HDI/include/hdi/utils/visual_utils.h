@@ -33,9 +33,8 @@
 #ifndef VISUAL_UTILS_H
 #define VISUAL_UTILS_H
 
-#include "hdi/utils/visual_utils.h"
 #include <QImage>
-
+#include <string>
 
 namespace hdi{
   namespace utils{
@@ -49,6 +48,8 @@ namespace hdi{
     template <typename map_type>
     QImage imageFromZeroCenteredSparseMatrix(const std::vector<map_type>& sparse_matrix);
 
+    template <typename scalar_type>
+    void valuesToImage(std::string filename, const std::vector<scalar_type>& v, int w, int h, int c);
   }
 }
 

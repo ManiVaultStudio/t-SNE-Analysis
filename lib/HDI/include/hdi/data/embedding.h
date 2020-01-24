@@ -51,19 +51,23 @@ namespace hdi{
 
     public:
       Embedding();
-      Embedding(unsigned int num_dimensions, unsigned int num_data_points, scalar_type v = 0);
+      Embedding(unsigned int num_dimensions, unsigned int num_data_points, scalar_type v = 0, unsigned int padding = 0);
 
       //! Clear the container
       void clear();
       //! Resize the container
-      void resize(unsigned int num_dimensions, unsigned int num_data_points, scalar_type v = 0);
+      void resize(unsigned int num_dimensions, unsigned int num_data_points, scalar_type v = 0, unsigned int padding = 0);
       //! Return the dimensionality of the embedding
       unsigned int numDimensions()const{return _num_dimensions;}
       //! Return the number of data points in the container
       unsigned int numDataPoints()const{return _num_data_points;}
-      //! Compute a boundinb box that contains the embedding. An offset can be provided (percentage)
+      //! Returs the amount of padding behind every dimension in the container
+      unsigned int numPadding()const{return _padding;}
+      //! Compute a bounding box that contains the embedding. An offset can be provided (percentage)
       void computeEmbeddingBBox(scalar_vector_type& limits, scalar_type offset = 0, bool squared_limits = true);
 
+      //! Remove padding from the data if it exists
+      void removePadding();
       //! Move the embedding so that is 0-centered
       void zeroCentered();
       //! If the embedding is contained in a squared region smaller than diameter, rescale it so that it will be contained in squared region of size diameter centered in zero
@@ -77,17 +81,18 @@ namespace hdi{
       inline scalar_type& dataAt(unsigned int data_point, unsigned int dimension){
         assert(data_point < _num_data_points);
         assert(dimension < _num_dimensions);
-        return _embedding[data_point*_num_dimensions+dimension];
+        return _embedding[data_point*(_num_dimensions+_padding)+dimension];
       }
       inline const scalar_type& dataAt(unsigned int data_point, unsigned int dimension)const{
         assert(data_point < _num_data_points);
         assert(dimension < _num_dimensions);
-        return _embedding[data_point*_num_dimensions+dimension];
+        return _embedding[data_point*(_num_dimensions+_padding)+dimension];
       }
 
     private:
       unsigned int _num_dimensions;
       unsigned int _num_data_points;
+      unsigned int _padding; // in case of alignment issues
       scalar_vector_type _embedding;
     };
 
@@ -111,8 +116,6 @@ namespace hdi{
     //!
     template <typename scalar_type>
     void copyAndRemap2D2D(const Embedding<scalar_type>& input, Embedding<scalar_type>& output, const std::vector<scalar_type>& limits, bool fix_aspect_ratio = true);
-
-
   }
 }
 

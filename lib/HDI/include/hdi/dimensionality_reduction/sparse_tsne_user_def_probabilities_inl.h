@@ -101,7 +101,6 @@ namespace hdi{
 
   /////////////////////////////////////////////////////////////////////////
 
-
     template <typename scalar, typename sparse_scalar_matrix>
     void SparseTSNEUserDefProbabilities<scalar, sparse_scalar_matrix>::initialize(const sparse_scalar_matrix& probabilities, data::Embedding<scalar_type>* embedding, TsneParameters params){
       utils::secureLog(_logger,"Initializing tSNE...");
@@ -184,28 +183,27 @@ namespace hdi{
     template <typename scalar, typename sparse_scalar_matrix>
     void SparseTSNEUserDefProbabilities<scalar, sparse_scalar_matrix>::initializeEmbeddingPosition(int seed, double multiplier){
       utils::secureLog(_logger,"Initializing the embedding...");
-      if(seed < 0){
+      if (seed < 0){
         std::srand(static_cast<unsigned int>(time(NULL)));
-      }
-      else{
+      } else {
         std::srand(seed);
       }
-        
+
       for (int i = 0; i < _embedding->numDataPoints(); ++i) {
-        double x(0.);
-        double y(0.);
-        double radius(0.);
+        std::vector<double> d(_embedding->numDimensions(), 0.0);
+        double radius;
         do {
-          x = 2 * (rand() / ((double)RAND_MAX + 1)) - 1;
-          y = 2 * (rand() / ((double)RAND_MAX + 1)) - 1;
-          radius = (x * x) + (y * y);
+          radius = 0.0;
+          for (auto& dim : d) {
+            dim = 2 * (rand() / ((double)RAND_MAX + 1)) - 1;
+            radius += (dim * dim);
+          }
         } while((radius >= 1.0) || (radius == 0.0));
 
         radius = sqrt(-2 * log(radius) / radius);
-        x *= radius * multiplier;
-        y *= radius * multiplier;
-        _embedding->dataAt(i, 0) = x;
-        _embedding->dataAt(i, 1) = y;
+        for (int j = 0; j < _embedding->numDimensions(); j++) {
+          _embedding->dataAt(i, j) = d[j] * radius * multiplier;
+        }
       }
     }
 
@@ -400,8 +398,47 @@ namespace hdi{
 
     template <typename scalar, typename sparse_scalar_matrix>
     double SparseTSNEUserDefProbabilities<scalar, sparse_scalar_matrix>::computeKullbackLeiblerDivergence(){
-      assert(false);
-      return 0;
+      const int n = _embedding->numDataPoints();
+
+      double sum_Q = 0;
+      for (int j = 0; j < n; ++j) {
+        for (int i = j + 1; i < n; ++i) {
+          const double euclidean_dist_sq(
+            utils::euclideanDistanceSquared<scalar_type>(
+                (*_embedding_container).begin()+j*_params._embedding_dimensionality,
+                (*_embedding_container).begin()+(j+1)*_params._embedding_dimensionality,
+                (*_embedding_container).begin()+i*_params._embedding_dimensionality,
+                (*_embedding_container).begin()+(i+1)*_params._embedding_dimensionality
+              )
+          );
+          const double v = 1. / (1. + euclidean_dist_sq);
+          sum_Q += v * 2;
+        }
+      }
+
+      double kl = 0;
+      for (int i = 0; i < n; ++i) {
+        for (const auto& pij : _P[i]) {
+          uint32_t j = pij.first;
+
+          // Calculate Qij
+          const double euclidean_dist_sq(
+            utils::euclideanDistanceSquared<scalar_type>(
+                (*_embedding_container).begin()+j*_params._embedding_dimensionality,
+                (*_embedding_container).begin()+(j+1)*_params._embedding_dimensionality,
+                (*_embedding_container).begin()+i*_params._embedding_dimensionality,
+                (*_embedding_container).begin()+(i+1)*_params._embedding_dimensionality
+              )
+          );
+          const double v = 1. / (1. + euclidean_dist_sq);
+
+          double p = pij.second / (2 * n);
+          float klc = p * std::log(p / (v / sum_Q));
+          
+          kl += klc;
+        }
+      }
+      return kl;
     }
   }
 }
