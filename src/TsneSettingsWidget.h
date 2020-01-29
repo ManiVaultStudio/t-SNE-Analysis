@@ -11,6 +11,7 @@
 #include <QComboBox>
 #include <QGridLayout>
 #include <QLineEdit>
+#include <QLabel>
 #include <QObject>
 #include <QPushButton>
 #include <QString>
@@ -50,6 +51,8 @@ signals:
     void startComputation();
     void stopComputation();
     void dataSetPicked(QString);
+    void knnAlgorithmPicked(int);
+    void distanceMetricPicked(int);
 
 public slots:
     void computationStopped();
@@ -68,6 +71,8 @@ public:
     hdps::DimensionSelectionWidget _dimensionSelectionWidget;
 
     QComboBox dataOptions;
+    QComboBox knnOptions;
+    QComboBox distanceMetric;
     QLineEdit numIterations;
     QLineEdit perplexity;
     QLineEdit exaggeration;

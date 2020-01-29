@@ -99,6 +99,8 @@ void TsneAnalysis::initTSNE(const std::vector<float>& data, const int numDimensi
         probGenParams._perplexity_multiplier = 3;
         probGenParams._num_trees = _numTrees;
         probGenParams._num_checks = _numChecks;
+        probGenParams._aknn_algorithm = _knnLibrary;
+        probGenParams._aknn_metric = _knnDistanceMetric;
 
         qDebug() << "tSNE initialized.";
 
@@ -208,6 +210,31 @@ void TsneAnalysis::copyFloatOutput()
 const TsneData& TsneAnalysis::output()
 {
     return _outputData;
+}
+
+void TsneAnalysis::setKnnAlgorithm(int algorithm)
+{
+    switch (algorithm)
+    {
+    case 0: _knnLibrary = hdi::utils::KNN_FLANN; break;
+    case 1: _knnLibrary = hdi::utils::KNN_HNSW; break;
+    case 2: _knnLibrary = hdi::utils::KNN_ANNOY; break;
+    default: _knnLibrary = hdi::utils::KNN_FLANN;
+    }
+}
+
+void TsneAnalysis::setDistanceMetric(int metric)
+{
+    switch (metric)
+    {
+    case 0: _knnDistanceMetric = hdi::utils::KNN_METRIC_EUCLIDEAN; break;
+    case 1: _knnDistanceMetric = hdi::utils::KNN_METRIC_COSINE; break;
+    case 2: _knnDistanceMetric = hdi::utils::KNN_METRIC_INNER_PRODUCT; break;
+    case 3: _knnDistanceMetric = hdi::utils::KNN_METRIC_MANHATTAN; break;
+    case 4: _knnDistanceMetric = hdi::utils::KNN_METRIC_HAMMING; break;
+    case 5: _knnDistanceMetric = hdi::utils::KNN_METRIC_DOT; break;
+    default: _knnDistanceMetric = hdi::utils::KNN_METRIC_EUCLIDEAN;
+    }
 }
 
 void TsneAnalysis::setVerbose(bool verbose)

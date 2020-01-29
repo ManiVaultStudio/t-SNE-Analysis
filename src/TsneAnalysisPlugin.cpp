@@ -26,6 +26,8 @@ void TsneAnalysisPlugin::init()
     _settings = std::make_unique<TsneSettingsWidget>();
 
     connect(_settings.get(), &TsneSettingsWidget::dataSetPicked, this, &TsneAnalysisPlugin::dataSetPicked);
+    connect(_settings.get(), &TsneSettingsWidget::knnAlgorithmPicked, this, &TsneAnalysisPlugin::onKnnAlgorithmPicked);
+    connect(_settings.get(), &TsneSettingsWidget::distanceMetricPicked, this, &TsneAnalysisPlugin::onDistanceMetricPicked);
     connect(_settings.get(), &TsneSettingsWidget::startComputation, this, &TsneAnalysisPlugin::startComputation);
     connect(_settings.get(), &TsneSettingsWidget::stopComputation, this, &TsneAnalysisPlugin::stopComputation);
     connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &TsneSettingsWidget::computationStopped);
@@ -76,6 +78,16 @@ void TsneAnalysisPlugin::dataSetPicked(const QString& name)
     Points& points = _core->requestData<Points>(name);
 
     _settings->dataChanged(points);
+}
+
+void TsneAnalysisPlugin::onKnnAlgorithmPicked(const int index)
+{
+    _tsne.setKnnAlgorithm(index);
+}
+
+void TsneAnalysisPlugin::onDistanceMetricPicked(const int index)
+{
+    _tsne.setDistanceMetric(index);
 }
 
 void TsneAnalysisPlugin::startComputation()

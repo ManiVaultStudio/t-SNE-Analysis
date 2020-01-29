@@ -20,7 +20,20 @@ TsneSettingsWidget::TsneSettingsWidget()
     setMinimumWidth(minimumWidth);
     setMaximumWidth(2 * minimumWidth);
 
+    knnOptions.addItem("FLANN");
+    knnOptions.addItem("HNSW");
+    knnOptions.addItem("ANNOY");
+
+    distanceMetric.addItem("Euclidean");
+    distanceMetric.addItem("Cosine");
+    distanceMetric.addItem("Inner Product");
+    distanceMetric.addItem("Manhattan");
+    distanceMetric.addItem("Hamming");
+    distanceMetric.addItem("Dot");
+
     connect(&dataOptions,   SIGNAL(currentIndexChanged(QString)), this, SIGNAL(dataSetPicked(QString)));
+    connect(&knnOptions,    SIGNAL(currentIndexChanged(int)), this, SIGNAL(knnAlgorithmPicked(int)));
+    connect(&distanceMetric,SIGNAL(currentIndexChanged(int)), this, SIGNAL(distanceMetricPicked(int)));
     connect(&startButton,   &QPushButton::toggled, this, &TsneSettingsWidget::onStartToggled);
 
     connect(&numIterations, SIGNAL(textChanged(QString)), SLOT(numIterationsChanged(QString)));
@@ -41,6 +54,8 @@ TsneSettingsWidget::TsneSettingsWidget()
     // Build the labels for all the options
     QLabel* iterationLabel = new QLabel("Iteration Count");
     QLabel* perplexityLabel = new QLabel("Perplexity");
+    QLabel* knnAlgorithmLabel = new QLabel("KNN Algorithm");
+    QLabel* distanceMetricLabel = new QLabel("Distance Metric");
     QLabel* exaggerationLabel = new QLabel("Exaggeration");
     QLabel* expDecayLabel = new QLabel("Exponential Decay");
     QLabel* numTreesLabel = new QLabel("Number of Trees");
@@ -74,6 +89,10 @@ TsneSettingsWidget::TsneSettingsWidget()
 
     // Add options to their appropriate group box
     auto* const settingsLayout = new QVBoxLayout();
+    settingsLayout->addWidget(knnAlgorithmLabel);
+    settingsLayout->addWidget(&knnOptions);
+    settingsLayout->addWidget(distanceMetricLabel);
+    settingsLayout->addWidget(&distanceMetric);
     settingsLayout->addWidget(iterationLabel);
     settingsLayout->addWidget(&numIterations);
     settingsLayout->addWidget(perplexityLabel);

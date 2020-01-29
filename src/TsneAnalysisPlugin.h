@@ -30,6 +30,8 @@ public:
     SettingsWidget* const getSettings() override;
 public slots:
     void dataSetPicked(const QString& name);
+    void onKnnAlgorithmPicked(const int index);
+    void onDistanceMetricPicked(const int index);
     void startComputation();
     void onNewEmbedding();
 
