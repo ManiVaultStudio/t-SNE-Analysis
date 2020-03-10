@@ -3,7 +3,7 @@
 #include <AnalysisPlugin.h>
 
 #include "TsneAnalysis.h"
-#include "TsneSettingsWidget.h"
+class TsneSettingsWidget;
 
 using namespace hdps::plugin;
 using namespace hdps::gui;
@@ -16,7 +16,7 @@ class TsneAnalysisPlugin : public QObject, public AnalysisPlugin
 {
     Q_OBJECT   
 public:
-    TsneAnalysisPlugin() : AnalysisPlugin("tSNE Analysis") { }
+    TsneAnalysisPlugin();
     ~TsneAnalysisPlugin(void) override;
     
     void init() override;
@@ -28,16 +28,18 @@ public:
     hdps::DataTypes supportedDataTypes() const Q_DECL_OVERRIDE;
 
     SettingsWidget* const getSettings() override;
+
+    void startComputation();
+    void stopComputation();
+
 public slots:
     void dataSetPicked(const QString& name);
     void onKnnAlgorithmPicked(const int index);
     void onDistanceMetricPicked(const int index);
-    void startComputation();
     void onNewEmbedding();
 
 private:
     void initializeTsne();
-    void stopComputation();
 
     TsneAnalysis _tsne;
     std::unique_ptr<TsneSettingsWidget> _settings;
