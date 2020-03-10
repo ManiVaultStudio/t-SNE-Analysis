@@ -1,6 +1,7 @@
 #include "TsneSettingsWidget.h"
 
 #include "DimensionSelectionWidget.h"
+#include "TsneAnalysisPlugin.h"
 
 // Qt header files:
 #include <QDebug>
@@ -14,7 +15,9 @@
 
 
 
-TsneSettingsWidget::TsneSettingsWidget()
+TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin)
+:
+_analysisPlugin(analysisPlugin)
 {
     const auto minimumWidth = 200;
     setMinimumWidth(minimumWidth);
@@ -194,7 +197,7 @@ void TsneSettingsWidget::onStartToggled(bool pressed)
         }
     }
     startButton.setText(pressed ? "Stop Computation" : "Start Computation");
-    emit pressed ? startComputation() : stopComputation();
+    pressed ? _analysisPlugin.startComputation() : _analysisPlugin.stopComputation();;
 }
 
 void TsneSettingsWidget::numIterationsChanged(const QString &)

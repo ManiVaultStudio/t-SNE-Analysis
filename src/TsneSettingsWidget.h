@@ -37,7 +37,7 @@ public:
     TsneSettingsWidget& operator=(const TsneSettingsWidget&) = delete;
     TsneSettingsWidget& operator=(TsneSettingsWidget&&) = delete;
 
-    TsneSettingsWidget();
+    explicit TsneSettingsWidget(TsneAnalysisPlugin&);
 
     std::vector<bool> getEnabledDimensions();
     bool hasValidSettings();
@@ -48,8 +48,6 @@ private:
     void checkInputStyle(QLineEdit& input);
 
 signals:
-    void startComputation();
-    void stopComputation();
     void dataSetPicked(QString);
     void knnAlgorithmPicked(int);
     void distanceMetricPicked(int);
@@ -81,4 +79,6 @@ public:
     QLineEdit numChecks;
     QLineEdit theta;
     QPushButton startButton;
+private:
+  TsneAnalysisPlugin& _analysisPlugin;
 };

@@ -1,4 +1,5 @@
 #include "TsneAnalysisPlugin.h"
+#include "TsneSettingsWidget.h"
 
 #include "PointData.h"
 
@@ -15,6 +16,11 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 // =============================================================================
 
 using namespace hdps;
+TsneAnalysisPlugin::TsneAnalysisPlugin()
+:
+AnalysisPlugin("tSNE Analysis")
+{
+}
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 {
@@ -23,13 +29,11 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    _settings = std::make_unique<TsneSettingsWidget>();
+    _settings = std::make_unique<TsneSettingsWidget>(*this);
 
     connect(_settings.get(), &TsneSettingsWidget::dataSetPicked, this, &TsneAnalysisPlugin::dataSetPicked);
     connect(_settings.get(), &TsneSettingsWidget::knnAlgorithmPicked, this, &TsneAnalysisPlugin::onKnnAlgorithmPicked);
     connect(_settings.get(), &TsneSettingsWidget::distanceMetricPicked, this, &TsneAnalysisPlugin::onDistanceMetricPicked);
-    connect(_settings.get(), &TsneSettingsWidget::startComputation, this, &TsneAnalysisPlugin::startComputation);
-    connect(_settings.get(), &TsneSettingsWidget::stopComputation, this, &TsneAnalysisPlugin::stopComputation);
     connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &TsneSettingsWidget::computationStopped);
     connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
 }
