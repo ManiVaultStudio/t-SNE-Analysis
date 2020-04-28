@@ -13,9 +13,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-# Request C++17, in order to use std::for_each_n with std::execution::par_unseq.
-set_property(GLOBAL PROPERTY CXX_STANDARD 17)
-
 set(UI_FILES
     ui/DimensionSelectionWidget.ui
 )

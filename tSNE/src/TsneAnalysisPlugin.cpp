@@ -144,47 +144,19 @@ void TsneAnalysisPlugin::startComputation()
     embedding.setData(nullptr, 0, 2);
     _core->notifyDataAdded(_embeddingName);
 
-    // Start the selected algorithms computation
-    const Algorithm& algorithm = _settings->getSelectedAlgorithm();
+    _tsne.initTSNE(data, numDimensions);
 
-    switch (algorithm)
-    {
-        case TSNE:
-        {
-            _tsne.initTSNE(data, numDimensions);
-
-            _tsne.start();
-            break;
-        }
-        case HSNE:
-        {
-            HsneParameters parameters; // FIXME should come from settings
-            _hsne.initialize(data, points.getNumPoints(), numDimensions, parameters);
-
-            _hsne.computeEmbedding();
-        }
-    }
+    _tsne.start();
 }
 
 void TsneAnalysisPlugin::onNewEmbedding() {
-    if (_settings->getSelectedAlgorithm() == TSNE)
-    {
-        const TsneData& outputData = _tsne.output();
-        Points& embedding = _core->requestData<Points>(_embeddingName);
 
-        embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
+    const TsneData& outputData = _tsne.output();
+    Points& embedding = _core->requestData<Points>(_embeddingName);
 
-        _core->notifyDataChanged(_embeddingName);
-    }
-    else if (_settings->getSelectedAlgorithm() == HSNE)
-    {
-        const TsneData& outputData = _hsne._tsne.output();
-        Points& embedding = _core->requestData<Points>(_embeddingName);
+    embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
 
-        embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
-
-        _core->notifyDataChanged(_embeddingName);
-    }
+    _core->notifyDataChanged(_embeddingName);
 }
 
 void TsneAnalysisPlugin::initializeTsne() {

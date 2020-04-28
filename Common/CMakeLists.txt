@@ -1,17 +1,22 @@
 set(DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(DIMENSION_SELECTION_SOURCES
-    src/ModelResetter.h
-    src/ModelResetter.cpp
-    src/DimensionSelectionHolder.h
-    src/DimensionSelectionHolder.cpp
-    src/DimensionSelectionItemModel.h
-    src/DimensionSelectionItemModel.cpp
-    src/DimensionSelectionProxyModel.h
-    src/DimensionSelectionProxyModel.cpp
-    src/DimensionSelectionWidget.h
-    src/DimensionSelectionWidget.cpp
-    src/GeneralSettingsWidget.h
-    src/GeneralSettingsWidget.cpp
+    ${DIR}/ModelResetter.h
+    ${DIR}/ModelResetter.cpp
+    ${DIR}/DimensionSelectionHolder.h
+    ${DIR}/DimensionSelectionHolder.cpp
+    ${DIR}/DimensionSelectionItemModel.h
+    ${DIR}/DimensionSelectionItemModel.cpp
+    ${DIR}/DimensionSelectionProxyModel.h
+    ${DIR}/DimensionSelectionProxyModel.cpp
+    ${DIR}/DimensionSelectionWidget.h
+    ${DIR}/DimensionSelectionWidget.cpp
+    #${DIR}/GeneralSettingsWidget.h
+    #${DIR}/GeneralSettingsWidget.cpp
+    PARENT_SCOPE
+)
+
+set(UI_FILES
+    ${DIR}/ui/DimensionSelectionWidget.ui
     PARENT_SCOPE
 )
