@@ -39,22 +39,15 @@ _analysisPlugin(analysisPlugin)
     connect(&knnOptions,    SIGNAL(currentIndexChanged(int)), this, SIGNAL(knnAlgorithmPicked(int)));
     connect(&distanceMetric,SIGNAL(currentIndexChanged(int)), this, SIGNAL(distanceMetricPicked(int)));
     connect(&startButton,   &QPushButton::toggled, this, &TsneSettingsWidget::onStartToggled);
-
-    connect(&numIterations, SIGNAL(textChanged(QString)), SLOT(numIterationsChanged(QString)));
-    connect(&perplexity,    SIGNAL(textChanged(QString)), SLOT(perplexityChanged(QString)));
-    connect(&exaggeration,  SIGNAL(textChanged(QString)), SLOT(exaggerationChanged(QString)));
-    connect(&expDecay,      SIGNAL(textChanged(QString)), SLOT(expDecayChanged(QString)));
-    connect(&numTrees,      SIGNAL(textChanged(QString)), SLOT(numTreesChanged(QString)));
-    connect(&numChecks,     SIGNAL(textChanged(QString)), SLOT(numChecksChanged(QString)));
-    connect(&theta,         SIGNAL(textChanged(QString)), SLOT(thetaChanged(QString)));
+    //////////////////////////////
 
     // Create group boxes for grouping together various settings
     QGroupBox* settingsBox = new QGroupBox("Basic settings");
     QGroupBox* advancedSettingsBox = new QGroupBox("Advanced Settings");
-    
+
     advancedSettingsBox->setCheckable(true);
     advancedSettingsBox->setChecked(false);
-    
+
     // Build the labels for all the options
     QLabel* iterationLabel = new QLabel("Iteration Count");
     QLabel* perplexityLabel = new QLabel("Perplexity");
@@ -87,10 +80,6 @@ _analysisPlugin(analysisPlugin)
     numTrees.setText("4");
     numChecks.setText("1024");
 
-    startButton.setText("Start Computation");
-    startButton.setFixedSize(QSize(150, 50));
-    startButton.setCheckable(true);
-
     // Add options to their appropriate group box
     auto* const settingsLayout = new QVBoxLayout();
     settingsLayout->addWidget(knnAlgorithmLabel);
@@ -113,18 +102,68 @@ _analysisPlugin(analysisPlugin)
     advancedSettingsLayout->addWidget(numChecksLabel, 2, 1);
     advancedSettingsLayout->addWidget(&numChecks, 3, 1);
     advancedSettingsBox->setLayout(advancedSettingsLayout);
+    /////////////////////////////////////////////////////////////////////
+
+    // Initialize start button
+    _startButton = new QPushButton();
+    _startButton->setText("Compute Embedding");
+    _startButton->setFixedSize(QSize(150, 50));
+    _startButton->setCheckable(true);
+    connect(_startButton, &QPushButton::toggled, this, &TsneSettingsWidget::onStartToggled);
 
     // Add all the parts of the settings widget together
-    addWidget(settingsBox);
+    addWidget(_dataOptions);
     addWidget(&_dimensionSelectionWidget);
+    addWidget(settingsBox);
     addWidget(advancedSettingsBox);
-    addWidget(&startButton);
+    addWidget(_startButton);
 }
 
-void TsneSettingsWidget::computationStopped()
+QString TsneSettingsWidget::getCurrentDataItem()
 {
-    startButton.setText("Start Computation");
-    startButton.setChecked(false);
+    return _dataOptions->currentText();
+}
+
+void TsneSettingsWidget::addDataItem(const QString name)
+{
+    _dataOptions->addItem(name);
+}
+
+void TsneSettingsWidget::removeDataItem(const QString name)
+{
+    int index = _dataOptions->findText(name);
+    _dataOptions->removeItem(index);
+}
+
+void TsneSettingsWidget::onComputationStopped()
+{
+    _startButton->setText("Start Computation");
+    _startButton->setChecked(false);
+}
+
+void TsneSettingsWidget::onStartToggled(bool pressed)
+{
+    // Do nothing if we have no data set selected
+    if (getCurrentDataItem().isEmpty()) {
+        return;
+    }
+
+    // Check if the tSNE settings are valid before running the computation
+    if (!hasValidSettings()) {
+        QMessageBox warningBox;
+        warningBox.setText(tr("Some settings are invalid or missing. Continue with default values?"));
+        QPushButton *continueButton = warningBox.addButton(tr("Continue"), QMessageBox::ActionRole);
+        QPushButton *abortButton = warningBox.addButton(QMessageBox::Abort);
+
+        warningBox.exec();
+
+        if (warningBox.clickedButton() == abortButton) {
+            return;
+        }
+    }
+
+    _startButton->setText(pressed ? "Stop Computation" : "Start Computation");
+    emit pressed ? startComputation() : stopComputation();
 }
 
 void TsneSettingsWidget::dataChanged(const Points& points)
@@ -166,6 +205,11 @@ void TsneSettingsWidget::checkInputStyle(QLineEdit& input)
     {
         input.setStyleSheet("border: 1px solid red");
     }
+}
+
+hdps::DimensionSelectionWidget& TsneSettingsWidget::getDimensionSelectionWidget()
+{
+    return _dimensionSelectionWidget;
 }
 
 

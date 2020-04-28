@@ -8,10 +8,6 @@ add_subdirectory(src)
 source_group( DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
 source_group( Tsne FILES ${TSNE_PLUGIN_SOURCES})
 
-set(UI_FILES
-    ui/DimensionSelectionWidget.ui
-)
-
 QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
 include_directories("$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/include/")
@@ -28,12 +24,15 @@ endif(APPLE)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     include_directories ("lib/Flann/Linux/include")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
+message(${DIMENSION_SELECTION_SOURCES})
 add_library(${TSNE_PLUGIN} SHARED
     ${DIMENSION_SELECTION_SOURCES}
     ${TSNE_PLUGIN_SOURCES}
     ${UI_FILES}
 )
+
+# Request C++17, in order to use std::for_each_n with std::execution::par_unseq.
+set_property(TARGET ${TSNE_PLUGIN} PROPERTY CXX_STANDARD 17)
 
 target_compile_definitions(${TSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 

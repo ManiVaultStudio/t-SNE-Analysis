@@ -68,9 +68,9 @@ private:
     void initializeTsne();
 
     TsneAnalysis _tsne;
-    HsneAnalysis _hsne;
+    //HsneAnalysis _hsne;
 
-    std::unique_ptr<GeneralSettingsWidget> _settings;
+    std::unique_ptr<TsneSettingsWidget> _settings;
     QString _embeddingName;
 };
 

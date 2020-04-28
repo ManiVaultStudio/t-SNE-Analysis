@@ -4,7 +4,7 @@
 
 #include "PointData.h"
 
-#include "DimensionSelectionWidget.h"
+#include "../Common/DimensionSelectionWidget.h" // FIXME
 
 // Qt header files:
 #include <QCheckBox>
@@ -39,8 +39,14 @@ public:
 
     explicit TsneSettingsWidget(TsneAnalysisPlugin&);
 
+    QString getCurrentDataItem();
+    void addDataItem(const QString name);
+    void removeDataItem(const QString name);
+
     std::vector<bool> getEnabledDimensions();
     bool hasValidSettings();
+
+    hdps::DimensionSelectionWidget& getDimensionSelectionWidget();
 
     void dataChanged(const Points& points);
 private:
@@ -52,10 +58,10 @@ signals:
     void distanceMetricPicked(int);
 
 public slots:
-    void computationStopped();
+    void onComputationStopped();
 
 private slots:
-    //void onStartToggled(bool pressed);
+    void onStartToggled(bool pressed);
     void numIterationsChanged(const QString &value);
     void perplexityChanged(const QString &value);
     void exaggerationChanged(const QString &value);
@@ -65,11 +71,14 @@ private slots:
     void thetaChanged(const QString& value);
 
 public:
+    QComboBox* _dataOptions;
     hdps::DimensionSelectionWidget _dimensionSelectionWidget;
+    QPushButton* _startButton;
 
     QComboBox dataOptions;
     QComboBox knnOptions;
     QComboBox distanceMetric;
+
     QLineEdit numIterations;
     QLineEdit perplexity;
     QLineEdit exaggeration;

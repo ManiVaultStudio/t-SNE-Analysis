@@ -31,7 +31,6 @@
 #include <ui_DimensionSelectionWidget.h>
 #include <set>
 
-
 namespace hdps
 {
     namespace
