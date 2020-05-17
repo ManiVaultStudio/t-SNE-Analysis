@@ -1,5 +1,11 @@
 set(DIR ${CMAKE_SOURCE_DIR}/Common)
 
+set(TSNE_COMMON_SOURCES
+    ${DIR}/TsneAnalysis.h
+    ${DIR}/TsneAnalysis.cpp
+    ${DIR}/TsneData.h
+)
+
 set(DIMENSION_SELECTION_SOURCES
     ${DIR}/ModelResetter.h
     ${DIR}/ModelResetter.cpp

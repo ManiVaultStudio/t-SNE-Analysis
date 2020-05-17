@@ -3,7 +3,6 @@
 #include <vector>
 #include <assert.h>
 
-#include "TsneAnalysisPlugin.h"
 #include <QDebug>
 
 #include "hdi/dimensionality_reduction/tsne_parameters.h"
