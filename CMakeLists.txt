@@ -36,3 +36,4 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 include(CMakeCommon)
 include(CMakeTsneProject)
+include(CMakeHsneProject)

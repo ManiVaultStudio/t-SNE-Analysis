@@ -1,0 +1,5 @@
+{
+    "name" : "H-SNE Analysis",
+    "version": "1",
+    "dependencies" : ["Points"]
+}
