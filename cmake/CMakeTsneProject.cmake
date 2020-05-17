@@ -11,14 +11,15 @@ source_group( Tsne FILES ${TSNE_PLUGIN_SOURCES})
 QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
 include_directories("$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/include/")
-include_directories ("tSNE/lib/HDI/include")
+include_directories("tSNE/lib/HDI/include")
+include_directories("Common")
 
 if(MSVC)
     include_directories ("tSNE/lib/Flann/Win/include")
 endif(MSVC)
 
 if(APPLE)
-    include_directories ("lib/Flann/OSX/include")
+    include_directories ("tSNE/lib/Flann/OSX/include")
 endif(APPLE)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -27,6 +28,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_library(${TSNE_PLUGIN} SHARED
     ${DIMENSION_SELECTION_SOURCES}
+    ${TSNE_COMMON_SOURCES}
     ${TSNE_PLUGIN_SOURCES}
     ${UI_FILES}
 )
@@ -40,19 +42,6 @@ target_link_libraries(${TSNE_PLUGIN} Qt5::Widgets)
 target_link_libraries(${TSNE_PLUGIN} Qt5::WebEngineWidgets)
 target_link_libraries(${TSNE_PLUGIN} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/HDPS_Public.lib")
 target_link_libraries(${TSNE_PLUGIN} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/PointData.lib")
-
-if(MSVC)
-    MESSAGE( STATUS "Linking Windows libraries...")
-    target_link_libraries(${TSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdidimensionalityreduction.lib")
-    target_link_libraries(${TSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdidata.lib")
-    target_link_libraries(${TSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdiutils.lib")
-    target_link_libraries(${TSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdidimensionalityreduction.lib")
-    target_link_libraries(${TSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdidata.lib")
-    target_link_libraries(${TSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdiutils.lib")
-
-    target_link_libraries(${TSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/Flann/Win/Debug/flann_cpp_s.lib")
-    target_link_libraries(${TSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/Flann/Win/Release/flann_cpp_s.lib")
-endif(MSVC)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     MESSAGE( STATUS "Linking Linux libraries...")

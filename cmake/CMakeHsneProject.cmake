@@ -27,6 +27,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_library(${HSNE_PLUGIN} SHARED
     ${DIMENSION_SELECTION_SOURCES}
+    ${TSNE_COMMON_SOURCES}
     ${HSNE_PLUGIN_SOURCES}
     ${UI_FILES}
 )
@@ -40,19 +41,6 @@ target_link_libraries(${HSNE_PLUGIN} Qt5::Widgets)
 target_link_libraries(${HSNE_PLUGIN} Qt5::WebEngineWidgets)
 target_link_libraries(${HSNE_PLUGIN} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/HDPS_Public.lib")
 target_link_libraries(${HSNE_PLUGIN} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/PointData.lib")
-
-if(MSVC)
-    MESSAGE( STATUS "Linking Windows libraries...")
-    target_link_libraries(${HSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/HSNE/lib/HDI/Win/Debug/hdidimensionalityreduction.lib")
-    target_link_libraries(${HSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/HSNE/lib/HDI/Win/Debug/hdidata.lib")
-    target_link_libraries(${HSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/HSNE/lib/HDI/Win/Debug/hdiutils.lib")
-    target_link_libraries(${HSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/HSNE/lib/HDI/Win/Release/hdidimensionalityreduction.lib")
-    target_link_libraries(${HSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/HSNE/lib/HDI/Win/Release/hdidata.lib")
-    target_link_libraries(${HSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/HSNE/lib/HDI/Win/Release/hdiutils.lib")
-
-    target_link_libraries(${HSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/HSNE/lib/Flann/Win/Debug/flann_cpp_s.lib")
-    target_link_libraries(${HSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/HSNE/lib/Flann/Win/Release/flann_cpp_s.lib")
-endif(MSVC)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     MESSAGE( STATUS "Linking Linux libraries...")

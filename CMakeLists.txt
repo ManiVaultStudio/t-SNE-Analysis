@@ -24,6 +24,16 @@ include_directories ("lib/HDI/include")
 
 if(MSVC)
     include_directories ("lib/Flann/Win/include")
+
+    MESSAGE( STATUS "Linking Windows libraries...")
+    link_libraries(debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdidimensionalityreduction.lib")
+    link_libraries(debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdidata.lib")
+    link_libraries(debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdiutils.lib")
+    link_libraries(optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdidimensionalityreduction.lib")
+    link_libraries(optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdidata.lib")
+    link_libraries(optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdiutils.lib")
+    link_libraries(debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/Flann/Win/Debug/flann_cpp_s.lib")
+    link_libraries(optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/Flann/Win/Release/flann_cpp_s.lib")
 endif(MSVC)
 
 if(APPLE)
