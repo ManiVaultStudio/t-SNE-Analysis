@@ -11,7 +11,8 @@ source_group( Hsne FILES ${HSNE_PLUGIN_SOURCES})
 QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
 include_directories("$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/include/")
-include_directories ("HSNE/lib/HDI/include")
+include_directories("HSNE/lib/HDI/include")
+include_directories("Common")
 
 if(MSVC)
     include_directories ("HSNE/lib/Flann/Win/include")
