@@ -1,13 +1,21 @@
 #pragma once
 
-#include "HsneAnalysis.h"
+#include <widgets/SettingsWidget.h>
 
+#include "HsneAnalysis.h"
+#include "DimensionSelectionWidget.h"
+
+// Qt header files:
+#include <QComboBox>
+#include <QPushButton>
 #include <QWidget>
 #include <QLabel>
 #include <QLineEdit>
 #include <QCheckBox>
 
 #include <QGridLayout>
+
+using namespace hdps::gui;
 
 class HsneOptions
 {
@@ -60,36 +68,11 @@ public:
     QLabel* useOutOfCoreComputationLabel;
 };
 
-class HsneSettingsWidget : public QWidget
+class HsneSettingsWidget : public SettingsWidget
 {
     Q_OBJECT
 public:
-    HsneSettingsWidget() :
-        _options(_parameters)
-    {
-        QGridLayout* coreSettingsLayout = new QGridLayout();
-        coreSettingsLayout->addWidget(_options.seedLabel, 0, 0);
-        coreSettingsLayout->addWidget(_options.useMonteCarloSamplingLabel, 1, 0);
-        coreSettingsLayout->addWidget(_options.numWalksForLandmarkSelectionLabel, 2, 0);
-        coreSettingsLayout->addWidget(_options.numWalksForLandmarkSelectionThresholdLabel, 3, 0);
-        coreSettingsLayout->addWidget(_options.randomWalkLengthLabel, 4, 0);
-        coreSettingsLayout->addWidget(_options.numWalksForAreaOfInfluenceLabel, 5, 0);
-        coreSettingsLayout->addWidget(_options.minWalksRequiredLabel, 6, 0);
-        coreSettingsLayout->addWidget(_options.numChecksAknnLabel, 7, 0);
-        coreSettingsLayout->addWidget(_options.useOutOfCoreComputationLabel, 8, 0);
-
-        coreSettingsLayout->addWidget(_options.seed, 0, 1);
-        coreSettingsLayout->addWidget(_options.useMonteCarloSampling, 1, 1);
-        coreSettingsLayout->addWidget(_options.numWalksForLandmarkSelection, 2, 1);
-        coreSettingsLayout->addWidget(_options.numWalksForLandmarkSelectionThreshold, 3, 1);
-        coreSettingsLayout->addWidget(_options.randomWalkLength, 4, 1);
-        coreSettingsLayout->addWidget(_options.numWalksForAreaOfInfluence, 5, 1);
-        coreSettingsLayout->addWidget(_options.minWalksRequired, 6, 1);
-        coreSettingsLayout->addWidget(_options.numChecksAknn, 7, 1);
-        coreSettingsLayout->addWidget(_options.useOutOfCoreComputation, 8, 1);
-
-        setLayout(coreSettingsLayout);
-    }
+    HsneSettingsWidget();
 
     // Explicitly delete its copy and move member functions.
     HsneSettingsWidget(const HsneSettingsWidget&) = delete;
@@ -97,8 +80,28 @@ public:
     HsneSettingsWidget& operator=(const HsneSettingsWidget&) = delete;
     HsneSettingsWidget& operator=(HsneSettingsWidget&&) = delete;
 
+    QString getCurrentDataItem();
+    void addDataItem(const QString name);
+    void removeDataItem(const QString name);
+
+    hdps::DimensionSelectionWidget& getDimensionSelectionWidget();
+
+signals:
+    void dataSetPicked(QString);
+    void startComputation();
+    void stopComputation();
+
+public slots:
+    void onComputationStopped();
+
+private slots:
+    void onStartToggled(bool pressed);
+
 private:
     HsneParameters _parameters;
 
+    QComboBox* _dataOptions;
+    hdps::DimensionSelectionWidget _dimensionSelectionWidget;
     HsneOptions _options;
+    QPushButton* _startButton;
 };

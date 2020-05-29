@@ -1,5 +1,5 @@
 {
-    "name" : "H-SNE Analysis",
+    "name" : "HSNE Analysis",
     "version": "1",
     "dependencies" : ["Points"]
 }
