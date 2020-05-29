@@ -57,13 +57,8 @@ public:
 public slots:
     void dataSetPicked(const QString& name);
     void startComputation();
-    void onNewEmbedding();
 
 private:
-    void initializeTsne();
-    void stopComputation();
-
-    TsneAnalysis _tsne;
     HsneAnalysis _hsne;
 
     std::unique_ptr<HsneSettingsWidget> _settings;
