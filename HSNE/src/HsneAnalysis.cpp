@@ -67,10 +67,17 @@ void HsneAnalysis::initialize(const std::vector<float>& data, unsigned int numPo
     //}
 }
 
-void HsneAnalysis::newScale() { scale++; std::cout << "New scale!" << std::endl;  computeEmbedding(); }
+void HsneAnalysis::newScale() { scale++; std::cout << "New scale!" << std::endl; } //computeEmbedding(); }
 
 void HsneAnalysis::computeEmbedding()
 {
+    // Should come from some t-SNE settings widget
+    _tsne.setIterations(1000);
+    _tsne.setPerplexity(30);
+    _tsne.setExaggerationIter(250);
+    _tsne.setNumTrees(4);
+    _tsne.setNumChecks(1024);
+
     if (_tsne.isRunning())
     {
         // Request interruption of the computation

@@ -18,7 +18,7 @@ using namespace hdps;
 
 HsneAnalysisPlugin::~HsneAnalysisPlugin(void)
 {
-    stopComputation();
+    
 }
 
 void HsneAnalysisPlugin::init()
@@ -27,10 +27,10 @@ void HsneAnalysisPlugin::init()
 
     connect(_settings.get(), &HsneSettingsWidget::dataSetPicked, this, &HsneAnalysisPlugin::dataSetPicked);
     connect(_settings.get(), &HsneSettingsWidget::startComputation, this, &HsneAnalysisPlugin::startComputation);
-    connect(_settings.get(), &HsneSettingsWidget::stopComputation, this, &HsneAnalysisPlugin::stopComputation);
-    connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &HsneSettingsWidget::onComputationStopped);
+    //connect(_settings.get(), &HsneSettingsWidget::stopComputation, this, &HsneAnalysisPlugin::stopComputation);
+    //connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &HsneSettingsWidget::onComputationStopped);
     //connect(&_hsne._tsne, &TsneAnalysis::newEmbedding, this, &TsneAnalysisPlugin::onNewEmbedding);
-    connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
+    //connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
 }
 
 void HsneAnalysisPlugin::dataAdded(const QString name)
@@ -82,7 +82,7 @@ void HsneAnalysisPlugin::dataSetPicked(const QString& name)
 
 void HsneAnalysisPlugin::startComputation()
 {
-    initializeTsne();
+    //initializeTsne();
 
     // Prepare the data
     QString setName = _settings->getCurrentDataItem();
@@ -124,52 +124,23 @@ void HsneAnalysisPlugin::startComputation()
     embedding.setData(nullptr, 0, 2);
     _core->notifyDataAdded(_embeddingName);
 
-    _tsne.initTSNE(data, numDimensions);
+    // FIXME parameters should come from the settings
+    HsneParameters parameters;
 
-    _tsne.start();
+    _hsne.initialize(data, points.getNumPoints(), numDimensions, parameters);
+
+    _hsne.computeEmbedding();
 }
 
-void HsneAnalysisPlugin::onNewEmbedding() {
-
-    const TsneData& outputData = _tsne.output();
-    Points& embedding = _core->requestData<Points>(_embeddingName);
-
-    embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
-
-    _core->notifyDataChanged(_embeddingName);
-}
-
-void HsneAnalysisPlugin::initializeTsne() {
-    // Initialize the tSNE computation with the settings from the settings widget
-    //_tsne.setIterations(_settings->numIterations.text().toInt());
-    //_tsne.setPerplexity(_settings->perplexity.text().toInt());
-    //_tsne.setExaggerationIter(_settings->exaggeration.text().toInt());
-    //_tsne.setNumTrees(_settings->numTrees.text().toInt());
-    //_tsne.setNumChecks(_settings->numChecks.text().toInt());
-    _tsne.setIterations(1000);
-    _tsne.setPerplexity(30);
-    _tsne.setExaggerationIter(250);
-    _tsne.setNumTrees(4);
-    _tsne.setNumChecks(1024);
-}
-
-void HsneAnalysisPlugin::stopComputation() {
-    if (_tsne.isRunning())
-    {
-        // Request interruption of the computation
-        _tsne.stopGradientDescent();
-        _tsne.exit();
-
-        // Wait until the thread has terminated (max. 3 seconds)
-        if (!_tsne.wait(3000))
-        {
-            qDebug() << "tSNE computation thread did not close in time, terminating...";
-            _tsne.terminate();
-            _tsne.wait();
-        }
-        qDebug() << "tSNE computation stopped.";
-    }
-}
+//void HsneAnalysisPlugin::onNewEmbedding() {
+//
+//    const TsneData& outputData = _tsne.output();
+//    Points& embedding = _core->requestData<Points>(_embeddingName);
+//
+//    embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
+//
+//    _core->notifyDataChanged(_embeddingName);
+//}
 
 // =============================================================================
 // Factory
