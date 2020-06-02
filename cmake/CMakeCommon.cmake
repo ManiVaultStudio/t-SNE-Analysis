@@ -17,8 +17,8 @@ set(DIMENSION_SELECTION_SOURCES
     ${DIR}/DimensionSelectionProxyModel.cpp
     ${DIR}/DimensionSelectionWidget.h
     ${DIR}/DimensionSelectionWidget.cpp
-    ${DIR}/GeneralSettingsWidget.h
-    ${DIR}/GeneralSettingsWidget.cpp
+    #${DIR}/GeneralSettingsWidget.h
+    #${DIR}/GeneralSettingsWidget.cpp
 )
 
 set(UI_FILES
