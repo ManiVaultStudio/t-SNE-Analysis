@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.1.0)
 
+project("Project")
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT")
@@ -47,3 +48,4 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 include(CMakeCommon)
 include(CMakeTsneProject)
 include(CMakeHsneProject)
+project("SNE-Analyses")
