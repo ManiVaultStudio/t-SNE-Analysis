@@ -3,7 +3,7 @@
 #include <QGroupBox>
 
 HsneSettingsWidget::HsneSettingsWidget() :
-    _options(_parameters)
+    _options(HsneParameters())
 {
     // Set the size of the settings widget
     const auto minimumWidth = 200;
@@ -76,6 +76,24 @@ void HsneSettingsWidget::removeDataItem(const QString name)
 hdps::DimensionSelectionWidget& HsneSettingsWidget::getDimensionSelectionWidget()
 {
     return _dimensionSelectionWidget;
+}
+
+HsneParameters HsneSettingsWidget::getHsneParameters() const
+{
+    HsneParameters parameters;
+    // TODO Check if parameters are valid or not, this should already be done in onStartToggled() but need to check if everything is okay
+    // here too. Check for exceptions etc.
+    parameters.setSeed(_options.seed->text().toInt());
+    parameters.useMonteCarloSampling(_options.useMonteCarloSampling->checkState() == Qt::CheckState::Checked);
+    parameters.useOutOfCoreComputation(_options.useOutOfCoreComputation->checkState() == Qt::CheckState::Checked);
+    parameters.setNumWalksForLandmarkSelection(_options.numWalksForLandmarkSelection->text().toInt());
+    parameters.setNumWalksForLandmarkSelectionThreshold(_options.numWalksForLandmarkSelectionThreshold->text().toFloat());
+    parameters.setRandomWalkLength(_options.randomWalkLength->text().toInt());
+    parameters.setNumWalksForAreaOfInfluence(_options.numWalksForAreaOfInfluence->text().toInt());
+    parameters.setMinWalksRequired(_options.minWalksRequired->text().toInt());
+    parameters.setNumChecksAKNN(_options.numChecksAknn->text().toInt());
+
+    return parameters;
 }
 
 void HsneSettingsWidget::onComputationStopped()
