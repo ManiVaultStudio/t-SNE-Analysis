@@ -23,10 +23,14 @@ HsneAnalysisPlugin::~HsneAnalysisPlugin(void)
 
 void HsneAnalysisPlugin::init()
 {
+    // Create a new settings widget which allows users to change the parameters given to the HSNE analysis
     _settings = std::make_unique<HsneSettingsWidget>();
 
+    // If a different input dataset is picked in the settings widget update the dimension widget
     connect(_settings.get(), &HsneSettingsWidget::dataSetPicked, this, &HsneAnalysisPlugin::dataSetPicked);
+    // If the start computation button is pressed, run the HSNE algorithm
     connect(_settings.get(), &HsneSettingsWidget::startComputation, this, &HsneAnalysisPlugin::startComputation);
+
     //connect(_settings.get(), &HsneSettingsWidget::stopComputation, this, &HsneAnalysisPlugin::stopComputation);
     //connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &HsneSettingsWidget::onComputationStopped);
     //connect(&_hsne._tsne, &TsneAnalysis::newEmbedding, this, &TsneAnalysisPlugin::onNewEmbedding);
@@ -73,6 +77,7 @@ SettingsWidget* const HsneAnalysisPlugin::getSettings()
     return _settings.get();
 }
 
+// If a different input dataset is picked in the settings widget update the dimension widget
 void HsneAnalysisPlugin::dataSetPicked(const QString& name)
 {
     Points& points = _core->requestData<Points>(name);
@@ -80,54 +85,64 @@ void HsneAnalysisPlugin::dataSetPicked(const QString& name)
     _settings->getDimensionSelectionWidget().dataChanged(points);
 }
 
+Points& createEmptyEmbedding(CoreInterface* core, QString name, QString dataType, const Points& source)
+{
+    QString embeddingName = core->createDerivedData(dataType, name, source.getName());
+    Points& embedding = core->requestData<Points>(embeddingName);
+    embedding.setData(nullptr, 0, 2);
+    core->notifyDataAdded(embeddingName);
+    return embedding;
+}
+
 void HsneAnalysisPlugin::startComputation()
 {
     //initializeTsne();
 
-    // Prepare the data
+    /********************/
+    /* Prepare the data */
+    /********************/
+    // Obtain a reference to the the input dataset
     QString setName = _settings->getCurrentDataItem();
-    const Points& points = _core->requestData<Points>(setName);
-
-    // Create list of data from the enabled dimensions
-    std::vector<float> data;
-
-    auto selection = points.indices;
-
-    // If the dataset is not a subset, use all data points
-    if (points.isFull()) {
-        std::vector<std::uint32_t> all(points.getNumPoints());
-        std::iota(std::begin(all), std::end(all), 0);
-
-        selection = all;
-    }
+    const Points& source = _core->requestData<Points>(setName);
 
     // Extract the enabled dimensions from the data
     std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
     unsigned int numDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 
-    data.reserve(selection.size() * numDimensions);
-
-    for (const auto& pointId : selection)
+    std::vector<float> data;
     {
-        for (int dimensionId = 0; dimensionId < points.getNumDimensions(); dimensionId++)
+        auto selection = source.indices;
+
+        // If the dataset is not a subset, use all data points
+        if (source.isFull()) {
+            std::vector<std::uint32_t> all(source.getNumPoints());
+            std::iota(std::begin(all), std::end(all), 0);
+
+            selection = all;
+        }
+
+        data.reserve(selection.size() * numDimensions);
+
+        for (const auto& pointId : selection)
         {
-            if (enabledDimensions[dimensionId]) {
-                const auto index = pointId * points.getNumDimensions() + dimensionId;
-                data.push_back(points[index]);
+            for (int dimensionId = 0; dimensionId < source.getNumDimensions(); dimensionId++)
+            {
+                if (enabledDimensions[dimensionId]) {
+                    const auto index = pointId * source.getNumDimensions() + dimensionId;
+                    data.push_back(source[index]);
+                }
             }
         }
     }
 
     // Create new data set for the embedding
-    _embeddingName = _core->createDerivedData("Points", "Embedding", points.getName());
-    Points& embedding = _core->requestData<Points>(_embeddingName);
-    embedding.setData(nullptr, 0, 2);
-    _core->notifyDataAdded(_embeddingName);
+    createEmptyEmbedding(_core, "Embedding", "Points", source);
 
-    // FIXME parameters should come from the settings
-    HsneParameters parameters;
+    // Get the HSNE parameters from the settings widget
+    HsneParameters parameters = _settings->getHsneParameters();
 
-    _hsne.initialize(data, points.getNumPoints(), numDimensions, parameters);
+    // Initialize the HSNE algorithm with the given parameters
+    _hsne.initialize(data, source.getNumPoints(), numDimensions, parameters);
 
     _hsne.computeEmbedding();
 }
