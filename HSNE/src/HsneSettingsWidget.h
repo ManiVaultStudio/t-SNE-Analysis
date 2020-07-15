@@ -17,11 +17,13 @@
 
 using namespace hdps::gui;
 
+/** This class serves as a container of all the UI elements that provide parameter options for HSNE */
 class HsneOptions
 {
 public:
     HsneOptions(HsneParameters defaultParameters)
     {
+        // UI Inputs
         seed = new QLineEdit(QString::number(defaultParameters.getSeed()));
         useMonteCarloSampling = new QCheckBox();
         useMonteCarloSampling->setCheckState(defaultParameters.useMonteCarloSampling() ? Qt::Checked : Qt::Unchecked);
@@ -33,7 +35,8 @@ public:
         numChecksAknn = new QLineEdit(QString::number(defaultParameters.getNumChecksAKNN()));
         useOutOfCoreComputation = new QCheckBox();
         useOutOfCoreComputation->setCheckState(defaultParameters.useOutOfCoreComputation() ? Qt::Checked : Qt::Unchecked);
-
+        
+        // UI Labels
         useMonteCarloSamplingLabel = new QLabel("Use Monte Carlo Sampling");
         seedLabel = new QLabel("Random Seed");
         numWalksForLandmarkSelectionLabel = new QLabel("# Walks for Landmark Selection");
@@ -85,6 +88,7 @@ public:
     void removeDataItem(const QString name);
 
     hdps::DimensionSelectionWidget& getDimensionSelectionWidget();
+    HsneParameters getHsneParameters() const;
 
 signals:
     void dataSetPicked(QString);
@@ -98,7 +102,7 @@ private slots:
     void onStartToggled(bool pressed);
 
 private:
-    HsneParameters _parameters;
+    //HsneParameters _parameters;
 
     QComboBox* _dataOptions;
     hdps::DimensionSelectionWidget _dimensionSelectionWidget;
