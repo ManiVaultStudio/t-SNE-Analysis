@@ -27,6 +27,16 @@ public:
 
     }
 
+    void setSeed(int seed) { _seed = seed; }
+    void setNumWalksForLandmarkSelection(int numWalks) { _numWalksForLandmarkSelection = numWalks; }
+    void setNumWalksForLandmarkSelectionThreshold(float numWalks) { _numWalksForLandmarkSelectionThreshold = numWalks; }
+    void setRandomWalkLength(int length) { _randomWalkLength = length; }
+    void setNumWalksForAreaOfInfluence(int numWalks) { _numWalksForAreaOfInfluence = numWalks; }
+    void setMinWalksRequired(int minWalks) { _minWalksRequired = minWalks; }
+    void setNumChecksAKNN(int numChecks) { _numChecksAknn = numChecks; }
+    void useMonteCarloSampling(bool useMonteCarloSampling) { _useMonteCarloSampling = useMonteCarloSampling; }
+    void useOutOfCoreComputation(bool useOutOfCoreComputation) { _useOutOfCoreComputation = useOutOfCoreComputation; }
+
     int getSeed() { return _seed; }
     int getNumWalksForLandmarkSelection() { return _numWalksForLandmarkSelection; }
     float getNumWalksForLandmarkSelectionThreshold() { return _numWalksForLandmarkSelectionThreshold; }
