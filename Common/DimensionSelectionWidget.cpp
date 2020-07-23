@@ -31,6 +31,7 @@
 #include <ui_DimensionSelectionWidget.h>
 #include <set>
 
+
 namespace hdps
 {
     namespace
@@ -187,7 +188,7 @@ namespace hdps
 
         void CopyModelToClipboard(const QAbstractItemModel& model)
         {
-            
+
             QString result;
             const auto quote = QChar::fromLatin1('"');
             const auto tabChar = QChar::fromLatin1('\t');
@@ -254,7 +255,7 @@ namespace hdps
             _ui.label->setText(QObject::tr("%1 available, %2 visible, %3 selected").
                 arg(numberOfDimensions).
                 arg(numberOfVisibleDimensions).
-                arg(holder.getNumberOfSelectedDimensions()) );
+                arg(holder.getNumberOfSelectedDimensions()));
         }
 
         void updateSlider()
@@ -314,7 +315,7 @@ namespace hdps
                 // Reduce height of cells by 33%. The cells were really too high, originally!
                 header->setSectionResizeMode(QHeaderView::Fixed);
                 const auto originalDefaultSectionSize = header->defaultSectionSize();
-                header->setDefaultSectionSize((2 * originalDefaultSectionSize)/3);
+                header->setDefaultSectionSize((2 * originalDefaultSectionSize) / 3);
             }
 
             if (QHeaderView *const header = _ui.tableView->horizontalHeader(); header != nullptr)
@@ -534,7 +535,7 @@ namespace hdps
             {
                 const auto sliderMaximum = _ui.horizontalSlider->maximum();
 
-                if ((sliderValue >= 0) && (sliderValue <= sliderMaximum) )
+                if ((sliderValue >= 0) && (sliderValue <= sliderMaximum))
                 {
                     const auto& distinctStandardDeviations = _holder.distinctStandardDeviationsWithAndWithoutZero[_holder._ignoreZeroValues ? 1 : 0];
                     const auto numberOfDistinctStandardDeviations = distinctStandardDeviations.size();

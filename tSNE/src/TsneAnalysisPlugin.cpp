@@ -122,21 +122,19 @@ void TsneAnalysisPlugin::startComputation()
 
     data.reserve(selection.size() * numDimensions);
 
-    const auto numDimensionsOfPoints = points.getNumDimensions();
-
-    points.visitFromBeginToEnd([&data, &selection, &enabledDimensions, numDimensionsOfPoints](auto beginOfData, auto endOfData)
+    points.visitFromBeginToEnd([&data, &selection, &enabledDimensions, numDimensions](auto beginOfData, auto endOfData)
+    {
+        for (const auto& pointId : selection)
         {
-            for (const auto& pointId : selection)
+            for (int dimensionId = 0; dimensionId < numDimensions; dimensionId++)
             {
-                for (int dimensionId = 0; dimensionId < numDimensionsOfPoints; dimensionId++)
-                {
-                    if (enabledDimensions[dimensionId]) {
-                        const auto index = pointId * numDimensionsOfPoints + dimensionId;
-                        data.push_back(beginOfData[index]);
-                    }
+                if (enabledDimensions[dimensionId]) {
+                    const auto index = pointId * numDimensions + dimensionId;
+                    data.push_back(beginOfData[index]);
                 }
             }
-        });
+        }
+    });
 
     // Create new data set for the embedding
     _embeddingName = _core->createDerivedData("Points", "Embedding", points.getName());

@@ -103,7 +103,7 @@ void HsneAnalysisPlugin::startComputation()
     /********************/
     // Obtain a reference to the the input dataset
     QString setName = _settings->getCurrentDataItem();
-    const Points& source = _core->requestData<Points>(setName);
+    const Points& inputData = _core->requestData<Points>(setName);
 
     // Extract the enabled dimensions from the data
     std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
@@ -111,11 +111,11 @@ void HsneAnalysisPlugin::startComputation()
 
     std::vector<float> data;
     {
-        auto selection = source.indices;
+        auto selection = inputData.indices;
 
         // If the dataset is not a subset, use all data points
-        if (source.isFull()) {
-            std::vector<std::uint32_t> all(source.getNumPoints());
+        if (inputData.isFull()) {
+            std::vector<std::uint32_t> all(inputData.getNumPoints());
             std::iota(std::begin(all), std::end(all), 0);
 
             selection = all;
@@ -123,26 +123,29 @@ void HsneAnalysisPlugin::startComputation()
 
         data.reserve(selection.size() * numDimensions);
 
-        for (const auto& pointId : selection)
+        inputData.visitFromBeginToEnd([&data, &selection, &enabledDimensions, numDimensions](auto beginOfData, auto endOfData)
         {
-            for (int dimensionId = 0; dimensionId < source.getNumDimensions(); dimensionId++)
+            for (const auto& pointId : selection)
             {
-                if (enabledDimensions[dimensionId]) {
-                    const auto index = pointId * source.getNumDimensions() + dimensionId;
-                    data.push_back(source[index]);
+                for (int dimensionId = 0; dimensionId < numDimensions; dimensionId++)
+                {
+                    if (enabledDimensions[dimensionId]) {
+                        const auto index = pointId * numDimensions + dimensionId;
+                        data.push_back(beginOfData[index]);
+                    }
                 }
             }
-        }
+        });
     }
 
     // Create new data set for the embedding
-    createEmptyEmbedding(_core, "Embedding", "Points", source);
+    createEmptyEmbedding(_core, "Embedding", "Points", inputData);
 
     // Get the HSNE parameters from the settings widget
     HsneParameters parameters = _settings->getHsneParameters();
 
     // Initialize the HSNE algorithm with the given parameters
-    _hsne.initialize(data, source.getNumPoints(), numDimensions, parameters);
+    _hsne.initialize(data, inputData.getNumPoints(), numDimensions, parameters);
 
     _hsne.computeEmbedding();
 }
