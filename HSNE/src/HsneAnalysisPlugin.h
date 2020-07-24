@@ -54,6 +54,7 @@ public:
     hdps::DataTypes supportedDataTypes() const Q_DECL_OVERRIDE;
 
     SettingsWidget* const getSettings() override;
+
 public slots:
     void dataSetPicked(const QString& name);
     void startComputation();
@@ -62,7 +63,6 @@ private:
     HsneAnalysis _hsne;
 
     std::unique_ptr<HsneSettingsWidget> _settings;
-    QString _embeddingName;
 };
 
 // =============================================================================
