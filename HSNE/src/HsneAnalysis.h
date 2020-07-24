@@ -1,14 +1,19 @@
 #pragma once
 
+#include "CoreInterface.h"
 #include "TsneAnalysis.h"
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
 
+#include <QString>
+#include <QDebug>
+
 #include <vector>
 #include <memory>
-#include <QDebug>
 
 using HsneMatrix = std::vector<hdi::data::MapMemEff<uint32_t, float>>;
 using Hsne = hdi::dr::HierarchicalSNE<float, HsneMatrix>;
+
+class Points;
 
 class HsneParameters
 {
@@ -69,17 +74,29 @@ public:
      * @param  data        The high-dimensional data
      * @param  parameters  Parameters with which to run the HSNE algorithm
      */
-    void initialize(const std::vector<float>& data, unsigned int numPoints, unsigned int numDimensions, const HsneParameters& parameters);
+    void initialize(hdps::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters);
     void computeEmbedding();
+    //TsneAnalysis& getTsneAnalysis() { return _tsne; }
 
     TsneAnalysis _tsne;
 
+private:
+    QString createEmptyEmbedding(QString name, QString dataType, QString sourceName);
+
 public slots:
     void newScale();
+    void onNewEmbedding();
+
 private:
+    hdps::CoreInterface* _core;
+
     std::unique_ptr<Hsne> _hsne;
 
+    QString _inputDataName;
+    QString _embeddingName;
+
     // TEMP
+    unsigned int _numPoints;
     unsigned int _numDimensions;
     int scale = 0;
 };
