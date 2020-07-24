@@ -3,7 +3,7 @@
 #include <widgets/SettingsWidget.h>
 
 #include "DimensionSelectionWidget.h"
-#include "HsneSettingsWidget.h"
+//#include "HsneSettingsWidget.h"
 
 // Qt header files:
 #include <QComboBox>
@@ -59,6 +59,6 @@ private:
     QComboBox* _algorithmPicker;
     QComboBox* _dataOptions;
     hdps::DimensionSelectionWidget _dimensionSelectionWidget;
-    HsneSettingsWidget* _hsneSettingsWidget;
+    SettingsWidget* _hsneSettingsWidget;
     QPushButton* _startButton;
 };
