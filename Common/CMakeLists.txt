@@ -11,8 +11,6 @@ set(DIMENSION_SELECTION_SOURCES
     ${DIR}/DimensionSelectionProxyModel.cpp
     ${DIR}/DimensionSelectionWidget.h
     ${DIR}/DimensionSelectionWidget.cpp
-    #${DIR}/GeneralSettingsWidget.h
-    #${DIR}/GeneralSettingsWidget.cpp
     PARENT_SCOPE
 )
 

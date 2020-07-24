@@ -20,7 +20,7 @@ GeneralSettingsWidget::GeneralSettingsWidget() :
     connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SIGNAL(dataSetPicked(QString)));
 
     // Initialize HSNE settings
-    _hsneSettingsWidget = new HsneSettingsWidget();
+    //_hsneSettingsWidget = new HsneSettingsWidget();
 
     // Initialize start button
     _startButton = new QPushButton();
