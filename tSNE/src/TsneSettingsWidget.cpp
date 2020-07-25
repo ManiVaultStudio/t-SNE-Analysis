@@ -35,11 +35,20 @@ _analysisPlugin(analysisPlugin)
     distanceMetric.addItem("Hamming");
     distanceMetric.addItem("Dot");
 
-    connect(&dataOptions,   SIGNAL(currentIndexChanged(QString)), this, SIGNAL(dataSetPicked(QString)));
     connect(&knnOptions,    SIGNAL(currentIndexChanged(int)), this, SIGNAL(knnAlgorithmPicked(int)));
     connect(&distanceMetric,SIGNAL(currentIndexChanged(int)), this, SIGNAL(distanceMetricPicked(int)));
-    connect(&startButton,   &QPushButton::toggled, this, &TsneSettingsWidget::onStartToggled);
-    //////////////////////////////
+
+    connect(&numIterations, SIGNAL(textChanged(QString)), SLOT(numIterationsChanged(QString)));
+    connect(&perplexity, SIGNAL(textChanged(QString)), SLOT(perplexityChanged(QString)));
+    connect(&exaggeration, SIGNAL(textChanged(QString)), SLOT(exaggerationChanged(QString)));
+    connect(&expDecay, SIGNAL(textChanged(QString)), SLOT(expDecayChanged(QString)));
+    connect(&numTrees, SIGNAL(textChanged(QString)), SLOT(numTreesChanged(QString)));
+    connect(&numChecks, SIGNAL(textChanged(QString)), SLOT(numChecksChanged(QString)));
+    connect(&theta, SIGNAL(textChanged(QString)), SLOT(thetaChanged(QString)));
+
+    // Initialize data options
+    _dataOptions = new QComboBox();
+    connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SIGNAL(dataSetPicked(QString)));
 
     // Create group boxes for grouping together various settings
     QGroupBox* settingsBox = new QGroupBox("Basic settings");
@@ -163,7 +172,7 @@ void TsneSettingsWidget::onStartToggled(bool pressed)
     }
 
     _startButton->setText(pressed ? "Stop Computation" : "Start Computation");
-    emit pressed ? startComputation() : stopComputation();
+    pressed ? _analysisPlugin.startComputation() : _analysisPlugin.stopComputation();
 }
 
 void TsneSettingsWidget::dataChanged(const Points& points)
@@ -210,32 +219,6 @@ void TsneSettingsWidget::checkInputStyle(QLineEdit& input)
 hdps::DimensionSelectionWidget& TsneSettingsWidget::getDimensionSelectionWidget()
 {
     return _dimensionSelectionWidget;
-}
-
-
-// SLOTS
-void TsneSettingsWidget::onStartToggled(bool pressed)
-{
-    // Do nothing if we have no data set selected
-    if (dataOptions.currentText().isEmpty()) {
-        return;
-    }
-
-    // Check if the tSNE settings are valid before running the computation
-    if (!hasValidSettings()) {
-        QMessageBox warningBox;
-        warningBox.setText(tr("Some settings are invalid or missing. Continue with default values?"));
-        QPushButton *continueButton = warningBox.addButton(tr("Continue"), QMessageBox::ActionRole);
-        QPushButton *abortButton = warningBox.addButton(QMessageBox::Abort);
-
-        warningBox.exec();
-
-        if (warningBox.clickedButton() == abortButton) {
-            return;
-        }
-    }
-    startButton.setText(pressed ? "Stop Computation" : "Start Computation");
-    pressed ? _analysisPlugin.startComputation() : _analysisPlugin.stopComputation();;
 }
 
 void TsneSettingsWidget::numIterationsChanged(const QString &)
