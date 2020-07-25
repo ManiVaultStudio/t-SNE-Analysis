@@ -18,6 +18,8 @@ public:
     TsneAnalysis();
     ~TsneAnalysis() override;
 
+    void setKnnAlgorithm(int algorithm);
+    void setDistanceMetric(int metric);
     void setVerbose(bool verbose);
     void setIterations(int iterations);
     void setNumTrees(int numTrees);
@@ -59,6 +61,8 @@ signals:
 
 private:
     // TSNE structures
+    hdi::utils::knn_library _knnLibrary = hdi::utils::KNN_FLANN;
+    hdi::utils::knn_distance_metric _knnDistanceMetric = hdi::utils::KNN_METRIC_EUCLIDEAN;
     hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type _probabilityDistribution;
     hdi::dr::SparseTSNEUserDefProbabilities<float> _A_tSNE;
     hdi::dr::GradientDescentTSNETexture _GPGPU_tSNE;
