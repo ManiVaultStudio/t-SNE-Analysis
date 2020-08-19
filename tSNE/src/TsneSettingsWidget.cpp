@@ -20,6 +20,8 @@ TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin)
 :
 _analysisPlugin(analysisPlugin)
 {
+	setWindowTitle(_analysisPlugin.getGuiName());
+
     const auto minimumWidth = 200;
     setMinimumWidth(minimumWidth);
     setMaximumWidth(2 * minimumWidth);

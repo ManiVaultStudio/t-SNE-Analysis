@@ -58,6 +58,15 @@ public:
     void startComputation();
     void stopComputation();
 
+public: // GUI
+
+	/**
+	 * Generates a context menu for display in other (view) plugins
+	 * @param kind Kind of plugin in which the context menu will be shown
+	 * @return Context menu
+	 */
+	QMenu* contextMenu(const QString& kind) override;
+
 public slots:
     void dataSetPicked(const QString& name);
     void onKnnAlgorithmPicked(const int index);

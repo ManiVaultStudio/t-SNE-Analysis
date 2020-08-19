@@ -5,6 +5,7 @@
 
 #include <QtCore>
 #include <QtDebug>
+#include <QMenu>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 #include <windows.h>
@@ -16,9 +17,8 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 // =============================================================================
 
 using namespace hdps;
-TsneAnalysisPlugin::TsneAnalysisPlugin()
-:
-AnalysisPlugin("tSNE Analysis")
+TsneAnalysisPlugin::TsneAnalysisPlugin() :
+	AnalysisPlugin("tSNE Analysis")
 {
 }
 
@@ -81,6 +81,12 @@ SettingsWidget* const TsneAnalysisPlugin::getSettings()
 void TsneAnalysisPlugin::dataSetPicked(const QString& name)
 {
     Points& points = _core->requestData<Points>(name);
+
+	auto analyses = points.getProperty("Analyses", QVariantList()).toList();
+
+	analyses.push_back(getName());
+
+	points.setProperty("Analyses", analyses);
 
     _settings->getDimensionSelectionWidget().dataChanged(points);
 }
@@ -182,6 +188,22 @@ void TsneAnalysisPlugin::stopComputation() {
         }
         qDebug() << "tSNE computation stopped.";
     }
+}
+
+QMenu* TsneAnalysisPlugin::contextMenu(const QString& kind)
+{
+	auto menu = new QMenu(getGuiName());
+	
+	auto startComputationAction = new QAction("Start computation");
+	auto stopComputationAction = new QAction("Stop computation");
+
+	connect(startComputationAction, &QAction::triggered, [this]() { startComputation(); });
+	connect(stopComputationAction, &QAction::triggered, [this]() { stopComputation(); });
+
+	menu->addAction(startComputationAction);
+	menu->addAction(stopComputationAction);
+
+	return menu;
 }
 
 // =============================================================================
