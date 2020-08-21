@@ -111,36 +111,16 @@ void TsneAnalysisPlugin::startComputation()
 
     // Create list of data from the enabled dimensions
     std::vector<float> data;
-
-    auto selection = points.indices;
-
-    // If the dataset is not a subset, use all data points
-    if (points.isFull()) {
-        std::vector<std::uint32_t> all(points.getNumPoints());
-        std::iota(std::begin(all), std::end(all), 0);
-
-        selection = all;
-    }
+    std::vector<unsigned int> indices;
 
     // Extract the enabled dimensions from the data
     std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
-    unsigned int numDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
+    unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
+    data.resize((points.isFull() ? points.getNumPoints() : points.indices.size()) * numEnabledDimensions);
+    for (int i = 0; i < points.getNumDimensions(); i++)
+        if (enabledDimensions[i]) indices.push_back(i);
 
-    data.reserve(selection.size() * numDimensions);
-
-    points.visitFromBeginToEnd([&data, &selection, &enabledDimensions, numDimensions](auto beginOfData, auto endOfData)
-    {
-        for (const auto& pointId : selection)
-        {
-            for (int dimensionId = 0; dimensionId < numDimensions; dimensionId++)
-            {
-                if (enabledDimensions[dimensionId]) {
-                    const auto index = pointId * numDimensions + dimensionId;
-                    data.push_back(beginOfData[index]);
-                }
-            }
-        }
-    });
+    points.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
     // Create new data set for the embedding
     _embeddingName = _core->createDerivedData("Points", "Embedding", points.getName());
@@ -148,7 +128,7 @@ void TsneAnalysisPlugin::startComputation()
     embedding.setData(nullptr, 0, 2);
     _core->notifyDataAdded(_embeddingName);
 
-    _tsne.initTSNE(data, numDimensions);
+    _tsne.initTSNE(data, numEnabledDimensions);
 
     _tsne.start();
 }
