@@ -11,6 +11,8 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
 
 #include <set>
 
+#include <QMenu>
+
 // =============================================================================
 // View
 // =============================================================================
@@ -82,6 +84,10 @@ SettingsWidget* const HsneAnalysisPlugin::getSettings()
 void HsneAnalysisPlugin::dataSetPicked(const QString& name)
 {
     Points& points = _core->requestData<Points>(name);
+
+    auto analyses = points.getProperty("Analyses", QVariantList()).toList();
+    analyses.push_back(getName());
+    points.setProperty("Analyses", analyses);
 
     _settings->getDimensionSelectionWidget().dataChanged(points);
 }
@@ -193,6 +199,21 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
     std::cout << "Drilling in" << std::endl;
 }
 
+QMenu* HsneAnalysisPlugin::contextMenu(const QString& kind)
+{
+    auto menu = new QMenu(getGuiName());
+
+    auto startComputationAction = new QAction("Start computation");
+    auto drillInAction = new QAction("Drill in");
+
+    connect(startComputationAction, &QAction::triggered, [this]() { startComputation(); });
+    connect(drillInAction, &QAction::triggered, [this]() { onDrillIn(); });
+
+    menu->addAction(startComputationAction);
+    menu->addAction(drillInAction);
+
+    return menu;
+}
 
 // =============================================================================
 // Factory

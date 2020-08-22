@@ -63,6 +63,14 @@ public slots:
     void onDrillIn();
     void onNewEmbedding();
 
+public: // GUI
+    /**
+     * Generates a context menu for display in other (view) plugins
+     * @param kind Kind of plugin in which the context menu will be shown
+     * @return Context menu
+     */
+    QMenu* contextMenu(const QString& kind) override;
+
 private:
     QString createEmptyEmbedding(QString name, QString dataType, QString sourceName);
 
