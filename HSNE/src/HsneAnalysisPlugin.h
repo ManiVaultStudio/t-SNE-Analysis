@@ -2,8 +2,8 @@
 
 #include <AnalysisPlugin.h>
 
+#include "HsneHierarchy.h"
 #include "TsneAnalysis.h"
-#include "HsneAnalysis.h"
 #include "HsneSettingsWidget.h"
 
 using namespace hdps::plugin;
@@ -53,14 +53,25 @@ public:
      */
     hdps::DataTypes supportedDataTypes() const Q_DECL_OVERRIDE;
 
+    void computeEmbedding();
+    void drillIn(QString embeddingName);
     SettingsWidget* const getSettings() override;
 
 public slots:
     void dataSetPicked(const QString& name);
     void startComputation();
+    void onDrillIn();
+    void onNewEmbedding();
 
 private:
-    HsneAnalysis _hsne;
+    QString createEmptyEmbedding(QString name, QString dataType, QString sourceName);
+
+private:
+    HsneHierarchy _hierarchy;
+
+    TsneAnalysis _tsne;
+
+    QString _embeddingName;
 
     std::unique_ptr<HsneSettingsWidget> _settings;
 };

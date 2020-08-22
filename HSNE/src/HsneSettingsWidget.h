@@ -2,7 +2,7 @@
 
 #include <widgets/SettingsWidget.h>
 
-#include "HsneAnalysis.h"
+#include "HsneParameters.h"
 #include "DimensionSelectionWidget.h"
 
 // Qt header files:

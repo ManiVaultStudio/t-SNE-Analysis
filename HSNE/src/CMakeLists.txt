@@ -4,8 +4,10 @@ set(HSNE_PLUGIN_SOURCES
     ${DIR}/HsneAnalysisPlugin.h
     ${DIR}/HsneAnalysisPlugin.cpp
     ${DIR}/HsneAnalysisPlugin.json
-    ${DIR}/HsneAnalysis.h
-    ${DIR}/HsneAnalysis.cpp
+    ${DIR}/HsneHierarchy.h
+    ${DIR}/HsneHierarchy.cpp
+    ${DIR}/HsneParameters.h
+    ${DIR}/HsneParameters.cpp
     ${DIR}/HsneSettingsWidget.h
     ${DIR}/HsneSettingsWidget.cpp
     PARENT_SCOPE

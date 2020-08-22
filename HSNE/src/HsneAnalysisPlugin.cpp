@@ -1,6 +1,7 @@
 #include "HsneAnalysisPlugin.h"
 
 #include "PointData.h"
+#include "HsneParameters.h"
 
 #include <QtCore>
 #include <QtDebug>
@@ -33,7 +34,7 @@ void HsneAnalysisPlugin::init()
 
     //connect(_settings.get(), &HsneSettingsWidget::stopComputation, this, &HsneAnalysisPlugin::stopComputation);
     //connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &HsneSettingsWidget::onComputationStopped);
-    //connect(&_hsne._tsne, &TsneAnalysis::newEmbedding, this, &TsneAnalysisPlugin::onNewEmbedding);
+    connect(&_tsne, &TsneAnalysis::newEmbedding, this, &HsneAnalysisPlugin::onNewEmbedding);
     //connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
 }
 
@@ -102,20 +103,96 @@ void HsneAnalysisPlugin::startComputation()
     std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
 
     // Initialize the HSNE algorithm with the given parameters
-    _hsne.initialize(_core, inputData, enabledDimensions, parameters);
+    _hierarchy.initialize(_core, inputData, enabledDimensions, parameters);
 
-    _hsne.computeEmbedding();
+    computeEmbedding();
 }
 
-//void HsneAnalysisPlugin::onNewEmbedding() {
-//
-//    const TsneData& outputData = _tsne.output();
-//    Points& embedding = _core->requestData<Points>(_embeddingName);
-//
-//    embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
-//
-//    _core->notifyDataChanged(_embeddingName);
-//}
+void HsneAnalysisPlugin::onNewEmbedding() {
+    const TsneData& outputData = _tsne.output();
+    Points& embedding = _core->requestData<Points>(_embeddingName);
+
+    embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
+
+    _core->notifyDataChanged(_embeddingName);
+}
+
+QString HsneAnalysisPlugin::createEmptyEmbedding(QString name, QString dataType, QString sourceName)
+{
+    QString embeddingName = _core->createDerivedData(dataType, name, sourceName);
+    Points& embedding = _core->requestData<Points>(embeddingName);
+    embedding.setData(nullptr, 0, 2);
+
+    auto analyses = embedding.getProperty("Analyses", QVariantList()).toList();
+    analyses.push_back(getName());
+    embedding.setProperty("Analyses", analyses);
+
+    _core->notifyDataAdded(embeddingName);
+    return embeddingName;
+}
+
+void HsneAnalysisPlugin::computeEmbedding()
+{
+    // Create a new data set for the embedding
+    _embeddingName = createEmptyEmbedding("Embedding", "Points", _hierarchy.getInputDataName());
+
+    // Should come from some t-SNE settings widget
+    _tsne.setIterations(1000);
+    _tsne.setPerplexity(30);
+    _tsne.setExaggerationIter(250);
+    _tsne.setNumTrees(4);
+    _tsne.setNumChecks(1024);
+
+    if (_tsne.isRunning())
+    {
+        // Request interruption of the computation
+        _tsne.stopGradientDescent();
+        _tsne.exit();
+
+        // Wait until the thread has terminated (max. 3 seconds)
+        if (!_tsne.wait(3000))
+        {
+            qDebug() << "tSNE computation thread did not close in time, terminating...";
+            _tsne.terminate();
+            _tsne.wait();
+        }
+        qDebug() << "tSNE computation stopped.";
+    }
+    // Initialize tsne, compute data to be embedded, start computation?
+    _tsne.initWithProbDist(_hierarchy.getNumPoints(), _hierarchy.getNumDimensions(), _hierarchy.getTransitionMatrixAtScale(_hierarchy.getCurrentScale())); // FIXME
+    // Embed data
+    _tsne.start();
+}
+
+void HsneAnalysisPlugin::onDrillIn()
+{
+    //_hsne.drillIn("Temp");
+}
+
+void HsneAnalysisPlugin::drillIn(QString embeddingName)
+{
+    Points& embedding = _core->requestData<Points>(embeddingName);
+    Points& source = hdps::DataSet::getSourceData<Points>(embedding);
+    //QString subset = source.createSubset();
+
+    Points& selection = static_cast<Points&>(embedding.getSelection());
+    //_hsne->scale(scale)._area_of_influence[selection.indices];
+
+    std::map<uint32_t, float> neighbors;
+    _hierarchy.getInfluencedLandmarksInPreviousScale(selection.indices, neighbors);
+
+    std::vector<uint32_t> nextLevelIdxs;
+    nextLevelIdxs.clear();
+    for (auto n : neighbors) {
+        if (n.second > 0.5) //QUICKPAPER
+        {
+            nextLevelIdxs.push_back(n.first);
+        }
+    }
+    std::cout << "#landmarks at previous scale: " << neighbors.size() << std::endl;
+    std::cout << "Drilling in" << std::endl;
+}
+
 
 // =============================================================================
 // Factory
