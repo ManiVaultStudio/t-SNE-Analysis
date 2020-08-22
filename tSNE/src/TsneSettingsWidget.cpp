@@ -1,6 +1,5 @@
 #include "TsneSettingsWidget.h"
 
-
 #include "DimensionSelectionWidget.h"
 #include "TsneAnalysisPlugin.h"
 

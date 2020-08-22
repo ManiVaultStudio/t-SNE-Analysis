@@ -25,7 +25,7 @@ HsneAnalysisPlugin::~HsneAnalysisPlugin(void)
 void HsneAnalysisPlugin::init()
 {
     // Create a new settings widget which allows users to change the parameters given to the HSNE analysis
-    _settings = std::make_unique<HsneSettingsWidget>();
+    _settings = std::make_unique<HsneSettingsWidget>(*this);
 
     // If a different input dataset is picked in the settings widget update the dimension widget
     connect(_settings.get(), &HsneSettingsWidget::dataSetPicked, this, &HsneAnalysisPlugin::dataSetPicked);

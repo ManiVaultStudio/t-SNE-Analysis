@@ -17,6 +17,8 @@
 
 using namespace hdps::gui;
 
+class HsneAnalysisPlugin;
+
 /** This class serves as a container of all the UI elements that provide parameter options for HSNE */
 class HsneOptions
 {
@@ -75,7 +77,7 @@ class HsneSettingsWidget : public SettingsWidget
 {
     Q_OBJECT
 public:
-    HsneSettingsWidget();
+    explicit HsneSettingsWidget(HsneAnalysisPlugin&);
 
     // Explicitly delete its copy and move member functions.
     HsneSettingsWidget(const HsneSettingsWidget&) = delete;
@@ -108,4 +110,7 @@ private:
     hdps::DimensionSelectionWidget _dimensionSelectionWidget;
     HsneOptions _options;
     QPushButton* _startButton;
+    QPushButton* _drillButton;
+
+    HsneAnalysisPlugin& _analysisPlugin;
 };

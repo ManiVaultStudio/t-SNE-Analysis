@@ -1,8 +1,11 @@
 #include "HsneSettingsWidget.h"
 
+#include "HsneAnalysisPlugin.h"
+
 #include <QGroupBox>
 
-HsneSettingsWidget::HsneSettingsWidget() :
+HsneSettingsWidget::HsneSettingsWidget(HsneAnalysisPlugin& analysisPlugin) :
+    _analysisPlugin(analysisPlugin),
     _options(HsneParameters())
 {
     // Set the size of the settings widget
