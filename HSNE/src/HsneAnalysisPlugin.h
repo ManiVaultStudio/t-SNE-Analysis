@@ -69,7 +69,7 @@ public: // GUI
      * @param kind Kind of plugin in which the context menu will be shown
      * @return Context menu
      */
-    QMenu* contextMenu(const QString& kind) override;
+    QMenu* contextMenu(const QVariant& context) override;
 
 private:
     QString createEmptyEmbedding(QString name, QString dataType, QString sourceName);

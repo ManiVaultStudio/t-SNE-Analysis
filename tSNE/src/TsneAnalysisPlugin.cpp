@@ -170,7 +170,7 @@ void TsneAnalysisPlugin::stopComputation() {
     }
 }
 
-QMenu* TsneAnalysisPlugin::contextMenu(const QString& kind)
+QMenu* TsneAnalysisPlugin::contextMenu(const QVariant& context)
 {
 	auto menu = new QMenu(getGuiName());
 	

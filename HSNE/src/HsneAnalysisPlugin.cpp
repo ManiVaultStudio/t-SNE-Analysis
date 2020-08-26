@@ -200,15 +200,18 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
     std::cout << "Drilling in" << std::endl;
 }
 
-QMenu* HsneAnalysisPlugin::contextMenu(const QString& kind)
+QMenu* HsneAnalysisPlugin::contextMenu(const QVariant& context)
 {
     auto menu = new QMenu(getGuiName());
 
     auto startComputationAction = new QAction("Start computation");
     auto drillInAction = new QAction("Drill in");
 
+    QMap contextMap = context.value<QMap<QString, QString>>();
+    QString currentDataSetName = contextMap["CurrentDataset"];
+
     connect(startComputationAction, &QAction::triggered, [this]() { startComputation(); });
-    connect(drillInAction, &QAction::triggered, [this]() { onDrillIn(); });
+    connect(drillInAction, &QAction::triggered, [this, currentDataSetName]() { drillIn(currentDataSetName); });
 
     menu->addAction(startComputationAction);
     menu->addAction(drillInAction);
