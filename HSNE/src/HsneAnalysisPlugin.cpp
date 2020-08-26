@@ -125,7 +125,8 @@ void HsneAnalysisPlugin::onNewEmbedding() {
 
 QString HsneAnalysisPlugin::createEmptyEmbedding(QString name, QString dataType, QString sourceName)
 {
-    QString embeddingName = _core->createDerivedData(dataType, name, sourceName);
+    QString embeddingName = _core->addData(dataType, name);
+    //QString embeddingName = _core->createDerivedData(dataType, name, sourceName);
     Points& embedding = _core->requestData<Points>(embeddingName);
     embedding.setData(nullptr, 0, 2);
 
