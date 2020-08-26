@@ -198,6 +198,39 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
     }
     std::cout << "#landmarks at previous scale: " << neighbors.size() << std::endl;
     std::cout << "Drilling in" << std::endl;
+
+    HsneMatrix transitionMatrix;
+    _hierarchy.getTransitionMatrixForSelection(transitionMatrix, nextLevelIdxs);
+
+    // Create a new data set for the embedding
+    _embeddingName = createEmptyEmbedding("Drill Embedding", "Points", _hierarchy.getInputDataName());
+
+    // Should come from some t-SNE settings widget
+    _tsne.setIterations(1000);
+    _tsne.setPerplexity(30);
+    _tsne.setExaggerationIter(250);
+    _tsne.setNumTrees(4);
+    _tsne.setNumChecks(1024);
+
+    if (_tsne.isRunning())
+    {
+        // Request interruption of the computation
+        _tsne.stopGradientDescent();
+        _tsne.exit();
+
+        // Wait until the thread has terminated (max. 3 seconds)
+        if (!_tsne.wait(3000))
+        {
+            qDebug() << "tSNE computation thread did not close in time, terminating...";
+            _tsne.terminate();
+            _tsne.wait();
+        }
+        qDebug() << "tSNE computation stopped.";
+    }
+    // Initialize tsne, compute data to be embedded, start computation?
+    _tsne.initWithProbDist(nextLevelIdxs.size(), _hierarchy.getNumDimensions(), transitionMatrix); // FIXME
+    // Embed data
+    _tsne.start();
 }
 
 QMenu* HsneAnalysisPlugin::contextMenu(const QVariant& context)
