@@ -3,6 +3,7 @@
 #include "CoreInterface.h"
 #include "TsneAnalysis.h"
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
+#include "hdi/utils/graph_algorithms.h"
 
 #include <QString>
 #include <QDebug>
@@ -32,6 +33,14 @@ public:
     {
         _hsne->getInfluencedLandmarksInPreviousScale(_currentScale, indices, neighbors);
     }
+    void getTransitionMatrixForSelection(HsneMatrix& transitionMatrix, std::vector<uint32_t>& landmarkIdxs)
+    {
+        //HsneMatrix& transitionMatrix = _hsne->scale(scale)._transition_matrix;
+
+        std::vector<unsigned int> dummy;
+        hdi::utils::extractSubGraph(_hsne->scale(_currentScale-1)._transition_matrix, landmarkIdxs, transitionMatrix, dummy, 1);
+    }
+
     int getCurrentScale() { return _currentScale; }
     QString getInputDataName() { return _inputDataName; }
     int getNumPoints() { return _numPoints; }
