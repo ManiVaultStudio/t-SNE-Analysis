@@ -103,6 +103,8 @@ void TsneAnalysisPlugin::startComputation()
     QString setName = _settings->getCurrentDataItem();
     const Points& points = _core->requestData<Points>(setName);
 
+    unsigned int numDimensions = points.getNumDimensions();
+
     // Create list of data from the enabled dimensions
     std::vector<float> data;
 
@@ -118,9 +120,9 @@ void TsneAnalysisPlugin::startComputation()
 
     // Extract the enabled dimensions from the data
     std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
-    unsigned int numDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
+    unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 
-    data.reserve(selection.size() * numDimensions);
+    data.reserve(selection.size() * numEnabledDimensions);
 
     points.visitFromBeginToEnd([&data, &selection, &enabledDimensions, numDimensions](auto beginOfData, auto endOfData)
     {
@@ -142,7 +144,7 @@ void TsneAnalysisPlugin::startComputation()
     embedding.setData(nullptr, 0, 2);
     _core->notifyDataAdded(_embeddingName);
 
-    _tsne.initTSNE(data, numDimensions);
+    _tsne.initTSNE(data, numEnabledDimensions);
 
     _tsne.start();
 }
