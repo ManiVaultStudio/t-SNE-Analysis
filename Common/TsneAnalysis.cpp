@@ -142,11 +142,6 @@ void TsneAnalysis::initGradientDescent()
 
     hdi::dr::TsneParameters tsneParams;
 
-    setIterations(1000);
-    setPerplexity(30);
-    setExaggerationIter(250);
-    setNumTrees(4);
-    setNumChecks(1024);
     tsneParams._embedding_dimensionality = _numDimensionsOutput;
     tsneParams._mom_switching_iter = _exaggerationIter;
     tsneParams._remove_exaggeration_iter = _exaggerationIter;
