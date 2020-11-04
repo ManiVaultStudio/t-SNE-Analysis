@@ -139,7 +139,7 @@ void TsneAnalysisPlugin::startComputation()
     });
 
     // Create new data set for the embedding
-    _embeddingName = _core->createDerivedData("Points", "Embedding", points.getName());
+    _embeddingName = _core->createDerivedData("Points", _settings->getEmbName(), points.getName());
     Points& embedding = _core->requestData<Points>(_embeddingName);
     embedding.setData(nullptr, 0, 2);
     _core->notifyDataAdded(_embeddingName);

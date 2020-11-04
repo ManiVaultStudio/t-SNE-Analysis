@@ -49,6 +49,8 @@ public:
     hdps::DimensionSelectionWidget& getDimensionSelectionWidget();
 
     void dataChanged(const Points& points);
+	QString getEmbName();
+
 private:
     void checkInputStyle(QLineEdit& input);
 
@@ -59,6 +61,7 @@ signals:
 
 public slots:
     void onComputationStopped();
+	void setEmbName(QString embName);
 
 private slots:
     void onStartToggled(bool pressed);
@@ -86,6 +89,7 @@ public:
     QLineEdit numTrees;
     QLineEdit numChecks;
     QLineEdit theta;
+	QLineEdit embNameLine;
     QPushButton startButton;
 private:
   TsneAnalysisPlugin& _analysisPlugin;
