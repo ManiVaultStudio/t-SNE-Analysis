@@ -111,12 +111,18 @@ void HsneAnalysis::initialize(hdps::CoreInterface* core, const Points& inputData
     //}
 }
 
+void HsneAnalysis::setEmbName(QString embName)
+{
+	_embeddingNameBase = embName;
+}
+
+
 void HsneAnalysis::newScale() {
     scale++; std::cout << "New scale!" << std::endl;
 
     if (scale < 5)
     {
-        computeEmbedding();
+        computeEmbedding(scale);
     }
 }
 
@@ -138,10 +144,10 @@ QString HsneAnalysis::createEmptyEmbedding(QString name, QString dataType, QStri
     return embeddingName;
 }
 
-void HsneAnalysis::computeEmbedding()
+void HsneAnalysis::computeEmbedding(int lvlIndicator)
 {
     // Create a new data set for the embedding
-    _embeddingName = createEmptyEmbedding("Embedding", "Points", _inputDataName);
+    _embeddingName = createEmptyEmbedding(_embeddingNameBase + "_scale_" + QString::number(lvlIndicator), "Points", _inputDataName);
 
     // Should come from some t-SNE settings widget
     _tsne.setIterations(1000);

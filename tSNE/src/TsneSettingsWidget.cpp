@@ -138,7 +138,7 @@ _analysisPlugin(analysisPlugin)
 
 void TsneSettingsWidget::setEmbName(QString embName)
 {
-	embNameLine.setText(embName + "_emb");
+	embNameLine.setText(embName + "_tsne_emb");
 }
 
 QString TsneSettingsWidget::getEmbName()

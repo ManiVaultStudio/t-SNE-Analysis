@@ -75,10 +75,11 @@ public:
      * @param  parameters  Parameters with which to run the HSNE algorithm
      */
     void initialize(hdps::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters);
-    void computeEmbedding();
+    void computeEmbedding(int lvlIndicator = 0);
     //TsneAnalysis& getTsneAnalysis() { return _tsne; }
 
     TsneAnalysis _tsne;
+	void setEmbName(QString embName);
 
 private:
     QString createEmptyEmbedding(QString name, QString dataType, QString sourceName);
@@ -93,6 +94,7 @@ private:
     std::unique_ptr<Hsne> _hsne;
 
     QString _inputDataName;
+    QString _embeddingNameBase;
     QString _embeddingName;
 
     // TEMP
