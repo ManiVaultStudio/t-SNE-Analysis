@@ -90,7 +90,7 @@ public:
     QLineEdit numChecks;
     QLineEdit theta;
 	QLineEdit embNameLine;
-    QPushButton startButton;
+
 private:
   TsneAnalysisPlugin& _analysisPlugin;
 };
