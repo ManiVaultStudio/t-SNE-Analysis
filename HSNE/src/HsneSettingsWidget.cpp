@@ -13,18 +13,18 @@ HsneSettingsWidget::HsneSettingsWidget() :
     // Initialize data options
     _dataOptions = new QComboBox();
     connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SIGNAL(dataSetPicked(QString)));
-	connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SLOT(setEmbName(QString)));
+    connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SLOT(setEmbeddingName(QString)));
 
-	// Initialize start button
-	_startButton = new QPushButton();
-	_startButton->setText("Start Computation");
-	_startButton->setFixedSize(QSize(150, 50));
-	_startButton->setCheckable(true);
-	connect(_startButton, &QPushButton::toggled, this, &HsneSettingsWidget::onStartToggled);
+    // Initialize start button
+    _startButton = new QPushButton();
+    _startButton->setText("Start Computation");
+    _startButton->setFixedSize(QSize(150, 50));
+    _startButton->setCheckable(true);
+    connect(_startButton, &QPushButton::toggled, this, &HsneSettingsWidget::onStartToggled);
 
     // Create group boxes for grouping together various settings
     QGroupBox* settingsBox = new QGroupBox("Basic settings");
-	QGroupBox* computeBox = new QGroupBox();
+    QGroupBox* computeBox = new QGroupBox();
 
     // Set HSNE-specific settings layout
     QGridLayout* coreSettingsLayout = new QGridLayout();
@@ -48,32 +48,31 @@ HsneSettingsWidget::HsneSettingsWidget() :
     coreSettingsLayout->addWidget(_options.numChecksAknn, 7, 1);
     coreSettingsLayout->addWidget(_options.useOutOfCoreComputation, 8, 1);
 
-	auto* const computeLayout = new QGridLayout();
-	QLabel* embNameLabel = new QLabel("Embedding Name");
-	computeLayout->addWidget(embNameLabel, 0, 0);
-	computeLayout->addWidget(&_embNameLine, 1, 0, Qt::AlignTop);
-	computeLayout->addWidget(_startButton, 0, 1, 2, 1, Qt::AlignCenter);
+    auto* const computeLayout = new QGridLayout();
+    QLabel* embeddingNameLabel = new QLabel("Embedding Name");
+    computeLayout->addWidget(embeddingNameLabel, 0, 0);
+    computeLayout->addWidget(&_embeddingNameLine, 1, 0, Qt::AlignTop);
+    computeLayout->addWidget(_startButton, 0, 1, 2, 1, Qt::AlignCenter);
 
     // Add options to their appropriate group box
     settingsBox->setLayout(coreSettingsLayout);
-	computeBox->setLayout(computeLayout);
+    computeBox->setLayout(computeLayout);
 
     // Add all the parts of the settings widget together
     addWidget(_dataOptions);
     addWidget(&_dimensionSelectionWidget);
     addWidget(settingsBox);
-	addWidget(computeBox);
-
+    addWidget(computeBox);
 }
 
-void HsneSettingsWidget::setEmbName(QString embName)
+void HsneSettingsWidget::setEmbeddingName(QString embName)
 {
-	_embNameLine.setText(embName + "_hsne_emb");
+    _embeddingNameLine.setText(embName + "_hsne_emb");
 }
 
-QString HsneSettingsWidget::getEmbName()
+QString HsneSettingsWidget::getEmbeddingName()
 {
-	return _embNameLine.text();
+    return _embeddingNameLine.text();
 }
 
 QString HsneSettingsWidget::getCurrentDataItem()

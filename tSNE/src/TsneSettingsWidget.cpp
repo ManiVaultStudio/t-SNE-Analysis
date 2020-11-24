@@ -48,15 +48,15 @@ _analysisPlugin(analysisPlugin)
 
     // Initialize data options
     _dataOptions = new QComboBox();
-	connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SIGNAL(dataSetPicked(QString)));
-	connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SLOT(setEmbName(QString)));
+    connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SIGNAL(dataSetPicked(QString)));
+    connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SLOT(setEmbeddingName(QString)));
 
-	// Initialize start button
-	_startButton = new QPushButton();
-	_startButton->setText("Compute Embedding");
-	_startButton->setFixedSize(QSize(150, 50));
-	_startButton->setCheckable(true);
-	connect(_startButton, &QPushButton::toggled, this, &TsneSettingsWidget::onStartToggled);
+    // Initialize start button
+    _startButton = new QPushButton();
+    _startButton->setText("Compute Embedding");
+    _startButton->setFixedSize(QSize(150, 50));
+    _startButton->setCheckable(true);
+    connect(_startButton, &QPushButton::toggled, this, &TsneSettingsWidget::onStartToggled);
 
     // Create group boxes for grouping together various settings
     QGroupBox* settingsBox = new QGroupBox("Basic settings");
@@ -74,8 +74,8 @@ _analysisPlugin(analysisPlugin)
     QLabel* exaggerationLabel = new QLabel("Exaggeration");
     QLabel* expDecayLabel = new QLabel("Exponential Decay");
     QLabel* numTreesLabel = new QLabel("Number of Trees");
-	QLabel* numChecksLabel = new QLabel("Number of Checks");
-	QLabel* embNameLabel = new QLabel("Embedding Name");
+    QLabel* numChecksLabel = new QLabel("Number of Checks");
+    QLabel* embeddingNameLabel = new QLabel("Embedding Name");
 
     // Set option default values
     numIterations.setFixedWidth(50);
@@ -122,11 +122,11 @@ _analysisPlugin(analysisPlugin)
     advancedSettingsLayout->addWidget(&numChecks, 3, 1);
     advancedSettingsBox->setLayout(advancedSettingsLayout);
 
- 	auto* const computeLayout = new QGridLayout();
-	computeLayout->addWidget(embNameLabel, 0, 0);
-	computeLayout->addWidget(&embNameLine, 1, 0, Qt::AlignTop);
-	computeLayout->addWidget(_startButton, 0, 1, 2, 1, Qt::AlignCenter);
-	computeBox->setLayout(computeLayout);
+    auto* const computeLayout = new QGridLayout();
+    computeLayout->addWidget(embeddingNameLabel, 0, 0);
+    computeLayout->addWidget(&embeddingNameLine, 1, 0, Qt::AlignTop);
+    computeLayout->addWidget(_startButton, 0, 1, 2, 1, Qt::AlignCenter);
+    computeBox->setLayout(computeLayout);
 
     // Add all the parts of the settings widget together
     addWidget(_dataOptions);
@@ -136,14 +136,14 @@ _analysisPlugin(analysisPlugin)
     addWidget(computeBox);
 }
 
-void TsneSettingsWidget::setEmbName(QString embName)
+void TsneSettingsWidget::setEmbeddingName(QString embName)
 {
-	embNameLine.setText(embName + "_tsne_emb");
+    embeddingNameLine.setText(embName + "_tsne_emb");
 }
 
-QString TsneSettingsWidget::getEmbName()
+QString TsneSettingsWidget::getEmbeddingName()
 {
-	return embNameLine.text();
+    return embeddingNameLine.text();
 }
 
 QString TsneSettingsWidget::getCurrentDataItem()

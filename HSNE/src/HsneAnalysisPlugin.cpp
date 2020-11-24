@@ -103,7 +103,7 @@ void HsneAnalysisPlugin::startComputation()
 
     // Initialize the HSNE algorithm with the given parameters
     _hsne.initialize(_core, inputData, enabledDimensions, parameters);
-	_hsne.setEmbName(_settings->getEmbName());
+    _hsne.setEmbeddingName(_settings->getEmbeddingName());
     _hsne.computeEmbedding(0);
 }
 
