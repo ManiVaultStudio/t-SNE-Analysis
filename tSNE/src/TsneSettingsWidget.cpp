@@ -16,9 +16,9 @@
 
 
 
-TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin)
-:
-_analysisPlugin(analysisPlugin)
+TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin) :
+	QWidget(),
+	_analysisPlugin(analysisPlugin)
 {
     const auto minimumWidth = 200;
     setMinimumWidth(minimumWidth);
@@ -128,12 +128,16 @@ _analysisPlugin(analysisPlugin)
     computeLayout->addWidget(_startButton, 0, 1, 2, 1, Qt::AlignCenter);
     computeBox->setLayout(computeLayout);
 
+	auto layout = new QVBoxLayout();
+
     // Add all the parts of the settings widget together
-    addWidget(_dataOptions);
-    addWidget(&_dimensionSelectionWidget);
-    addWidget(settingsBox);
-    addWidget(advancedSettingsBox);
-    addWidget(computeBox);
+    layout->addWidget(_dataOptions);
+    layout->addWidget(&_dimensionSelectionWidget);
+    layout->addWidget(settingsBox);
+    layout->addWidget(advancedSettingsBox);
+    layout->addWidget(computeBox);
+
+	setLayout(layout);
 }
 
 void TsneSettingsWidget::setEmbeddingName(QString embName)

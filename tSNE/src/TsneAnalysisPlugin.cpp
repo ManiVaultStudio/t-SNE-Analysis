@@ -73,7 +73,7 @@ DataTypes TsneAnalysisPlugin::supportedDataTypes() const
     return supportedTypes;
 }
 
-SettingsWidget* const TsneAnalysisPlugin::getSettings()
+QWidget* const TsneAnalysisPlugin::getSettings()
 {
     return _settings.get();
 }

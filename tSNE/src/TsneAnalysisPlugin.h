@@ -7,7 +7,6 @@
 class TsneSettingsWidget;
 
 using namespace hdps::plugin;
-using namespace hdps::gui;
 
 // =============================================================================
 // View
@@ -53,7 +52,7 @@ public:
      */
     hdps::DataTypes supportedDataTypes() const Q_DECL_OVERRIDE;
 
-    SettingsWidget* const getSettings() override;
+    QWidget* const getSettings() override;
 
     void startComputation();
     void stopComputation();
