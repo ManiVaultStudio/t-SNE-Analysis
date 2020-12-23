@@ -22,7 +22,7 @@ TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin) :
 {
     const auto minimumWidth = 200;
     setMinimumWidth(minimumWidth);
-    setMaximumWidth(2 * minimumWidth);
+    //setMaximumWidth(2 * minimumWidth);
 
     knnOptions.addItem("FLANN");
     knnOptions.addItem("HNSW");
