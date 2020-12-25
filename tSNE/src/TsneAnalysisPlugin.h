@@ -4,6 +4,8 @@
 
 #include "TsneAnalysis.h"
 
+#include "Application.h"
+
 class TsneSettingsWidget;
 
 using namespace hdps::plugin;
@@ -20,6 +22,11 @@ public:
     ~TsneAnalysisPlugin(void) override;
     
     void init() override;
+
+	/** Returns the icon of this plugin */
+	QIcon getIcon() const override {
+		return hdps::Application::getIconFont("FontAwesome").getIcon("table");
+	}
 
     /**
      * This function is called from the core system whenever data is added.
@@ -46,7 +53,7 @@ public:
      * Unused in this plugin
      */
     void selectionChanged(const QString dataName) Q_DECL_OVERRIDE;
-
+	
     /**
      * Returns a list of data types supported by this plugin.
      */
