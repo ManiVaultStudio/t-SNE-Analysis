@@ -208,7 +208,7 @@ void TsneAnalysis::embed()
 
             const auto percentageDone = static_cast<float>(iter) / static_cast<float>(_iterations);
 
-            emit progressMessage(QString("Creating embedding: %1 %").arg(QString::number(100.0f * percentageDone, 'f', 1)));
+            emit progressMessage(QString("Computing gradient descent: %1 %").arg(QString::number(100.0f * percentageDone, 'f', 1)));
         }
 
         offBuffer->releaseContext();
