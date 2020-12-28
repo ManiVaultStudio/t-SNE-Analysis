@@ -76,7 +76,7 @@ DataTypes TsneAnalysisPlugin::supportedDataTypes() const
     return supportedTypes;
 }
 
-QWidget* const TsneAnalysisPlugin::getSettings()
+hdps::gui::SettingsWidget* const TsneAnalysisPlugin::getSettings()
 {
     return _settings.get();
 }

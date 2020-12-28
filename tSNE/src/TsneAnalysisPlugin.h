@@ -59,7 +59,7 @@ public:
      */
     hdps::DataTypes supportedDataTypes() const Q_DECL_OVERRIDE;
 
-    QWidget* const getSettings() override;
+    hdps::gui::SettingsWidget* const getSettings() override;
 
     void startComputation();
     void stopComputation();
