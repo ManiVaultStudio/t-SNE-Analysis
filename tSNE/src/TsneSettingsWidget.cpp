@@ -16,13 +16,17 @@
 
 
 
-TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin)
-:
-_analysisPlugin(analysisPlugin)
+TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin) :
+	SettingsWidget(),
+	_analysisPlugin(analysisPlugin)
 {
-    const auto minimumWidth = 200;
-    setMinimumWidth(minimumWidth);
-    setMaximumWidth(2 * minimumWidth);
+	const auto guiName = analysisPlugin.getGuiName();
+
+	setObjectName(guiName);
+
+	setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("th"));
+	setTitle(guiName);
+	setSubtitle("");
 
     knnOptions.addItem("FLANN");
     knnOptions.addItem("HNSW");
@@ -166,6 +170,9 @@ void TsneSettingsWidget::onComputationStopped()
 {
     _startButton->setText("Start Computation");
     _startButton->setChecked(false);
+
+	setSubtitle("");
+	setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("th"));
 }
 
 void TsneSettingsWidget::onStartToggled(bool pressed)

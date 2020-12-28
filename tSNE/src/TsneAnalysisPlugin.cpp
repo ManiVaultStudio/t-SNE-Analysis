@@ -20,6 +20,9 @@ TsneAnalysisPlugin::TsneAnalysisPlugin()
 :
 AnalysisPlugin("tSNE Analysis")
 {
+	QObject::connect(&_tsne, &TsneAnalysis::progressMessage, [this](const QString& message) {
+		_settings->setSubtitle(message);
+	});
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
@@ -73,7 +76,7 @@ DataTypes TsneAnalysisPlugin::supportedDataTypes() const
     return supportedTypes;
 }
 
-SettingsWidget* const TsneAnalysisPlugin::getSettings()
+hdps::gui::SettingsWidget* const TsneAnalysisPlugin::getSettings()
 {
     return _settings.get();
 }
@@ -83,6 +86,8 @@ void TsneAnalysisPlugin::dataSetPicked(const QString& name)
     Points& points = _core->requestData<Points>(name);
 
     _settings->getDimensionSelectionWidget().dataChanged(points);
+
+	_settings->setTitle(QString("%1: %2").arg(getGuiName(), name));
 }
 
 void TsneAnalysisPlugin::onKnnAlgorithmPicked(const int index)
@@ -97,6 +102,11 @@ void TsneAnalysisPlugin::onDistanceMetricPicked(const int index)
 
 void TsneAnalysisPlugin::startComputation()
 {
+	_settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
+	_settings->setSubtitle("Initializing A-tSNE...");
+
+	qApp->processEvents();
+
     initializeTsne();
 
     // Prepare the data
@@ -169,6 +179,9 @@ void TsneAnalysisPlugin::initializeTsne() {
 }
 
 void TsneAnalysisPlugin::stopComputation() {
+	_settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
+	_settings->setSubtitle("Stopping computation...");
+
     if (_tsne.isRunning())
     {
         // Request interruption of the computation
