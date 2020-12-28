@@ -26,7 +26,7 @@ class TsneAnalysisPlugin;
 /**
  * Main settings widget
  */
-class TsneSettingsWidget : public QWidget
+class TsneSettingsWidget : public SettingsWidget
 {
     Q_OBJECT
 
