@@ -59,6 +59,7 @@ _iterations(1000),
 _numTrees(4),
 _numChecks(1024),
 _exaggerationIter(250),
+_exponentialDecayIter(150),
 _perplexity(30),
 _numDimensionsOutput(2),
 _verbose(false),
@@ -156,7 +157,7 @@ void TsneAnalysis::initGradientDescent()
     tsneParams._embedding_dimensionality = _numDimensionsOutput;
     tsneParams._mom_switching_iter = _exaggerationIter;
     tsneParams._remove_exaggeration_iter = _exaggerationIter;
-    tsneParams._exponential_decay_iter = 150;
+    tsneParams._exponential_decay_iter = _exponentialDecayIter;
     tsneParams._exaggeration_factor = 4 + _numPoints / 60000.0;
     _A_tSNE.setTheta(std::min(0.5, std::max(0.0, (_numPoints - 1000.0)*0.00005)));
 
@@ -292,6 +293,11 @@ void TsneAnalysis::setNumChecks(int numChecks)
 void TsneAnalysis::setExaggerationIter(int exaggerationIter)
 {
     _exaggerationIter = exaggerationIter;
+}
+
+void TsneAnalysis::setExponentialDecayIter(int exponentialDecayIter)
+{
+    _exponentialDecayIter = exponentialDecayIter;
 }
 
 void TsneAnalysis::setPerplexity(int perplexity)
