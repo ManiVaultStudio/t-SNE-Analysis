@@ -25,6 +25,7 @@ public:
     void setNumTrees(int numTrees);
     void setNumChecks(int numChecks);
     void setExaggerationIter(int exaggerationIter);
+    void setExponentialDecayIter(int exponentialDecayIter);
     void setPerplexity(int perplexity);
     void setNumDimensionsOutput(int numDimensionsOutput);
 
@@ -80,6 +81,7 @@ private:
     int _numTrees;
     int _numChecks;
     int _exaggerationIter;
+    int _exponentialDecayIter;
     int _perplexity;
     int _numDimensionsOutput;
 

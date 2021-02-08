@@ -174,6 +174,7 @@ void TsneAnalysisPlugin::initializeTsne() {
     _tsne.setIterations(_settings->numIterations.text().toInt());
     _tsne.setPerplexity(_settings->perplexity.text().toInt());
     _tsne.setExaggerationIter(_settings->exaggeration.text().toInt());
+    _tsne.setExponentialDecayIter(_settings->expDecay.text().toInt());
     _tsne.setNumTrees(_settings->numTrees.text().toInt());
     _tsne.setNumChecks(_settings->numChecks.text().toInt());
 }
