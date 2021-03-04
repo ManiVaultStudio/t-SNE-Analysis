@@ -23,41 +23,12 @@ public:
     
     void init() override;
 
+    void onDataEvent(hdps::DataEvent* dataEvent);
+
 	/** Returns the icon of this plugin */
 	QIcon getIcon() const override {
 		return hdps::Application::getIconFont("FontAwesome").getIcon("table");
 	}
-
-    /**
-     * This function is called from the core system whenever data is added.
-     *
-     * @param name The name of the added dataset
-     */
-    void dataAdded(const QString name) Q_DECL_OVERRIDE;
-
-    /**
-     * This function is called from the core system whenever data is altered.
-     *
-     * @param name The name of the altered dataset
-     */
-    void dataChanged(const QString name) Q_DECL_OVERRIDE;
-
-    /**
-     * This function is called from the core system whenever data is removed.
-     *
-     * @param name The name of the removed dataset
-     */
-    void dataRemoved(const QString name) Q_DECL_OVERRIDE;
-
-    /**
-     * Unused in this plugin
-     */
-    void selectionChanged(const QString dataName) Q_DECL_OVERRIDE;
-	
-    /**
-     * Returns a list of data types supported by this plugin.
-     */
-    hdps::DataTypes supportedDataTypes() const Q_DECL_OVERRIDE;
 
     hdps::gui::SettingsWidget* const getSettings() override;
 

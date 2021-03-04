@@ -135,9 +135,9 @@ void HsneAnalysis::onNewEmbedding() {
     _core->notifyDataChanged(_embeddingName);
 }
 
-QString HsneAnalysis::createEmptyEmbedding(QString name, QString dataType, QString sourceName)
+QString HsneAnalysis::createEmptyEmbedding(QString name, QString sourceName)
 {
-    QString embeddingName = _core->createDerivedData(dataType, name, sourceName);
+    QString embeddingName = _core->createDerivedData(name, sourceName);
     Points& embedding = _core->requestData<Points>(embeddingName);
     embedding.setData(nullptr, 0, 2);
     _core->notifyDataAdded(embeddingName);
@@ -147,7 +147,7 @@ QString HsneAnalysis::createEmptyEmbedding(QString name, QString dataType, QStri
 void HsneAnalysis::computeEmbedding(int scale)
 {
     // Create a new data set for the embedding
-    _embeddingName = createEmptyEmbedding(_embeddingNameBase + "_scale_" + QString::number(scale), "Points", _inputDataName);
+    _embeddingName = createEmptyEmbedding(_embeddingNameBase + "_scale_" + QString::number(scale), _inputDataName);
 
     // Should come from some t-SNE settings widget
     _tsne.setIterations(1000);
