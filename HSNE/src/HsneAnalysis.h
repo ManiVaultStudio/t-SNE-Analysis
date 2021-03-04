@@ -82,7 +82,7 @@ public:
     void setEmbeddingName(QString embeddingName);
 
 private:
-    QString createEmptyEmbedding(QString name, QString dataType, QString sourceName);
+    QString createEmptyEmbedding(QString name, QString sourceName);
 
 public slots:
     void newScale();

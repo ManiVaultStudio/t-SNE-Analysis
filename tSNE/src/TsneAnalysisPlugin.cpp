@@ -16,15 +16,12 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 // =============================================================================
 
 using namespace hdps;
-TsneAnalysisPlugin::TsneAnalysisPlugin()
-:
-AnalysisPlugin("tSNE Analysis")
+TsneAnalysisPlugin::TsneAnalysisPlugin() :
+    AnalysisPlugin("tSNE Analysis")
 {
 	QObject::connect(&_tsne, &TsneAnalysis::progressMessage, [this](const QString& message) {
 		_settings->setSubtitle(message);
 	});
-
-    registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
@@ -41,6 +38,8 @@ void TsneAnalysisPlugin::init()
     connect(_settings.get(), &TsneSettingsWidget::distanceMetricPicked, this, &TsneAnalysisPlugin::onDistanceMetricPicked);
     connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &TsneSettingsWidget::onComputationStopped);
     connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
+
+    registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 }
 
 void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
@@ -51,7 +50,8 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     if (dataEvent->getType() == EventType::DataRemoved)
         _settings->removeDataItem(static_cast<DataRemovedEvent*>(dataEvent)->dataSetName);
 
-    if (dataEvent->getType() == EventType::DataChanged) {
+    if (dataEvent->getType() == EventType::DataChanged)
+    {
         auto dataChangedEvent = static_cast<DataChangedEvent*>(dataEvent);
 
         // If we are not looking at the changed dataset, ignore it
@@ -76,7 +76,7 @@ void TsneAnalysisPlugin::dataSetPicked(const QString& name)
 
     _settings->getDimensionSelectionWidget().dataChanged(points);
 
-	_settings->setTitle(QString("%1: %2").arg(getGuiName(), name));
+    _settings->setTitle(QString("%1: %2").arg(getGuiName(), name));
 }
 
 void TsneAnalysisPlugin::onKnnAlgorithmPicked(const int index)
@@ -91,10 +91,10 @@ void TsneAnalysisPlugin::onDistanceMetricPicked(const int index)
 
 void TsneAnalysisPlugin::startComputation()
 {
-	_settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
-	_settings->setSubtitle("Initializing A-tSNE...");
+    _settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
+    _settings->setSubtitle("Initializing A-tSNE...");
 
-	qApp->processEvents();
+    qApp->processEvents();
 
     initializeTsne();
 
@@ -139,6 +139,7 @@ void TsneAnalysisPlugin::startComputation()
 
     // Create new data set for the embedding
     _embeddingName = _core->createDerivedData(_settings->getEmbeddingName(), points.getName());
+
     Points& embedding = _core->requestData<Points>(_embeddingName);
     embedding.setData(nullptr, 0, 2);
     _core->notifyDataAdded(_embeddingName);
