@@ -4,13 +4,15 @@ set(HSNE_PLUGIN "HsneAnalysisPlugin")
 project(${HSNE_PLUGIN})
 
 add_subdirectory(HSNE/src)
+# Normalize the incoming install path
+file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} INSTALL_DIR)
 
 source_group( DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
 source_group( Hsne FILES ${HSNE_PLUGIN_SOURCES})
 
 QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
-include_directories("$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/include/")
+include_directories("${INSTALL_DIR}/$<CONFIGURATION>/include/")
 include_directories("HSNE/lib/HDI/include")
 include_directories("Common")
 
@@ -40,8 +42,8 @@ target_compile_definitions(${HSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 
 target_link_libraries(${HSNE_PLUGIN} Qt5::Widgets)
 target_link_libraries(${HSNE_PLUGIN} Qt5::WebEngineWidgets)
-target_link_libraries(${HSNE_PLUGIN} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/HDPS_Public.lib")
-target_link_libraries(${HSNE_PLUGIN} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/PointData.lib")
+target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/HDPS_Public.lib")
+target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/PointData.lib")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     MESSAGE( STATUS "Linking Linux libraries...")
@@ -60,5 +62,5 @@ endif(APPLE)
 add_custom_command(TARGET ${HSNE_PLUGIN} POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
     "$<TARGET_FILE:${HSNE_PLUGIN}>"
-    "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/Plugins/$<TARGET_FILE_NAME:${HSNE_PLUGIN}>"
+    "${INSTALL_DIR}/$<CONFIGURATION>/Plugins/$<TARGET_FILE_NAME:${HSNE_PLUGIN}>"
 )

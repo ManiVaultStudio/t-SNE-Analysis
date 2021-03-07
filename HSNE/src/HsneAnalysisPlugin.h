@@ -17,7 +17,7 @@ class HsneAnalysisPlugin : public QObject, public AnalysisPlugin
 {
     Q_OBJECT
 public:
-    HsneAnalysisPlugin() : AnalysisPlugin("H-SNE Analysis") { }
+    HsneAnalysisPlugin();
     ~HsneAnalysisPlugin(void) override;
 
     void init() override;
@@ -27,33 +27,9 @@ public:
      *
      * @param name The name of the added dataset
      */
-    void dataAdded(const QString name) Q_DECL_OVERRIDE;
+    void onDataEvent(hdps::DataEvent* dataEvent);
 
-    /**
-     * This function is called from the core system whenever data is altered.
-     *
-     * @param name The name of the altered dataset
-     */
-    void dataChanged(const QString name) Q_DECL_OVERRIDE;
-
-    /**
-     * This function is called from the core system whenever data is removed.
-     *
-     * @param name The name of the removed dataset
-     */
-    void dataRemoved(const QString name) Q_DECL_OVERRIDE;
-
-    /**
-     * Unused in this plugin
-     */
-    void selectionChanged(const QString dataName) Q_DECL_OVERRIDE;
-
-    /**
-     * Returns a list of data types supported by this plugin.
-     */
-    hdps::DataTypes supportedDataTypes() const Q_DECL_OVERRIDE;
-
-    void computeEmbedding();
+    void computeEmbedding(int scale = 0);
     void drillIn(QString embeddingName);
     SettingsWidget* const getSettings() override;
 
@@ -79,6 +55,7 @@ private:
 
     TsneAnalysis _tsne;
 
+    QString _embeddingNameBase;
     QString _embeddingName;
 
     std::unique_ptr<HsneSettingsWidget> _settings;

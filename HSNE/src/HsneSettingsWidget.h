@@ -91,6 +91,7 @@ public:
 
     hdps::DimensionSelectionWidget& getDimensionSelectionWidget();
     HsneParameters getHsneParameters() const;
+    QString getEmbeddingName();
 
 signals:
     void dataSetPicked(QString);
@@ -99,12 +100,15 @@ signals:
 
 public slots:
     void onComputationStopped();
+    void setEmbeddingName(QString embeddingName);
 
 private slots:
     void onStartToggled(bool pressed);
 
 private:
     //HsneParameters _parameters;
+
+    QLineEdit _embeddingNameLine;
 
     QComboBox* _dataOptions;
     hdps::DimensionSelectionWidget _dimensionSelectionWidget;

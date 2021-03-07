@@ -1,4 +1,4 @@
-set(DIR ${CMAKE_SOURCE_DIR}/Common)
+set(DIR ${CMAKE_CURRENT_SOURCE_DIR}/Common)
 
 set(TSNE_COMMON_SOURCES
     ${DIR}/TsneAnalysis.h

@@ -59,6 +59,7 @@ _iterations(1000),
 _numTrees(4),
 _numChecks(1024),
 _exaggerationIter(250),
+_exponentialDecayIter(150),
 _perplexity(30),
 _numDimensionsOutput(2),
 _verbose(false),
@@ -83,6 +84,8 @@ void TsneAnalysis::computeGradientDescent()
 
 void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
 {
+    emit progressMessage("Initialize A-tSNE");
+
     unsigned int numPoints = data.size() / numDimensions;
     qDebug() << "Variables set. Num dims: " << numDimensions << " Num data points: " << numPoints;
     
@@ -105,6 +108,10 @@ void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
 
         qDebug() << "tSNE initialized.";
 
+        emit progressMessage("tSNE initialized");
+
+        emit progressMessage("Calculate probability distributions");
+
         _probabilityDistribution.clear();
         _probabilityDistribution.resize(numPoints);
         qDebug() << "Sparse matrix allocated.";
@@ -116,6 +123,9 @@ void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
             hdi::utils::ScopedTimer<double> timer(t);
             probabilityGenerator.computeJointProbabilityDistribution(data.data(), numDimensions, numPoints, _probabilityDistribution, probGenParams);
         }
+
+        emit progressMessage("Probability distributions calculated");
+
         qDebug() << "Probability distributions calculated.";
         qDebug() << "================================================================================";
         qDebug() << "A-tSNE: Compute probability distribution: " << t / 1000 << " seconds";
@@ -136,21 +146,18 @@ void TsneAnalysis::initWithProbDist(const int numPoints, const int numDimensions
 
 void TsneAnalysis::initGradientDescent()
 {
+    emit progressMessage("Initializing gradient descent");
+
     _continueFromIteration = 0;
 
     _isTsneRunning = true;
 
     hdi::dr::TsneParameters tsneParams;
 
-    setIterations(1000);
-    setPerplexity(30);
-    setExaggerationIter(250);
-    setNumTrees(4);
-    setNumChecks(1024);
     tsneParams._embedding_dimensionality = _numDimensionsOutput;
     tsneParams._mom_switching_iter = _exaggerationIter;
     tsneParams._remove_exaggeration_iter = _exaggerationIter;
-    tsneParams._exponential_decay_iter = 150;
+    tsneParams._exponential_decay_iter = _exponentialDecayIter;
     tsneParams._exaggeration_factor = 4 + _numPoints / 60000.0;
     _A_tSNE.setTheta(std::min(0.5, std::max(0.0, (_numPoints - 1000.0)*0.00005)));
 
@@ -168,6 +175,8 @@ void TsneAnalysis::initGradientDescent()
 // Computing gradient descent
 void TsneAnalysis::embed()
 {
+    emit progressMessage("Embedding");
+
     double elapsed = 0;
     double t = 0;
     {
@@ -197,7 +206,12 @@ void TsneAnalysis::embed()
                 qDebug() << "Time: " << t;
 
             elapsed += t;
+
+            const auto percentageDone = static_cast<float>(iter) / static_cast<float>(_iterations);
+
+            emit progressMessage(QString("Computing gradient descent: %1 %").arg(QString::number(100.0f * percentageDone, 'f', 1)));
         }
+
         offBuffer->releaseContext();
 
         copyFloatOutput();
@@ -208,6 +222,8 @@ void TsneAnalysis::embed()
 
         emit computationStopped();
     }
+
+    emit progressMessage("Finished embedding");
 
     qDebug() << "--------------------------------------------------------------------------------";
     qDebug() << "A-tSNE: Finished embedding of " << "tSNE Analysis" << " in: " << elapsed / 1000 << " seconds ";
@@ -277,6 +293,11 @@ void TsneAnalysis::setNumChecks(int numChecks)
 void TsneAnalysis::setExaggerationIter(int exaggerationIter)
 {
     _exaggerationIter = exaggerationIter;
+}
+
+void TsneAnalysis::setExponentialDecayIter(int exponentialDecayIter)
+{
+    _exponentialDecayIter = exponentialDecayIter;
 }
 
 void TsneAnalysis::setPerplexity(int perplexity)

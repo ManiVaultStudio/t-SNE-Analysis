@@ -18,8 +18,11 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 
 using namespace hdps;
 TsneAnalysisPlugin::TsneAnalysisPlugin() :
-	AnalysisPlugin("tSNE Analysis")
+    AnalysisPlugin("tSNE Analysis")
 {
+    QObject::connect(&_tsne, &TsneAnalysis::progressMessage, [this](const QString& message) {
+        _settings->setSubtitle(message);
+    });
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
@@ -36,44 +39,34 @@ void TsneAnalysisPlugin::init()
     connect(_settings.get(), &TsneSettingsWidget::distanceMetricPicked, this, &TsneAnalysisPlugin::onDistanceMetricPicked);
     connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &TsneSettingsWidget::onComputationStopped);
     connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
+
+    registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 }
 
-void TsneAnalysisPlugin::dataAdded(const QString name)
+void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
-    _settings->addDataItem(name);
-}
+    if (dataEvent->getType() == EventType::DataAdded)
+        _settings->addDataItem(static_cast<DataAddedEvent*>(dataEvent)->dataSetName);
 
-void TsneAnalysisPlugin::dataChanged(const QString name)
-{
-    // If we are not looking at the changed dataset, ignore it
-    if (name != _settings->getCurrentDataItem()) {
-        return;
+    if (dataEvent->getType() == EventType::DataRemoved)
+        _settings->removeDataItem(static_cast<DataRemovedEvent*>(dataEvent)->dataSetName);
+
+    if (dataEvent->getType() == EventType::DataChanged)
+    {
+        auto dataChangedEvent = static_cast<DataChangedEvent*>(dataEvent);
+
+        // If we are not looking at the changed dataset, ignore it
+        if (dataChangedEvent->dataSetName != _settings->getCurrentDataItem())
+            return;
+
+        // Passes changes to the current dataset to the dimension selection widget
+        Points& points = _core->requestData<Points>(dataChangedEvent->dataSetName);
+
+        _settings->getDimensionSelectionWidget().dataChanged(points);
     }
-
-    // Passes changes to the current dataset to the dimension selection widget
-    Points& points = _core->requestData<Points>(name);
-
-    _settings->getDimensionSelectionWidget().dataChanged(points);
 }
 
-void TsneAnalysisPlugin::dataRemoved(const QString name)
-{
-    _settings->removeDataItem(name);
-}
-
-void TsneAnalysisPlugin::selectionChanged(const QString dataName)
-{
-    // Unused in analysis
-}
-
-DataTypes TsneAnalysisPlugin::supportedDataTypes() const
-{
-    DataTypes supportedTypes;
-    supportedTypes.append(PointType);
-    return supportedTypes;
-}
-
-SettingsWidget* const TsneAnalysisPlugin::getSettings()
+hdps::gui::SettingsWidget* const TsneAnalysisPlugin::getSettings()
 {
     return _settings.get();
 }
@@ -82,13 +75,15 @@ void TsneAnalysisPlugin::dataSetPicked(const QString& name)
 {
     Points& points = _core->requestData<Points>(name);
 
-	auto analyses = points.getProperty("Analyses", QVariantList()).toList();
+    auto analyses = points.getProperty("Analyses", QVariantList()).toList();
 
-	analyses.push_back(getName());
+    analyses.push_back(getName());
 
-	points.setProperty("Analyses", analyses);
+    points.setProperty("Analyses", analyses);
 
     _settings->getDimensionSelectionWidget().dataChanged(points);
+
+    _settings->setTitle(QString("%1: %2").arg(getGuiName(), name));
 }
 
 void TsneAnalysisPlugin::onKnnAlgorithmPicked(const int index)
@@ -103,11 +98,18 @@ void TsneAnalysisPlugin::onDistanceMetricPicked(const int index)
 
 void TsneAnalysisPlugin::startComputation()
 {
+    _settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
+    _settings->setSubtitle("Initializing A-tSNE...");
+
+    qApp->processEvents();
+
     initializeTsne();
 
     // Prepare the data
     QString setName = _settings->getCurrentDataItem();
     const Points& points = _core->requestData<Points>(setName);
+
+    unsigned int numDimensions = points.getNumDimensions();
 
     // Create list of data from the enabled dimensions
     std::vector<float> data;
@@ -123,7 +125,8 @@ void TsneAnalysisPlugin::startComputation()
     points.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
     // Create new data set for the embedding
-    _embeddingName = _core->createDerivedData("Points", "Embedding", points.getName());
+    _embeddingName = _core->createDerivedData(_settings->getEmbeddingName(), points.getName());
+
     Points& embedding = _core->requestData<Points>(_embeddingName);
     embedding.setData(nullptr, 0, 2);
     _core->notifyDataAdded(_embeddingName);
@@ -148,11 +151,15 @@ void TsneAnalysisPlugin::initializeTsne() {
     _tsne.setIterations(_settings->numIterations.text().toInt());
     _tsne.setPerplexity(_settings->perplexity.text().toInt());
     _tsne.setExaggerationIter(_settings->exaggeration.text().toInt());
+    _tsne.setExponentialDecayIter(_settings->expDecay.text().toInt());
     _tsne.setNumTrees(_settings->numTrees.text().toInt());
     _tsne.setNumChecks(_settings->numChecks.text().toInt());
 }
 
 void TsneAnalysisPlugin::stopComputation() {
+    _settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
+    _settings->setSubtitle("Stopping computation...");
+
     if (_tsne.isRunning())
     {
         // Request interruption of the computation
@@ -172,18 +179,18 @@ void TsneAnalysisPlugin::stopComputation() {
 
 QMenu* TsneAnalysisPlugin::contextMenu(const QVariant& context)
 {
-	auto menu = new QMenu(getGuiName());
-	
-	auto startComputationAction = new QAction("Start computation");
-	auto stopComputationAction = new QAction("Stop computation");
+    auto menu = new QMenu(getGuiName());
+    
+    auto startComputationAction = new QAction("Start computation");
+    auto stopComputationAction = new QAction("Stop computation");
 
-	connect(startComputationAction, &QAction::triggered, [this]() { startComputation(); });
-	connect(stopComputationAction, &QAction::triggered, [this]() { stopComputation(); });
+    connect(startComputationAction, &QAction::triggered, [this]() { startComputation(); });
+    connect(stopComputationAction, &QAction::triggered, [this]() { stopComputation(); });
 
-	menu->addAction(startComputationAction);
-	menu->addAction(stopComputationAction);
+    menu->addAction(startComputationAction);
+    menu->addAction(stopComputationAction);
 
-	return menu;
+    return menu;
 }
 
 // =============================================================================

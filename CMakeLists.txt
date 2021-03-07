@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-project("Project")
+project("SNE-Analyses")
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT")
@@ -9,6 +9,8 @@ if(MSVC)
 endif(MSVC)
 
 find_package(Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+# Normalize the incoming install path
+file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} INSTALL_DIR)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -20,7 +22,7 @@ set(UI_FILES
 
 QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
-include_directories("$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/include/")
+include_directories("${INSTALL_DIR}/$<CONFIGURATION>/include/")
 include_directories ("lib/HDI/include")
 
 if(MSVC)
@@ -48,4 +50,3 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 include(CMakeCommon)
 include(CMakeTsneProject)
 include(CMakeHsneProject)
-project("SNE-Analyses")

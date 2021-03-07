@@ -19,6 +19,12 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
 
 using namespace hdps;
 
+HsneAnalysisPlugin::HsneAnalysisPlugin() :
+    AnalysisPlugin("H-SNE Analysis")
+{
+
+}
+
 HsneAnalysisPlugin::~HsneAnalysisPlugin(void)
 {
     
@@ -34,45 +40,42 @@ void HsneAnalysisPlugin::init()
     // If the start computation button is pressed, run the HSNE algorithm
     connect(_settings.get(), &HsneSettingsWidget::startComputation, this, &HsneAnalysisPlugin::startComputation);
 
+    registerDataEventByType(PointType, std::bind(&HsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
+
     //connect(_settings.get(), &HsneSettingsWidget::stopComputation, this, &HsneAnalysisPlugin::stopComputation);
     //connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &HsneSettingsWidget::onComputationStopped);
     connect(&_tsne, &TsneAnalysis::newEmbedding, this, &HsneAnalysisPlugin::onNewEmbedding);
     //connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
 }
 
-void HsneAnalysisPlugin::dataAdded(const QString name)
+void HsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
-    _settings->addDataItem(name);
-}
-
-void HsneAnalysisPlugin::dataChanged(const QString name)
-{
-    // If we are not looking at the changed dataset, ignore it
-    if (name != _settings->getCurrentDataItem()) {
-        return;
+    switch (dataEvent->getType())
+    {
+    case EventType::DataAdded:
+    {
+        _settings->addDataItem(dataEvent->dataSetName);
+        break;
     }
+    case EventType::DataChanged:
+    {
+        // If we are not looking at the changed dataset, ignore it
+        if (dataEvent->dataSetName != _settings->getCurrentDataItem()) {
+            break;
+        }
 
-    // Passes changes to the current dataset to the dimension selection widget
-    Points& points = _core->requestData<Points>(name);
+        // Passes changes to the current dataset to the dimension selection widget
+        Points& points = _core->requestData<Points>(dataEvent->dataSetName);
 
-    _settings->getDimensionSelectionWidget().dataChanged(points);
-}
-
-void HsneAnalysisPlugin::dataRemoved(const QString name)
-{
-    _settings->removeDataItem(name);
-}
-
-void HsneAnalysisPlugin::selectionChanged(const QString dataName)
-{
-    // Unused in analysis
-}
-
-DataTypes HsneAnalysisPlugin::supportedDataTypes() const
-{
-    DataTypes supportedTypes;
-    supportedTypes.append(PointType);
-    return supportedTypes;
+        _settings->getDimensionSelectionWidget().dataChanged(points);
+        break;
+    }
+    case EventType::DataRemoved:
+    {
+        _settings->removeDataItem(dataEvent->dataSetName);
+        break;
+    }
+    }
 }
 
 SettingsWidget* const HsneAnalysisPlugin::getSettings()
@@ -111,6 +114,7 @@ void HsneAnalysisPlugin::startComputation()
     // Initialize the HSNE algorithm with the given parameters
     _hierarchy.initialize(_core, inputData, enabledDimensions, parameters);
 
+    _embeddingNameBase = _settings->getEmbeddingName();
     computeEmbedding();
 }
 
@@ -138,10 +142,10 @@ QString HsneAnalysisPlugin::createEmptyEmbedding(QString name, QString dataType,
     return embeddingName;
 }
 
-void HsneAnalysisPlugin::computeEmbedding()
+void HsneAnalysisPlugin::computeEmbedding(int scale)
 {
     // Create a new data set for the embedding
-    _embeddingName = createEmptyEmbedding("Embedding", "Points", _hierarchy.getInputDataName());
+    _embeddingName = createEmptyEmbedding(_embeddingNameBase + "_scale_" + QString::number(scale), "Points", _hierarchy.getInputDataName());
 
     // Should come from some t-SNE settings widget
     _tsne.setIterations(1000);
