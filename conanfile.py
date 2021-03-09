@@ -36,7 +36,7 @@ class SNEAnalysesConan(ConanFile):
 
     scm = {
         "type": "git",
-        "subfolder": "hdps/ImageLoaderPlugin",
+        "subfolder": "hdps/t-SNE-Analysis",
         "url": "auto",
         "revision": "auto"
     }
@@ -71,7 +71,7 @@ class SNEAnalysesConan(ConanFile):
         if self.settings.os == "Linux" or self.settings.os == "Macos":
             cmake.definitions["CMAKE_CXX_STANDARD_REQUIRED"] = "ON"
         cmake.definitions["CMAKE_PREFIX_PATH"] = qt_root
-        cmake.configure(source_folder="hdps/ImageLoaderPlugin")  # needed for scm
+        cmake.configure(source_folder="hdps/t-SNE-Analysis")  # needed for scm
         cmake.verbose = True
         return cmake
 
