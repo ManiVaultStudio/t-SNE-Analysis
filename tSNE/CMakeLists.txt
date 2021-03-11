@@ -70,14 +70,14 @@ if(APPLE)
     target_link_libraries(${TSNE_PLUGIN} "${CMAKE_CURRENT_SOURCE_DIR}/lib/Flann/OSX/libflann_s.a")
 endif(APPLE)
 
-install(TARGETS ${TSNE_PLUGIN}
-   RUNTIME DESTINATION Plugins COMPONENT SHAREDLIB
-)
+#install(TARGETS ${TSNE_PLUGIN}
+#   RUNTIME DESTINATION Plugins COMPONENT SHAREDLIB
+#)
 
-add_custom_command(TARGET ${TSNE_PLUGIN} POST_BUILD
-	COMMAND "${CMAKE_COMMAND}"
-	--install ${CMAKE_BINARY_DIR}
-	--config $<CONFIGURATION>
-	--prefix ${INSTALL_DIR}/$<CONFIGURATION>
-)
+#add_custom_command(TARGET ${TSNE_PLUGIN} POST_BUILD#
+#	COMMAND "${CMAKE_COMMAND}"#
+#	--install ${CMAKE_BINARY_DIR}
+#	--config $<CONFIGURATION>
+#	--prefix ${INSTALL_DIR}/$<CONFIGURATION>
+#)
 
