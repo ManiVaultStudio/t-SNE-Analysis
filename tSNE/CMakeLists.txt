@@ -45,13 +45,7 @@ target_link_libraries(${TSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/PointD
 
 if(MSVC)
     MESSAGE( STATUS "Linking Windows libraries...")
-    target_link_libraries(${TSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/lib/HDI/Win/Debug/hdidimensionalityreduction.lib")
-    target_link_libraries(${TSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/lib/HDI/Win/Debug/hdidata.lib")
-    target_link_libraries(${TSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/lib/HDI/Win/Debug/hdiutils.lib")
-    target_link_libraries(${TSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/lib/HDI/Win/Release/hdidimensionalityreduction.lib")
-    target_link_libraries(${TSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/lib/HDI/Win/Release/hdidata.lib")
-    target_link_libraries(${TSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/lib/HDI/Win/Release/hdiutils.lib")
-
+    target_link_libraries(${TSNE_PLUGIN}  ${HDILib_LINK_LIBS})
     target_link_libraries(${TSNE_PLUGIN} debug "${CMAKE_CURRENT_SOURCE_DIR}/lib/Flann/Win/Debug/flann_cpp_s.lib")
     target_link_libraries(${TSNE_PLUGIN} optimized "${CMAKE_CURRENT_SOURCE_DIR}/lib/Flann/Win/Release/flann_cpp_s.lib")
 endif(MSVC)

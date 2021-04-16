@@ -1,4 +1,12 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.15.0)
+
+set(HDILib_VERSION multi_branch)
+
+if(WIN32)
+    set(flann_VERSION 1.8.5)
+elseif(APPLE)
+    set(flann_VERSION 1.9.1)
+endif()
 
 project("SNE-Analyses")
 if(MSVC)
@@ -22,19 +30,21 @@ set(UI_FILES
 
 QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
+include(InstallArtifactoryPackage)
+install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) #1.2.3
+find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS ${CMAKE_MODULE_PATH} REQUIRED)
+
+install_artifactory_package(flann ${flann_VERSION} lkeb FALSE) #1.2.3
+find_package(flann PATHS ${CMAKE_MODULE_PATH} REQUIRED)
+
 include_directories("${INSTALL_DIR}/$<CONFIGURATION>/include/")
-include_directories ("lib/HDI/include")
+include_directories (${HDILib_INCLUDE_DIR})
 
 if(MSVC)
     include_directories ("lib/Flann/Win/include")
 
     MESSAGE( STATUS "Linking Windows libraries...")
-    link_libraries(debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdidimensionalityreduction.lib")
-    link_libraries(debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdidata.lib")
-    link_libraries(debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdiutils.lib")
-    link_libraries(optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdidimensionalityreduction.lib")
-    link_libraries(optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdidata.lib")
-    link_libraries(optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdiutils.lib")
+    link_libraries(${HDILib_LINK_LIBS})
     link_libraries(debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/Flann/Win/Debug/flann_cpp_s.lib")
     link_libraries(optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/Flann/Win/Release/flann_cpp_s.lib")
 endif(MSVC)

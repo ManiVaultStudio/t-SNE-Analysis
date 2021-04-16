@@ -31,12 +31,6 @@ macro(get_settings)
 	set(compiler_version UNSUPPORTED)
 	get_major_version("${CMAKE_CXX_COMPILER_VERSION}" "${compiler_version}")
 
-	if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
-		set(build_type "Release")
-	else()
-		set(build_type ${CMAKE_BUILD_TYPE})
-	endif()
-
 	set(os_name UNSUPPORTED)
 	if (APPLE)
 		set(os_name Macos)
@@ -49,25 +43,8 @@ macro(get_settings)
 
 endmacro(get_settings)
 
-# Artifactory requires the following information to find a package
-# The file conaninfo.txt is used for the search as it is saved
-# with the conan properties visible to the AQL query
-#
-# conan.settings.compiler.version windows:15 linux:9 clang:10
-# conan.settings.compiler  - gcc, Visual Studio, apple-clang
-# conan.settings.build_type Release Debug
-# conan.settings.os Linux, Windows, Macos
-# conan.package.version latest or 0.1.0 or 0.2.0, or 0.3.0
-# conan.package.name
-# conan.package.user     lkeb
-# conan.package.channel  stable
-# filename conaninfo.txt
-#
-
-macro(get_artifactory_package 
-		package_name package_version package_builder 
-		compiler_name compiler_version os_name build_type )
-	configure_file(${CMAKE_MODULE_PATH}/aql.json.in aql.json)
+function(find_package)
+	file(REMOVE aql_out.txt)
 	set(CURL_COMMAND)
 	list(APPEND CURL_COMMAND curl -k -u conan-user:XQlM?4KxtCPOp@0t -X POST -H "content-type: text/plain" --data @aql.json https://lkeb-artifactory.lumc.nl:443/artifactory/api/search/aql)
 	execute_process(COMMAND ${CURL_COMMAND}	RESULT_VARIABLE results OUTPUT_FILE ${CMAKE_SOURCE_DIR}/aql_out.txt)
@@ -94,28 +71,77 @@ macro(get_artifactory_package
 	#message("Retrieved path ${path_line}")
 	string(REGEX MATCH "[^ \"]*/0" package_id "${path_line}")
 	#message("package id ${package_id}")
-	set(package_url "https://lkeb-artifactory.lumc.nl/artifactory/conan/${package_id}/conan_package.tgz")
-	message("package url ${package_url} - name ${package_name}")
-	file(DOWNLOAD ${package_url} "${CMAKE_SOURCE_DIR}/${package_name}.tgz")
+	set(package_url "https://lkeb-artifactory.lumc.nl/artifactory/conan/${package_id}/conan_package.tgz" PARENT_SCOPE)
+endfunction()
 
-	execute_process(COMMAND cmake -E make_directory "${CMAKE_SOURCE_DIR}/${package_name}")
-	execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}.tgz" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/${package_name}")
+# Artifactory requires the following information to find a package
+# The file conaninfo.txt is used for the search as it is saved
+# with the conan properties visible to the AQL query
+#
+# conan.settings.compiler.version windows:15 linux:9 clang:10
+# conan.settings.compiler  - gcc, Visual Studio, apple-clang
+# Not used for HDILib conan.settings.build_type Release Debug
+# conan.settings.os Linux, Windows, Macos
+# conan.package.version latest or 0.1.0 or 0.2.0, or 0.3.0
+# conan.package.name
+# conan.package.user     lkeb
+# conan.package.channel  stable
+# filename conaninfo.txt
+#
 
+macro(get_artifactory_package 
+		package_name package_version package_builder 
+		compiler_name compiler_version os_name is_combined_package)
+	if(is_combined_package)
+		file(REMOVE aql.json)
+		configure_file(${CMAKE_SOURCE_DIR}/cmake/aql.json.in aql.json)
+		find_package()
+		message("package url ${package_url} - name ${package_name}")
+		file(DOWNLOAD ${package_url} "${CMAKE_SOURCE_DIR}/${package_name}.tgz")
+		execute_process(COMMAND cmake -E make_directory "${CMAKE_SOURCE_DIR}/${package_name}")
+		execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}.tgz" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/${package_name}")
+	else()
+		file(REMOVE aql.json)
+		set(build_type "Release")
+		configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_build_type.json.in aql.json)
+		find_package()
+		message("package url ${package_url} - name ${package_name}")
+		file(DOWNLOAD ${package_url} "${CMAKE_SOURCE_DIR}/${package_name}_Release.tgz")
+		execute_process(COMMAND cmake -E make_directory "${CMAKE_SOURCE_DIR}/${package_name}/Release")
+		execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}_Release.tgz" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/${package_name}/Release")
+
+		file(REMOVE aql.json)
+		set(build_type "Debug")
+		configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_build_type.json.in aql.json)
+		find_package()
+		message("package url ${package_url} - name ${package_name}")
+		file(DOWNLOAD ${package_url} "${CMAKE_SOURCE_DIR}/${package_name}_Debug.tgz")
+		execute_process(COMMAND cmake -E make_directory "${CMAKE_SOURCE_DIR}/${package_name}/Debug")
+		execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}_Debug.tgz" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/${package_name}/Debug")
+	endif()
 endmacro()
 
 # Install a package version from the artifactory.
 # The specific version will be based on the current OS, compiler
 # and build settings
-function(install_artifactory_package package_name package_version package_builder)
+# package_name : a package in the lkeb-artifactory - e.g. HDILib or flann
+# package_version: the version to be installed
+# package_builder: the artifactory submitter (usually biovault or lkeb)
+# is_combined_package: either TRUE or FALSE:
+#           TRUE - the package contains both debug and release
+#           FALSE - the package contains either debug or release 
+
+function(install_artifactory_package package_name package_version package_builder is_combined_package)
 	message("Installing package * ${package_name} * from lkeb-artifactory.lumc.nl")
     get_settings()
     set(package_name ${package_name})
     set(package_version ${package_version})
     set(package_builder ${package_builder})
+	set(is_combined_package ${is_combined_package})
 
 	get_artifactory_package("${package_name}" "${package_version}" "${package_builder}"
 		"${compiler_name}" "${compiler_version}"
-		"${os_name}" "${build_type}")
+		"${os_name}" "${is_combined_package}")
     # add the HDILib to the module path
     set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/${package_name}" ${CMAKE_MODULE_PATH} PARENT_SCOPE)
 endfunction()

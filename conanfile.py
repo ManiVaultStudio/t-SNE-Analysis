@@ -3,7 +3,7 @@ import os
 import shutil
 import pathlib
 import subprocess
-from rules_support import CoreBranchInfo
+from rules_support import PluginBranchInfo
 
 
 class SNEAnalysesConan(ConanFile):
@@ -44,8 +44,12 @@ class SNEAnalysesConan(ConanFile):
 
     def set_version(self):
         # Assign a version from the branch name
-        branch_info = CoreBranchInfo(self.recipe_folder)
+        branch_info = PluginBranchInfo(self.recipe_folder)
         self.version = branch_info.version
+
+    def requirements(self):
+        if os.environ.get("CONAN_REQUIRE_HDILIB", None) is not None:
+            self.requires("HDILib/1.2.2@biovault/stable")
 
     # Remove runtime and use always default (MD/MDd)
     def configure(self):
@@ -107,6 +111,10 @@ class SNEAnalysesConan(ConanFile):
                         "--config", "Release",
                         "--prefix", os.path.join(package_dir, "Release")])
         self.copy(pattern="*", src=package_dir)
+        # Add the debug support files to the package
+        # (*.pdb) if building the Visual Studio version
+        if self.settings.compiler == "Visual Studio":
+            self.copy("*.pdb", dst="lib/Debug", keep_path=False)
 
     def package_info(self):
         self.cpp_info.debug.libdirs = ['Debug/lib']

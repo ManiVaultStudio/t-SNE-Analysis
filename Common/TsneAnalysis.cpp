@@ -249,10 +249,10 @@ void TsneAnalysis::setKnnAlgorithm(int algorithm)
 {
     switch (algorithm)
     {
-    case 0: _knnLibrary = hdi::utils::KNN_FLANN; break;
-    case 1: _knnLibrary = hdi::utils::KNN_HNSW; break;
-    case 2: _knnLibrary = hdi::utils::KNN_ANNOY; break;
-    default: _knnLibrary = hdi::utils::KNN_FLANN;
+    case 0: _knnLibrary = hdi::dr::KNN_FLANN; break;
+    case 1: _knnLibrary = hdi::dr::KNN_HNSW; break;
+    case 2: _knnLibrary = hdi::dr::KNN_ANNOY; break;
+    default: _knnLibrary = hdi::dr::KNN_FLANN;
     }
 }
 
@@ -260,13 +260,13 @@ void TsneAnalysis::setDistanceMetric(int metric)
 {
     switch (metric)
     {
-    case 0: _knnDistanceMetric = hdi::utils::KNN_METRIC_EUCLIDEAN; break;
-    case 1: _knnDistanceMetric = hdi::utils::KNN_METRIC_COSINE; break;
-    case 2: _knnDistanceMetric = hdi::utils::KNN_METRIC_INNER_PRODUCT; break;
-    case 3: _knnDistanceMetric = hdi::utils::KNN_METRIC_MANHATTAN; break;
-    case 4: _knnDistanceMetric = hdi::utils::KNN_METRIC_HAMMING; break;
-    case 5: _knnDistanceMetric = hdi::utils::KNN_METRIC_DOT; break;
-    default: _knnDistanceMetric = hdi::utils::KNN_METRIC_EUCLIDEAN;
+    case 0: _knnDistanceMetric = hdi::dr::KNN_METRIC_EUCLIDEAN; break;
+    case 1: _knnDistanceMetric = hdi::dr::KNN_METRIC_COSINE; break;
+    case 2: _knnDistanceMetric = hdi::dr::KNN_METRIC_INNER_PRODUCT; break;
+    case 3: _knnDistanceMetric = hdi::dr::KNN_METRIC_MANHATTAN; break;
+    case 4: _knnDistanceMetric = hdi::dr::KNN_METRIC_HAMMING; break;
+    case 5: _knnDistanceMetric = hdi::dr::KNN_METRIC_DOT; break;
+    default: _knnDistanceMetric = hdi::dr::KNN_METRIC_EUCLIDEAN;
     }
 }
 
