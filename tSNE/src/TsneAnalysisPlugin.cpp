@@ -146,7 +146,12 @@ void TsneAnalysisPlugin::startComputation()
 
     _tsne.initTSNE(data, numEnabledDimensions);
 
-    _tsne.start();
+    _tsne.startComputation(true);
+}
+
+void TsneAnalysisPlugin::continueComputation()
+{
+    _tsne.startComputation(false);
 }
 
 void TsneAnalysisPlugin::onNewEmbedding() {
@@ -173,21 +178,7 @@ void TsneAnalysisPlugin::stopComputation() {
 	_settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
 	_settings->setSubtitle("Stopping computation...");
 
-    if (_tsne.isRunning())
-    {
-        // Request interruption of the computation
-        _tsne.stopGradientDescent();
-        _tsne.exit();
-
-        // Wait until the thread has terminated (max. 3 seconds)
-        if (!_tsne.wait(3000))
-        {
-            qDebug() << "tSNE computation thread did not close in time, terminating...";
-            _tsne.terminate();
-            _tsne.wait();
-        }
-        qDebug() << "tSNE computation stopped.";
-    }
+    _tsne.stopComputation();
 }
 
 // =============================================================================

@@ -33,6 +33,7 @@ public:
     hdps::gui::SettingsWidget* const getSettings() override;
 
     void startComputation();
+    void continueComputation();
     void stopComputation();
 
 public slots:

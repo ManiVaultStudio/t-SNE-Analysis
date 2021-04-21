@@ -66,6 +66,7 @@ _verbose(false),
 _isGradientDescentRunning(false),
 _isTsneRunning(false),
 _isMarkedForDeletion(false),
+_gradientDescentInitialized(false),
 _continueFromIteration(0)
 {
     
@@ -73,13 +74,6 @@ _continueFromIteration(0)
 
 TsneAnalysis::~TsneAnalysis()
 {
-}
-
-void TsneAnalysis::computeGradientDescent()
-{
-    initGradientDescent();
-
-    embed();
 }
 
 void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
@@ -170,6 +164,41 @@ void TsneAnalysis::initGradientDescent()
     _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParams);
     
     copyFloatOutput();
+
+    _gradientDescentInitialized = true;
+}
+
+void TsneAnalysis::startComputation(bool fromBeginning)
+{
+    if (fromBeginning)
+    {
+        initGradientDescent();
+
+        start();
+    }
+    else if (_gradientDescentInitialized)
+    {
+        start();
+    }
+}
+
+void TsneAnalysis::stopComputation()
+{
+    if (isRunning())
+    {
+        // Request interruption of the computation
+        stopGradientDescent();
+        exit();
+
+        // Wait until the thread has terminated (max. 3 seconds)
+        if (!wait(3000))
+        {
+            qDebug() << "tSNE computation thread did not close in time, terminating...";
+            terminate();
+            wait();
+        }
+        qDebug() << "tSNE computation stopped.";
+    }
 }
 
 // Computing gradient descent
@@ -231,7 +260,7 @@ void TsneAnalysis::embed()
 }
 
 void TsneAnalysis::run() {
-    computeGradientDescent();
+    embed();
 }
 
 // Copy tSNE output to our output

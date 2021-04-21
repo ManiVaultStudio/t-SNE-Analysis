@@ -156,23 +156,10 @@ void HsneAnalysis::computeEmbedding(int scale)
     _tsne.setNumTrees(4);
     _tsne.setNumChecks(1024);
 
-    if (_tsne.isRunning())
-    {
-        // Request interruption of the computation
-        _tsne.stopGradientDescent();
-        _tsne.exit();
+    _tsne.stopComputation();
 
-        // Wait until the thread has terminated (max. 3 seconds)
-        if (!_tsne.wait(3000))
-        {
-            qDebug() << "tSNE computation thread did not close in time, terminating...";
-            _tsne.terminate();
-            _tsne.wait();
-        }
-        qDebug() << "tSNE computation stopped.";
-    }
     // Initialize tsne, compute data to be embedded, start computation?
     _tsne.initWithProbDist(_numPoints, _numDimensions, _hsne->scale(scale)._transition_matrix); // FIXME
     // Embed data
-    _tsne.start();
+    _tsne.startComputation();
 }

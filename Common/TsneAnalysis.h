@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 
-class TsneAnalysis : public QThread
+class TsneAnalysis : protected QThread, public QObject
 {
     Q_OBJECT
 public:
@@ -48,9 +48,13 @@ public:
     inline bool isGradientDescentRunning() { return _isGradientDescentRunning; }
     inline bool isMarkedForDeletion() { return _isMarkedForDeletion; }
 
-private:
+    void startComputation(bool fromBeginning = true);
+    void stopComputation();
+
+protected:
     void run() override;
 
+private:
     void computeGradientDescent();
     void initGradientDescent();
     void embed();
@@ -91,5 +95,6 @@ private:
     bool _isTsneRunning;
     bool _isMarkedForDeletion;
 
+    bool _gradientDescentInitialized;
     int _continueFromIteration;
 };
