@@ -142,7 +142,7 @@ void TsneAnalysis::initGradientDescent()
 {
     emit progressMessage("Initializing gradient descent");
 
-    _continueFromIteration = 0;
+    //_continueFromIteration = 0;
 
     _isTsneRunning = true;
 
@@ -168,18 +168,14 @@ void TsneAnalysis::initGradientDescent()
     _gradientDescentInitialized = true;
 }
 
-void TsneAnalysis::startComputation(bool fromBeginning)
+void TsneAnalysis::reset()
 {
-    if (fromBeginning)
-    {
-        initGradientDescent();
+    _gradientDescentInitialized = false;
+}
 
-        start();
-    }
-    else if (_gradientDescentInitialized)
-    {
-        start();
-    }
+void TsneAnalysis::startComputation()
+{
+    start();
 }
 
 void TsneAnalysis::stopComputation()
@@ -221,7 +217,7 @@ void TsneAnalysis::embed()
                 _continueFromIteration = iter;
                 break;
             }
-
+            
             // Perform a GPGPU-SNE iteration
             _GPGPU_tSNE.doAnIteration();
 
@@ -260,6 +256,9 @@ void TsneAnalysis::embed()
 }
 
 void TsneAnalysis::run() {
+    //if (!_gradientDescentInitialized)
+    initGradientDescent();
+
     embed();
 }
 

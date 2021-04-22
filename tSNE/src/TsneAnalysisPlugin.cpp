@@ -146,12 +146,13 @@ void TsneAnalysisPlugin::startComputation()
 
     _tsne.initTSNE(data, numEnabledDimensions);
 
-    _tsne.startComputation(true);
+    _tsne.reset();
+    _tsne.startComputation();
 }
 
 void TsneAnalysisPlugin::continueComputation()
 {
-    _tsne.startComputation(false);
+    _tsne.startComputation();
 }
 
 void TsneAnalysisPlugin::onNewEmbedding() {

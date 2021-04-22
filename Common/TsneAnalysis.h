@@ -48,14 +48,14 @@ public:
     inline bool isGradientDescentRunning() { return _isGradientDescentRunning; }
     inline bool isMarkedForDeletion() { return _isMarkedForDeletion; }
 
-    void startComputation(bool fromBeginning = true);
+    void reset();
+    void startComputation();
     void stopComputation();
 
 protected:
     void run() override;
 
 private:
-    void computeGradientDescent();
     void initGradientDescent();
     void embed();
     void copyFloatOutput();
