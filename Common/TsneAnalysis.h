@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 
-class TsneAnalysis : protected QThread, public QObject
+class TsneAnalysis : public QThread
 {
     Q_OBJECT
 public:
@@ -51,6 +51,11 @@ public:
     void reset();
     void startComputation();
     void stopComputation();
+
+protected:
+    // Hide QThread functionality, can't be inherited as protected because we need the public cast
+    // TsneAnalysis to QObject. Exposing the cast instead does not seem to work.
+    using QThread::start;
 
 protected:
     void run() override;
@@ -97,4 +102,23 @@ private:
 
     bool _gradientDescentInitialized;
     int _continueFromIteration;
+};
+
+class HDSimilarityComputationThread : public QThread
+{
+    Q_OBJECT
+public:
+    HDSimilarityComputationThread(std::vector<float>& data, int numPoints, int numDimensions, hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type& probDist, hdi::dr::HDJointProbabilityGenerator<float>::Parameters& params);
+
+    void run() override;
+
+signals:
+    void resultReady(const QString& s);
+
+private:
+    std::vector<float>& _data;
+    int _numPoints;
+    int _numDimensions;
+    hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type& _probDist;
+    hdi::dr::HDJointProbabilityGenerator<float>::Parameters& _params;
 };

@@ -11,6 +11,8 @@
 #include <QWindow>
 #include <QOpenGLContext>
 
+#include <QEventLoop>
+
 class OffscreenBuffer : public QWindow
 {
 public:
@@ -53,6 +55,30 @@ private:
 };
 
 OffscreenBuffer* offBuffer;
+
+HDSimilarityComputationThread::HDSimilarityComputationThread(std::vector<float>& data, int numPoints, int numDimensions, hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type& probDist, hdi::dr::HDJointProbabilityGenerator<float>::Parameters& params) :
+    _data(data),
+    _numPoints(numPoints),
+    _numDimensions(numDimensions),
+    _probDist(probDist),
+    _params(params)
+{
+
+}
+
+void HDSimilarityComputationThread::run()
+{
+    QString result;
+
+    hdi::dr::HDJointProbabilityGenerator<float> probabilityGenerator;
+    double t = 0.0;
+    {
+        hdi::utils::ScopedTimer<double> timer(t);
+        probabilityGenerator.computeJointProbabilityDistribution(_data.data(), _numDimensions, _numPoints, _probDist, _params);
+    }
+
+    emit resultReady(result);
+}
 
 TsneAnalysis::TsneAnalysis() :
 _iterations(1000),
@@ -111,11 +137,15 @@ void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
         qDebug() << "Sparse matrix allocated.";
 
         qDebug() << "Computing high dimensional probability distributions.. Num dims: " << numDimensions << " Num data points: " << numPoints;
-        hdi::dr::HDJointProbabilityGenerator<float> probabilityGenerator;
+        HDSimilarityComputationThread worker(data, numPoints, numDimensions, _probabilityDistribution, probGenParams);
+        worker.start();
+
         double t = 0.0;
         {
             hdi::utils::ScopedTimer<double> timer(t);
-            probabilityGenerator.computeJointProbabilityDistribution(data.data(), numDimensions, numPoints, _probabilityDistribution, probGenParams);
+            QEventLoop loop;
+            connect(&worker, &HDSimilarityComputationThread::resultReady, &loop, &QEventLoop::quit);
+            loop.exec();
         }
 
         emit progressMessage("Probability distributions calculated");
