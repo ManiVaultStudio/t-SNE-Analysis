@@ -93,7 +93,8 @@ _isGradientDescentRunning(false),
 _isTsneRunning(false),
 _isMarkedForDeletion(false),
 _gradientDescentInitialized(false),
-_continueFromIteration(0)
+_currentIteration(0),
+_stopThread(false)
 {
     
 }
@@ -168,7 +169,7 @@ void TsneAnalysis::initWithProbDist(const int numPoints, const int numDimensions
     _probabilityDistribution = probDist;
 }
 
-void TsneAnalysis::initGradientDescent()
+void TsneAnalysis::initGradientDescent(bool presetEmbedding)
 {
     emit progressMessage("Initializing gradient descent");
 
@@ -183,6 +184,7 @@ void TsneAnalysis::initGradientDescent()
     tsneParams._remove_exaggeration_iter = _exaggerationIter;
     tsneParams._exponential_decay_iter = _exponentialDecayIter;
     tsneParams._exaggeration_factor = 4 + _numPoints / 60000.0;
+    tsneParams._presetEmbedding = presetEmbedding;
     _A_tSNE.setTheta(std::min(0.5, std::max(0.0, (_numPoints - 1000.0)*0.00005)));
 
     // Create a context local to this thread that shares with the global share context
@@ -214,8 +216,9 @@ void TsneAnalysis::stopComputation()
     {
         // Request interruption of the computation
         stopGradientDescent();
-        exit();
+        _stopThread = true;
 
+        // Questionable code TODO remove?
         // Wait until the thread has terminated (max. 3 seconds)
         if (!wait(3000))
         {
@@ -239,19 +242,18 @@ void TsneAnalysis::embed()
         _isGradientDescentRunning = true;
 
         // Performs gradient descent for every iteration
-        for (int iter = 0; iter < _iterations; ++iter)
+        for (; _currentIteration < _iterations; ++_currentIteration)
         {
             hdi::utils::ScopedTimer<double> timer(t);
+
+            // Stop doing gradient descent if asked to stop
             if (!_isGradientDescentRunning)
-            {
-                _continueFromIteration = iter;
                 break;
-            }
-            
+
             // Perform a GPGPU-SNE iteration
             _GPGPU_tSNE.doAnIteration();
 
-            if (iter > 0 && iter % 10 == 0)
+            if (_currentIteration > 0 && _currentIteration % 10 == 0)
             {
                 copyFloatOutput();
                 emit newEmbedding();
@@ -262,12 +264,10 @@ void TsneAnalysis::embed()
 
             elapsed += t;
 
-            const auto percentageDone = static_cast<float>(iter) / static_cast<float>(_iterations);
+            const auto percentageDone = static_cast<float>(_currentIteration) / static_cast<float>(_iterations);
 
             emit progressMessage(QString("Computing gradient descent: %1 %").arg(QString::number(100.0f * percentageDone, 'f', 1)));
         }
-
-        offBuffer->releaseContext();
 
         copyFloatOutput();
         emit newEmbedding();
@@ -287,9 +287,17 @@ void TsneAnalysis::embed()
 
 void TsneAnalysis::run() {
     //if (!_gradientDescentInitialized)
-    initGradientDescent();
+    initGradientDescent(_gradientDescentInitialized);
 
-    embed();
+    while (!_stopThread)
+    {
+        if (_currentIteration < _iterations)
+            embed();
+
+        sleep(1);
+    }
+
+    offBuffer->releaseContext();
 }
 
 // Copy tSNE output to our output

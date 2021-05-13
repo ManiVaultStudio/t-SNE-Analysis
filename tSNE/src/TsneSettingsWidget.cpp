@@ -62,6 +62,12 @@ TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin) :
     _startButton->setCheckable(true);
     connect(_startButton, &QPushButton::toggled, this, &TsneSettingsWidget::onStartToggled);
 
+    _continueButton = new QPushButton();
+    _continueButton->setText("Continue Embedding");
+    _continueButton->setFixedSize(QSize(150, 50));
+    _continueButton->setCheckable(true);
+    connect(_continueButton, &QPushButton::toggled, this, &TsneSettingsWidget::onContinueToggled);
+
     // Create group boxes for grouping together various settings
     QGroupBox* settingsBox = new QGroupBox("Basic settings");
     QGroupBox* advancedSettingsBox = new QGroupBox("Advanced Settings");
@@ -130,6 +136,7 @@ TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin) :
     computeLayout->addWidget(embeddingNameLabel, 0, 0);
     computeLayout->addWidget(&embeddingNameLine, 1, 0, Qt::AlignTop);
     computeLayout->addWidget(_startButton, 0, 1, 2, 1, Qt::AlignCenter);
+    computeLayout->addWidget(_continueButton, 2, 1, 2, 1, Qt::AlignCenter);
     computeBox->setLayout(computeLayout);
 
     // Add all the parts of the settings widget together
@@ -186,8 +193,8 @@ void TsneSettingsWidget::onStartToggled(bool pressed)
     if (!hasValidSettings()) {
         QMessageBox warningBox;
         warningBox.setText(tr("Some settings are invalid or missing. Continue with default values?"));
-        QPushButton *continueButton = warningBox.addButton(tr("Continue"), QMessageBox::ActionRole);
-        QPushButton *abortButton = warningBox.addButton(QMessageBox::Abort);
+        QPushButton* continueButton = warningBox.addButton(tr("Continue"), QMessageBox::ActionRole);
+        QPushButton* abortButton = warningBox.addButton(QMessageBox::Abort);
 
         warningBox.exec();
 
@@ -197,7 +204,16 @@ void TsneSettingsWidget::onStartToggled(bool pressed)
     }
 
     _startButton->setText(pressed ? "Stop Computation" : "Start Computation");
-    pressed ? _analysisPlugin.startComputation() : _analysisPlugin.stopComputation();
+    if (pressed)
+        _analysisPlugin.startComputation();
+}
+
+void TsneSettingsWidget::onContinueToggled(bool pressed)
+{
+    if (pressed)
+    {
+        _analysisPlugin.continueComputation();
+    }
 }
 
 void TsneSettingsWidget::dataChanged(const Points& points)

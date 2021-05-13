@@ -43,12 +43,13 @@ public slots:
     void onNewEmbedding();
 
 private:
-    void initializeTsne();
+    void setTsneParameters();
 
     TsneAnalysis _tsne;
 
     std::unique_ptr<TsneSettingsWidget> _settings;
     QString _embeddingName;
+    bool _hasPreviousComputation;
 };
 
 // =============================================================================

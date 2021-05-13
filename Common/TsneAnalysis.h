@@ -61,7 +61,7 @@ protected:
     void run() override;
 
 private:
-    void initGradientDescent();
+    void initGradientDescent(bool presetEmbedding);
     void embed();
     void copyFloatOutput();
 
@@ -99,9 +99,10 @@ private:
     bool _isGradientDescentRunning;
     bool _isTsneRunning;
     bool _isMarkedForDeletion;
+    bool _stopThread;
 
     bool _gradientDescentInitialized;
-    int _continueFromIteration;
+    int _currentIteration;
 };
 
 class HDSimilarityComputationThread : public QThread

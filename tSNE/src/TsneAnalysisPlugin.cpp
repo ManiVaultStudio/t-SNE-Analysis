@@ -5,6 +5,7 @@
 
 #include <QtCore>
 #include <QtDebug>
+#include <QMessageBox>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 #include <windows.h>
@@ -17,7 +18,8 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 
 using namespace hdps;
 TsneAnalysisPlugin::TsneAnalysisPlugin() :
-    AnalysisPlugin("tSNE Analysis")
+    AnalysisPlugin("tSNE Analysis"),
+    _hasPreviousComputation(false)
 {
 	QObject::connect(&_tsne, &TsneAnalysis::progressMessage, [this](const QString& message) {
 		_settings->setSubtitle(message);
@@ -96,7 +98,7 @@ void TsneAnalysisPlugin::startComputation()
 
     qApp->processEvents();
 
-    initializeTsne();
+    setTsneParameters();
 
     // Prepare the data
     QString setName = _settings->getCurrentDataItem();
@@ -148,11 +150,27 @@ void TsneAnalysisPlugin::startComputation()
 
     _tsne.reset();
     _tsne.startComputation();
+    _hasPreviousComputation = true;
 }
 
 void TsneAnalysisPlugin::continueComputation()
 {
-    _tsne.startComputation();
+    //qDebug() << QThread::currentThread() << QApplication::instance()->thread();
+    //QMessageBox msgBox;
+    //msgBox.setText("Would you like to continue the previous embedding or start a new one?");
+    //QPushButton* restartButton = msgBox.addButton("Restart", QMessageBox::NoRole);
+    //QPushButton* continueButton = msgBox.addButton("Continue", QMessageBox::NoRole);
+    //msgBox.setDefaultButton(restartButton); qDebug() << "Pre exec";
+    //msgBox.exec();
+    qDebug() << "Post exec";
+    //if (msgBox.clickedButton() == restartButton)
+    //{
+    //    _tsne.startComputation();
+    //}
+    //else if (msgBox.clickedButton() == continueButton)
+    //{
+        _tsne.setIterations(_tsne.iterations() + _settings->numIterations.text().toInt());
+    //}
 }
 
 void TsneAnalysisPlugin::onNewEmbedding() {
@@ -165,7 +183,7 @@ void TsneAnalysisPlugin::onNewEmbedding() {
     _core->notifyDataChanged(_embeddingName);
 }
 
-void TsneAnalysisPlugin::initializeTsne() {
+void TsneAnalysisPlugin::setTsneParameters() {
     // Initialize the tSNE computation with the settings from the settings widget
     _tsne.setIterations(_settings->numIterations.text().toInt());
     _tsne.setPerplexity(_settings->perplexity.text().toInt());
@@ -176,8 +194,8 @@ void TsneAnalysisPlugin::initializeTsne() {
 }
 
 void TsneAnalysisPlugin::stopComputation() {
-	_settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
-	_settings->setSubtitle("Stopping computation...");
+    _settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
+    _settings->setSubtitle("Stopping computation...");
 
     _tsne.stopComputation();
 }

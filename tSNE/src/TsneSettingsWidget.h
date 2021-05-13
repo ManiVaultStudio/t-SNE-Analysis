@@ -65,6 +65,7 @@ public slots:
 
 private slots:
     void onStartToggled(bool pressed);
+    void onContinueToggled(bool pressed);
     void numIterationsChanged(const QString &value);
     void perplexityChanged(const QString &value);
     void exaggerationChanged(const QString &value);
@@ -77,6 +78,7 @@ public:
     QComboBox* _dataOptions;
     hdps::DimensionSelectionWidget _dimensionSelectionWidget;
     QPushButton* _startButton;
+    QPushButton* _continueButton;
 
     QComboBox dataOptions;
     QComboBox knnOptions;
