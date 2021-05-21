@@ -50,7 +50,7 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
 
     inputData.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
-    int numScales = 3; // FIXME Should be some param
+    _numScales = 3; // FIXME Should be some param
     _numPoints = inputData.getNumPoints();
     _numDimensions = numEnabledDimensions;
 
@@ -69,11 +69,10 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
     _hsne->initialize((Hsne::scalar_type*) data.data(), _numPoints, internalParams);
 
     // Add a number of scales as indicated by the user
-    for (int s = 0; s < numScales - 1; ++s) {
+    for (int s = 0; s < _numScales-1; ++s) {
         _hsne->addScale();
     }
 
-    _currentScale = 2;
     // Initialize t-SNE
     //_tsne.initWithProbDist(data, numDimensions, _hsne->scale(4)._transition_matrix);
 

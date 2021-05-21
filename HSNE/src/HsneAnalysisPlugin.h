@@ -29,7 +29,7 @@ public:
      */
     void onDataEvent(hdps::DataEvent* dataEvent);
 
-    void computeEmbedding(int scale = 0);
+    void computeTopLevelEmbedding();
     void drillIn(QString embeddingName);
     SettingsWidget* const getSettings() override;
 

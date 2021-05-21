@@ -115,7 +115,7 @@ void HsneAnalysisPlugin::startComputation()
     _hierarchy.initialize(_core, inputData, enabledDimensions, parameters);
 
     _embeddingNameBase = _settings->getEmbeddingName();
-    computeEmbedding();
+    computeTopLevelEmbedding();
 }
 
 void HsneAnalysisPlugin::onNewEmbedding() {
@@ -142,10 +142,13 @@ QString HsneAnalysisPlugin::createEmptyEmbedding(QString name, QString dataType,
     return embeddingName;
 }
 
-void HsneAnalysisPlugin::computeEmbedding(int scale)
+void HsneAnalysisPlugin::computeTopLevelEmbedding()
 {
     // Create a new data set for the embedding
-    _embeddingName = createEmptyEmbedding(_embeddingNameBase + "_scale_" + QString::number(scale), "Points", _hierarchy.getInputDataName());
+    int topScale = _hierarchy.getNumScales() - 1;
+    _embeddingName = createEmptyEmbedding(_embeddingNameBase + "_scale_" + QString::number(topScale), "Points", _hierarchy.getInputDataName());
+    Points& embedding = _core->requestData<Points>(_embeddingName);
+    embedding.setProperty("scale", topScale);
 
     // Should come from some t-SNE settings widget
     _tsne.setIterations(1000);
@@ -170,7 +173,7 @@ void HsneAnalysisPlugin::computeEmbedding(int scale)
         qDebug() << "tSNE computation stopped.";
     }
     // Initialize tsne, compute data to be embedded, start computation?
-    _tsne.initWithProbDist(_hierarchy.getNumPoints(), _hierarchy.getNumDimensions(), _hierarchy.getTransitionMatrixAtScale(_hierarchy.getCurrentScale())); // FIXME
+    _tsne.initWithProbDist(_hierarchy.getNumPoints(), _hierarchy.getNumDimensions(), _hierarchy.getTransitionMatrixAtScale(topScale)); // FIXME
     // Embed data
     _tsne.start();
 }
@@ -182,16 +185,33 @@ void HsneAnalysisPlugin::onDrillIn()
 
 void HsneAnalysisPlugin::drillIn(QString embeddingName)
 {
+    // Request the embedding from the core and find out the source data from which it derives
     Points& embedding = _core->requestData<Points>(embeddingName);
     Points& source = hdps::DataSet::getSourceData<Points>(embedding);
-    //QString subset = source.createSubset();
 
+    // Get associated selection with embedding
     Points& selection = static_cast<Points&>(embedding.getSelection());
-    //_hsne->scale(scale)._area_of_influence[selection.indices];
 
+    // Scale the embedding is a part of
+    int currentScale = embedding.getProperty("scale").value<int>();
+
+    // Find proper selection indices
+    std::vector<unsigned int> selectionIndices;
+    if (embedding.hasProperty("drill_indices"))
+    {
+        QList<uint32_t> drillIndices = embedding.getProperty("drill_indices").value<QList<uint32_t>>();
+        
+        for (const uint32_t& selectionIndex : selection.indices)
+            selectionIndices.push_back(drillIndices[selectionIndex]);
+    }
+    else
+        selectionIndices = selection.indices;
+
+    // Find the points in the previous level corresponding to selected landmarks
     std::map<uint32_t, float> neighbors;
-    _hierarchy.getInfluencedLandmarksInPreviousScale(selection.indices, neighbors);
+    _hierarchy.getInfluencedLandmarksInPreviousScale(currentScale, selectionIndices, neighbors);
 
+    // Threshold neighbours with enough influence
     std::vector<uint32_t> nextLevelIdxs;
     nextLevelIdxs.clear();
     for (auto n : neighbors) {
@@ -201,13 +221,22 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
         }
     }
     std::cout << "#landmarks at previous scale: " << neighbors.size() << std::endl;
+    std::cout << "#thresholded at previous scale: " << nextLevelIdxs.size() << std::endl;
     std::cout << "Drilling in" << std::endl;
 
+    // Compute the transition matrix for the landmarks above the threshold
     HsneMatrix transitionMatrix;
-    _hierarchy.getTransitionMatrixForSelection(transitionMatrix, nextLevelIdxs);
+    _hierarchy.getTransitionMatrixForSelection(currentScale, transitionMatrix, nextLevelIdxs);
 
     // Create a new data set for the embedding
     _embeddingName = createEmptyEmbedding("Drill Embedding", "Points", _hierarchy.getInputDataName());
+
+    // Store drill indices with embedding
+    Points& drillEmbedding = _core->requestData<Points>(_embeddingName);
+    QList<uint32_t> indices(nextLevelIdxs.begin(), nextLevelIdxs.end());
+    QVariant variantIndices = QVariant::fromValue<QList<uint32_t>>(indices);
+    drillEmbedding.setProperty("drill_indices", variantIndices);
+    drillEmbedding.setProperty("scale", currentScale - 1);
 
     // Should come from some t-SNE settings widget
     _tsne.setIterations(1000);
@@ -232,7 +261,7 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
         qDebug() << "tSNE computation stopped.";
     }
     // Initialize tsne, compute data to be embedded, start computation?
-    _tsne.initWithProbDist(nextLevelIdxs.size(), _hierarchy.getNumDimensions(), transitionMatrix); // FIXME
+    _tsne.initWithProbDist(nextLevelIdxs.size(), _hierarchy.getNumDimensions(), transitionMatrix);
     // Embed data
     _tsne.start();
 }
