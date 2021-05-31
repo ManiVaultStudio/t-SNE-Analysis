@@ -36,6 +36,19 @@ target_link_libraries(${TSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/PointD
 set_flann_project_link_libraries()
 set_HDILib_project_link_libraries()
 
+install(TARGETS ${TSNE_PLUGIN}
+   RUNTIME DESTINATION Plugins COMPONENT HSNE_SHAREDLIB
+)
+
+if(USE_PREBUILT_LIBS)
+    install(FILES
+        "${CMAKE_SOURCE_DIR}/flann/bin/$<CONFIGURATION>/${CMAKE_SHARED_LIBRARY_PREFIX}flann${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${CMAKE_SOURCE_DIR}/flann/bin/$<CONFIGURATION>/${CMAKE_SHARED_LIBRARY_PREFIX}flann_cpp${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        DESTINATION "${INSTALL_DIR}/$<CONFIGURATION>"
+        COMPONENT IMPORTLIBS
+    )
+endif()
+
 add_custom_command(TARGET ${TSNE_PLUGIN} POST_BUILD
 	COMMAND "${CMAKE_COMMAND}"
 	--install ${CMAKE_BINARY_DIR}
