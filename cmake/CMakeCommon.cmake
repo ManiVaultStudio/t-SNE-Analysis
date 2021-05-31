@@ -34,7 +34,7 @@ set(UI_FILES
 # Include flann includes via target_include_directories to the current project
 macro(set_flann_project_includes)
     if(USE_PREBUILT_LIBS)
-        MESSAGE( STATUS "Including PREBUILT flann ${CMAKE_SOURCE_DIR}/flann}")
+        MESSAGE( STATUS "Including PREBUILT flann ${CMAKE_SOURCE_DIR}/flann")
         target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE "${CMAKE_SOURCE_DIR}/flann/include")
     else()
         if(MSVC)

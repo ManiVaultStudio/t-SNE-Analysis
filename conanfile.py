@@ -88,7 +88,7 @@ class SNEAnalysesConan(ConanFile):
         print('HDPS_INSTALL_DIR: ', os.environ['HDPS_INSTALL_DIR'])
         self.install_dir = os.environ['HDPS_INSTALL_DIR']
 
-        # The ImageLoaderPlugin build expects the HDPS package to be in this install dir
+        # The t-SNE-Analysis build expects the HDPS package to be in this install dir
         hdps_pkg_root = self.deps_cpp_info["hdps-core"].rootpath
         print("Install dir type: ", self.install_dir)
         shutil.copytree(hdps_pkg_root, self.install_dir)

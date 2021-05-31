@@ -45,10 +45,14 @@ if (USE_PREBUILT_LIBS AND NOT PREBUILT_LIBS_INSTALLED)
     message("module path ${CMAKE_MODULE_PATH}")
     message("Call find_package HDILib search ${CMAKE_SOURCE_DIR}/HDILib/lib/cmake/HDILib")
     message("Run find_package HDILib")
+
+    set(PREBUILT_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
+endif()
+
+if(USE_PREBUILT_LIBS AND PREBUILT_LIBS_INSTALLED)
     # If the HDILib_VERSION is not a x.y.z version number 
     # omit the version argument from find package
     find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${CMAKE_SOURCE_DIR}/HDILib" CONFIG REQUIRED)
-    set(PREBUILT_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
 endif()
 
 include(CMakeCommon)
