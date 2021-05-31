@@ -8,6 +8,8 @@ items.find(
 		"@conan.package.version": {"$eq" : "@package_version@"},
 		"@conan.settings.os": {"$eq" : "@os_name@"},
 		"@conan.settings.compiler": {"$eq" : "@compiler_name@"},
-		"@conan.settings.compiler.version": {"$match" : "@compiler_version@*"}
+		"@conan.settings.compiler.version": {"$match" : "@compiler_version@*"},
+		"@conan.settings.build_type":{"$nmatch" : "Release"},
+		"@conan.settings.build_type":{"$nmatch" : "Debug"}
 	}
 )

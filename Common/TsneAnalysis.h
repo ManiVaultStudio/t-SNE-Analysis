@@ -5,6 +5,7 @@
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
 #include "hdi/dimensionality_reduction/sparse_tsne_user_def_probabilities.h"
 #include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h"
+#include "hdi/dimensionality_reduction/knn_utils.h"
 
 #include <QThread>
 

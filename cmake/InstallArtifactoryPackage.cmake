@@ -43,10 +43,10 @@ macro(get_settings)
 
 endmacro(get_settings)
 
-function(find_package)
+function(find_artifactory_package)
 	file(REMOVE aql_out.txt)
 	set(CURL_COMMAND)
-	list(APPEND CURL_COMMAND curl -k -u conan-user:XQlM?4KxtCPOp@0t -X POST -H "content-type: text/plain" --data @aql.json https://lkeb-artifactory.lumc.nl:443/artifactory/api/search/aql)
+	list(APPEND CURL_COMMAND curl -k -u conan-user:XQlM?4KxtCPOp@0t -X POST -H "content-type: text/plain" --data @${CMAKE_BINARY_DIR}/aql.json https://lkeb-artifactory.lumc.nl:443/artifactory/api/search/aql)
 	execute_process(COMMAND ${CURL_COMMAND}	RESULT_VARIABLE results OUTPUT_FILE ${CMAKE_SOURCE_DIR}/aql_out.txt)
 
 	set(path_match "\"path\"")
@@ -56,15 +56,15 @@ function(find_package)
 
 	message("result length ${res_length}")
 	foreach(line ${result_file})
-		message("package found: ${line}\n")
+		message("Artifactory package found: ${line}\n")
 	endforeach()
 
 	if (res_length LESS 1)
-		message(FATAL_ERROR "No matching packages found. Please check the query.")
+		message(FATAL_ERROR "No matching artifactory packages found. Please check the query.")
 	endif()
 
 	if (res_length GREATER 1)
-		message(FATAL_ERROR "Too many matching packages found. Contact the HDPS group for more info and supply the aql_out.txt and aql.json files")
+		message(FATAL_ERROR "Too many matching artifactory packages found. Contact the HDPS group for more info and supply the aql_out.txt and aql.json files")
 	endif()
 
 	list(GET result_file 0 path_line)
@@ -89,31 +89,31 @@ endfunction()
 # filename conaninfo.txt
 #
 
-macro(get_artifactory_package 
-		package_name package_version package_builder 
+macro(get_artifactory_package
+		package_name package_version package_builder
 		compiler_name compiler_version os_name is_combined_package)
 	if(is_combined_package)
-		file(REMOVE aql.json)
-		configure_file(${CMAKE_SOURCE_DIR}/cmake/aql.json.in aql.json)
-		find_package()
+		file(REMOVE ${CMAKE_BINARY_DIR}/aql.json)
+		configure_file(${CMAKE_SOURCE_DIR}/cmake/aql.json.in ${CMAKE_BINARY_DIR}/aql.json)
+		find_artifactory_package()
 		message("package url ${package_url} - name ${package_name}")
 		file(DOWNLOAD ${package_url} "${CMAKE_SOURCE_DIR}/${package_name}.tgz")
 		execute_process(COMMAND cmake -E make_directory "${CMAKE_SOURCE_DIR}/${package_name}")
 		execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}.tgz" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/${package_name}")
 	else()
-		file(REMOVE aql.json)
+		file(REMOVE ${CMAKE_BINARY_DIR}/aql.json)
 		set(build_type "Release")
-		configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_build_type.json.in aql.json)
-		find_package()
+		configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_build_type.json.in ${CMAKE_BINARY_DIR}/aql.json)
+		find_artifactory_package()
 		message("package url ${package_url} - name ${package_name}")
 		file(DOWNLOAD ${package_url} "${CMAKE_SOURCE_DIR}/${package_name}_Release.tgz")
 		execute_process(COMMAND cmake -E make_directory "${CMAKE_SOURCE_DIR}/${package_name}/Release")
 		execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}_Release.tgz" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/${package_name}/Release")
 
-		file(REMOVE aql.json)
+		file(REMOVE ${CMAKE_BINARY_DIR}/aql.json)
 		set(build_type "Debug")
-		configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_build_type.json.in aql.json)
-		find_package()
+		configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_build_type.json.in ${CMAKE_BINARY_DIR}/aql.json)
+		find_artifactory_package()
 		message("package url ${package_url} - name ${package_name}")
 		file(DOWNLOAD ${package_url} "${CMAKE_SOURCE_DIR}/${package_name}_Debug.tgz")
 		execute_process(COMMAND cmake -E make_directory "${CMAKE_SOURCE_DIR}/${package_name}/Debug")

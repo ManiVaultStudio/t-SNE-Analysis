@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.15.0)
 
-set(HDILib_VERSION multi_branch)
+set(HDILib_VERSION latest)
+set(VERBOSE TRUE)
+
+if(NOT USE_PREBUILT_LIBS)
+    set(USE_PREBUILT_LIBS TRUE CACHE BOOL "Use the prebuilt libraries from artifactory")
+endif()
 
 if(WIN32)
     set(flann_VERSION 1.8.5)
@@ -31,31 +36,20 @@ set(UI_FILES
 QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
 include(InstallArtifactoryPackage)
-install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) #1.2.3
-find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS ${CMAKE_MODULE_PATH} REQUIRED)
+if (USE_PREBUILT_LIBS AND NOT PREBUILT_LIBS_INSTALLED)
+    # Both HDILib and flann are available prebuilt in the lkeb-artifactory.
+    # The packages can be downloaded containing both Debug & Release binaries
+    install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) #1.2.3
+    install_artifactory_package(flann ${flann_VERSION} lkeb TRUE) #1.2.3
 
-install_artifactory_package(flann ${flann_VERSION} lkeb FALSE) #1.2.3
-find_package(flann PATHS ${CMAKE_MODULE_PATH} REQUIRED)
-
-include_directories("${INSTALL_DIR}/$<CONFIGURATION>/include/")
-include_directories (${HDILib_INCLUDE_DIR})
-
-if(MSVC)
-    include_directories ("lib/Flann/Win/include")
-
-    MESSAGE( STATUS "Linking Windows libraries...")
-    link_libraries(${HDILib_LINK_LIBS})
-    link_libraries(debug "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/Flann/Win/Debug/flann_cpp_s.lib")
-    link_libraries(optimized "${CMAKE_CURRENT_SOURCE_DIR}/tSNE/lib/Flann/Win/Release/flann_cpp_s.lib")
-endif(MSVC)
-
-if(APPLE)
-    include_directories ("lib/Flann/OSX/include")
-endif(APPLE)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    include_directories ("lib/Flann/Linux/include")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    message("module path ${CMAKE_MODULE_PATH}")
+    message("Call find_package HDILib search ${CMAKE_SOURCE_DIR}/HDILib/lib/cmake/HDILib")
+    message("Run find_package HDILib")
+    # If the HDILib_VERSION is not a x.y.z version number 
+    # omit the version argument from find package
+    find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${CMAKE_SOURCE_DIR}/HDILib" CONFIG REQUIRED)
+    set(PREBUILT_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
+endif()
 
 include(CMakeCommon)
 include(CMakeTsneProject)

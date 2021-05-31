@@ -34,7 +34,7 @@
 #define KNN_H
 
 namespace hdi{
-  namespace utils{
+  namespace dr{
            
     enum knn_library
     {
