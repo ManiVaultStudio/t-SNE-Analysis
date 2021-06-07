@@ -7,6 +7,7 @@
 
 #include "hdi/dimensionality_reduction/tsne_parameters.h"
 #include "hdi/utils/scoped_timers.h"
+#include "hdi/utils/glad/glad.h"
 
 #include <QWindow>
 #include <QOpenGLContext>

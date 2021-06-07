@@ -55,6 +55,11 @@ if(USE_PREBUILT_LIBS AND PREBUILT_LIBS_INSTALLED)
     find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${CMAKE_SOURCE_DIR}/HDILib" CONFIG REQUIRED)
 endif()
 
+if (APPLE)
+    # This silences OpenGL deprecation warnings on MacOS
+    add_definitions(-DGL_SILENCE_DEPRECATION)
+endif()
+
 include(CMakeCommon)
 include(CMakeTsneProject)
 include(CMakeHsneProject)

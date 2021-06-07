@@ -11,6 +11,9 @@ source_group( DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
 source_group( Hsne FILES ${HSNE_PLUGIN_SOURCES})
 
 QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
+if(NOT WIN32)
+    find_package(Threads)
+endif()
 
 add_library(${HSNE_PLUGIN} SHARED
     ${DIMENSION_SELECTION_SOURCES}
