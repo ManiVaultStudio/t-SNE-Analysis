@@ -9,6 +9,7 @@ file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} INSTALL_DIR)
 
 source_group( DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
 source_group( Tsne FILES ${TSNE_PLUGIN_SOURCES})
+find_package(OpenGL REQUIRED)
 
 QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
@@ -31,8 +32,14 @@ target_compile_definitions(${TSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 
 target_link_libraries(${TSNE_PLUGIN} Qt5::Widgets)
 target_link_libraries(${TSNE_PLUGIN} Qt5::WebEngineWidgets)
-target_link_libraries(${TSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/HDPS_Public.lib")
-target_link_libraries(${TSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/PointData.lib")
+if(MSVC)
+	set(LIB_SUFFIX "${CMAKE_STATIC_LIBRARY_SUFFIX}")
+else()
+	set(LIB_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+endif()
+target_link_libraries(${TSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}HDPS_Public${LIB_SUFFIX}")
+target_link_libraries(${TSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}PointData${LIB_SUFFIX}")
+target_link_libraries(${TSNE_PLUGIN} ${OPENGL_LIBRARIES})
 set_flann_project_link_libraries()
 set_HDILib_project_link_libraries()
 
