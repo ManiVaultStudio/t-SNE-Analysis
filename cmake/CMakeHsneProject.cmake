@@ -49,10 +49,12 @@ install(TARGETS ${HSNE_PLUGIN}
    RUNTIME DESTINATION Plugins COMPONENT HSNE_SHAREDLIB
 )
 
-add_custom_command(TARGET ${HSNE_PLUGIN} POST_BUILD
-	COMMAND "${CMAKE_COMMAND}"
-	--install ${CMAKE_BINARY_DIR}
-	--config $<CONFIGURATION>
-    --component HSNE_SHAREDLIB
-	--prefix ${INSTALL_DIR}/$<CONFIGURATION>
-)
+if (NOT $ENV{CI})
+    add_custom_command(TARGET ${HSNE_PLUGIN} POST_BUILD
+        COMMAND "${CMAKE_COMMAND}"
+        --install ${CMAKE_BINARY_DIR}
+        --config $<CONFIGURATION>
+        --component HSNE_SHAREDLIB
+        --prefix ${INSTALL_DIR}/$<CONFIGURATION>
+    )
+endif()

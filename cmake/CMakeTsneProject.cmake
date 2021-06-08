@@ -56,10 +56,12 @@ if(USE_PREBUILT_LIBS)
     )
 endif()
 
-add_custom_command(TARGET ${TSNE_PLUGIN} POST_BUILD
-	COMMAND "${CMAKE_COMMAND}"
-	--install ${CMAKE_BINARY_DIR}
-	--config $<CONFIGURATION>
-    --component TSNE_SHAREDLIB
-	--prefix ${INSTALL_DIR}/$<CONFIGURATION>
-)
+if (NOT $ENV{CI})
+    add_custom_command(TARGET ${TSNE_PLUGIN} POST_BUILD
+        COMMAND "${CMAKE_COMMAND}"
+        --install ${CMAKE_BINARY_DIR}
+        --config $<CONFIGURATION>
+        --component TSNE_SHAREDLIB
+        --prefix ${INSTALL_DIR}/$<CONFIGURATION>
+    )
+endif()
