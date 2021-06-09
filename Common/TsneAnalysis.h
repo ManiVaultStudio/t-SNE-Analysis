@@ -5,6 +5,7 @@
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
 #include "hdi/dimensionality_reduction/sparse_tsne_user_def_probabilities.h"
 #include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h"
+#include "hdi/dimensionality_reduction/knn_utils.h"
 
 #include <QThread>
 
@@ -63,8 +64,8 @@ signals:
 
 private:
     // TSNE structures
-    hdi::utils::knn_library _knnLibrary = hdi::utils::KNN_FLANN;
-    hdi::utils::knn_distance_metric _knnDistanceMetric = hdi::utils::KNN_METRIC_EUCLIDEAN;
+    hdi::dr::knn_library _knnLibrary = hdi::dr::KNN_FLANN;
+    hdi::dr::knn_distance_metric _knnDistanceMetric = hdi::dr::KNN_METRIC_EUCLIDEAN;
     hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type _probabilityDistribution;
     hdi::dr::SparseTSNEUserDefProbabilities<float> _A_tSNE;
     hdi::dr::GradientDescentTSNETexture _GPGPU_tSNE;

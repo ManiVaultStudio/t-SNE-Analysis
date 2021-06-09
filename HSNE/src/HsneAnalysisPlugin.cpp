@@ -6,7 +6,9 @@
 #include <QtDebug>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 #include <set>
 
