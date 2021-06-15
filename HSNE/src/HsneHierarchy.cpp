@@ -24,6 +24,79 @@ namespace
     }
 }
 
+void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
+{
+    _influenceMap.resize(hierarchy.getNumScales());
+
+    for (int scale = 1; scale < hierarchy.getNumScales(); scale++)
+    {
+        int numLandmarks = hierarchy.getScale(scale).size();
+
+        _influenceMap[scale].resize(numLandmarks);
+    }
+
+    auto& bottomScale = hierarchy.getScale(0);
+
+    int numDataPoints = bottomScale.size();
+
+    std::vector<std::unordered_map<unsigned int, float>> influence;
+    for (int i = 0; i < numDataPoints; i++)
+    {
+        influence.clear();
+
+        float thresh = 0.01f;
+        hierarchy.getInfluenceOnDataPoint(i, influence, thresh, false);
+
+        ///////
+        int redo = 1;
+        int tries = 0;
+        while (redo)
+        {
+            redo = 0;
+            if (tries++ < 3)
+            {
+                for (int scale = 1; scale < hierarchy.getNumScales(); scale++)
+                {
+                    if (influence[scale].size() < 1)
+                    {
+                        redo = scale;
+                    }
+                }
+            }
+            if (redo > 0)
+            {
+                //if(thresh < 0.0005) std::cout << "Couldn't find landmark for point " << i << " at scale " << redo << " num possible landmarks " << influence[redo].size() << "\nSetting new threshold to " << thresh * 0.1 << std::endl;
+                thresh *= 0.1;
+                hierarchy.getInfluenceOnDataPoint(i, influence, thresh, false);
+            }
+        }
+        //////
+
+        for (int scale = 1; scale < hierarchy.getNumScales(); scale++)
+        {
+            float maxInfluence = 0;
+            int topInfluencingLandmark = -1;
+
+            for (auto& landmark : influence[scale])
+            {
+                if (landmark.second >= maxInfluence)
+                {
+                    maxInfluence = landmark.second;
+                    topInfluencingLandmark = landmark.first;
+                }
+            }
+
+            if (topInfluencingLandmark == -1)
+            {
+                std::cerr << "Failed to find landmark for point " << i << " at scale " << scale << " num possible landmarks " << influence[scale].size() << std::endl;
+                continue;
+            }
+
+            _influenceMap[scale][topInfluencingLandmark].push_back(i);
+        }
+    }
+}
+
 void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters)
 {
     _core = core;
@@ -72,6 +145,8 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
     for (int s = 0; s < _numScales-1; ++s) {
         _hsne->addScale();
     }
+
+    _influenceHierarchy.initialize(*this);
 
     // Initialize t-SNE
     //_tsne.initWithProbDist(data, numDimensions, _hsne->scale(4)._transition_matrix);

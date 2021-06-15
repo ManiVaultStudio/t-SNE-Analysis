@@ -49,12 +49,14 @@ public: // GUI
 
 private:
     QString createEmptyEmbedding(QString name, QString dataType, QString sourceName);
+    QString createEmptyDerivedEmbedding(QString name, QString dataType, QString sourceName);
 
 private:
     HsneHierarchy _hierarchy;
 
     TsneAnalysis _tsne;
 
+    QString _inputDataName;
     QString _embeddingNameBase;
     QString _embeddingName;
 
