@@ -11,6 +11,7 @@ namespace
     Hsne::Parameters setParameters(HsneParameters parameters)
     {
         Hsne::Parameters params;
+        params._aknn_algorithm = parameters.getKnnLibrary();
         params._seed = parameters.getSeed();
         params._num_walks_per_landmark = parameters.getNumWalksForAreaOfInfluence();
         params._monte_carlo_sampling = parameters.useMonteCarloSampling();

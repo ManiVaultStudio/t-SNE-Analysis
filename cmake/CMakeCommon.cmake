@@ -4,6 +4,7 @@ set(TSNE_COMMON_SOURCES
     ${DIR}/TsneAnalysis.h
     ${DIR}/TsneAnalysis.cpp
     ${DIR}/TsneData.h
+    ${DIR}/TsneParameters.h
 )
 
 set(DIMENSION_SELECTION_SOURCES

@@ -1,9 +1,12 @@
 #pragma once
 
+#include "hdi/utils/knn_utils.h"
+
 class HsneParameters
 {
 public:
     HsneParameters() :
+        _knnLibrary(hdi::utils::KNN_FLANN),
         _seed(-1),
         _useMonteCarloSampling(true),
         _numWalksForLandmarkSelection(15),
@@ -17,6 +20,7 @@ public:
 
     }
 
+    void setKnnLibrary(hdi::utils::knn_library library) { _knnLibrary = library; }
     void setSeed(int seed) { _seed = seed; }
     void setNumWalksForLandmarkSelection(int numWalks) { _numWalksForLandmarkSelection = numWalks; }
     void setNumWalksForLandmarkSelectionThreshold(float numWalks) { _numWalksForLandmarkSelectionThreshold = numWalks; }
@@ -27,6 +31,7 @@ public:
     void useMonteCarloSampling(bool useMonteCarloSampling) { _useMonteCarloSampling = useMonteCarloSampling; }
     void useOutOfCoreComputation(bool useOutOfCoreComputation) { _useOutOfCoreComputation = useOutOfCoreComputation; }
 
+    hdi::utils::knn_library getKnnLibrary() { return _knnLibrary; }
     int getSeed() { return _seed; }
     int getNumWalksForLandmarkSelection() { return _numWalksForLandmarkSelection; }
     float getNumWalksForLandmarkSelectionThreshold() { return _numWalksForLandmarkSelectionThreshold; }
@@ -37,6 +42,7 @@ public:
     bool useMonteCarloSampling() { return _useOutOfCoreComputation; }
     bool useOutOfCoreComputation() { return _useOutOfCoreComputation; }
 private:
+    hdi::utils::knn_library _knnLibrary;
     /** Seed used for random algorithms. If a negative value is provided a time based seed is used */
     int _seed;
     bool _useMonteCarloSampling;

@@ -189,12 +189,17 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     
     _hierarchy.printScaleInfo();
 
-    // Should come from some t-SNE settings widget
-    _tsne.setIterations(1000);
-    _tsne.setPerplexity(30);
-    _tsne.setExaggerationIter(250);
-    _tsne.setNumTrees(4);
-    _tsne.setNumChecks(1024);
+    // Set t-SNE parameters
+    HsneParameters hsneParameters = _settings->getHsneParameters();
+    TsneParameters tsneParameters = _settings->getTsneParameters();
+
+    _tsne.setIterations(tsneParameters.getNumIterations());
+    _tsne.setPerplexity(tsneParameters.getPerplexity());
+    _tsne.setNumTrees(tsneParameters.getNumTrees());
+    _tsne.setNumChecks(tsneParameters.getNumChecks());
+    _tsne.setExaggerationIter(tsneParameters.getExaggerationIter());
+    _tsne.setExponentialDecayIter(tsneParameters.getExponentialDecayIter());
+    _tsne.setKnnAlgorithm(hsneParameters.getKnnLibrary());
 
     if (_tsne.isRunning())
     {
@@ -320,12 +325,17 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
     drillEmbedding.setProperty("scale", drillScale);
     drillEmbedding.setProperty("landmarkMap", qVariantFromValue(_hierarchy.getInfluenceHierarchy().getMap()[drillScale]));
     
-    // Should come from some t-SNE settings widget
-    _tsne.setIterations(1000);
-    _tsne.setPerplexity(30);
-    _tsne.setExaggerationIter(250);
-    _tsne.setNumTrees(4);
-    _tsne.setNumChecks(1024);
+    // Set t-SNE parameters
+    HsneParameters hsneParameters = _settings->getHsneParameters();
+    TsneParameters tsneParameters = _settings->getTsneParameters();
+
+    _tsne.setIterations(tsneParameters.getNumIterations());
+    _tsne.setPerplexity(tsneParameters.getPerplexity());
+    _tsne.setNumTrees(tsneParameters.getNumTrees());
+    _tsne.setNumChecks(tsneParameters.getNumChecks());
+    _tsne.setExaggerationIter(tsneParameters.getExaggerationIter());
+    _tsne.setExponentialDecayIter(tsneParameters.getExponentialDecayIter());
+    _tsne.setKnnAlgorithm(hsneParameters.getKnnLibrary());
 
     if (_tsne.isRunning())
     {
