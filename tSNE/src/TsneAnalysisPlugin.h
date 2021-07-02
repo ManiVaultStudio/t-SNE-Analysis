@@ -1,5 +1,7 @@
 #pragma once
 
+#define no_init_all deprecated
+
 #include <AnalysisPlugin.h>
 
 #include "TsneAnalysis.h"

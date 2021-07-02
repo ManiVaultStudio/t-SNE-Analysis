@@ -2,7 +2,8 @@ from conans import ConanFile, CMake
 import os
 import shutil
 import pathlib
-from rules_support import CoreBranchInfo
+import subprocess
+from rules_support import PluginBranchInfo
 
 
 class SNEAnalysesConan(ConanFile):
@@ -36,15 +37,19 @@ class SNEAnalysesConan(ConanFile):
 
     scm = {
         "type": "git",
-        "subfolder": "hdps/ImageLoaderPlugin",
+        "subfolder": "hdps/t-SNE-Analysis",
         "url": "auto",
         "revision": "auto"
     }
 
     def set_version(self):
         # Assign a version from the branch name
-        branch_info = CoreBranchInfo(self.recipe_folder)
+        branch_info = PluginBranchInfo(self.recipe_folder)
         self.version = branch_info.version
+
+    def requirements(self):
+        if os.environ.get("CONAN_REQUIRE_HDILIB", None) is not None:
+            self.requires("HDILib/1.2.2@biovault/stable")
 
     # Remove runtime and use always default (MD/MDd)
     def configure(self):
@@ -71,7 +76,7 @@ class SNEAnalysesConan(ConanFile):
         if self.settings.os == "Linux" or self.settings.os == "Macos":
             cmake.definitions["CMAKE_CXX_STANDARD_REQUIRED"] = "ON"
         cmake.definitions["CMAKE_PREFIX_PATH"] = qt_root
-        cmake.configure(source_folder="hdps/ImageLoaderPlugin")  # needed for scm
+        cmake.configure(source_folder="hdps/t-SNE-Analysis")  # needed for scm
         cmake.verbose = True
         return cmake
 
@@ -83,7 +88,7 @@ class SNEAnalysesConan(ConanFile):
         print('HDPS_INSTALL_DIR: ', os.environ['HDPS_INSTALL_DIR'])
         self.install_dir = os.environ['HDPS_INSTALL_DIR']
 
-        # The ImageLoaderPlugin build expects the HDPS package to be in this install dir
+        # The t-SNE-Analysis build expects the HDPS package to be in this install dir
         hdps_pkg_root = self.deps_cpp_info["hdps-core"].rootpath
         print("Install dir type: ", self.install_dir)
         shutil.copytree(hdps_pkg_root, self.install_dir)
@@ -95,8 +100,21 @@ class SNEAnalysesConan(ConanFile):
         cmake_release.build()
 
     def package(self):
-        print('Packaging install dir: ', self.install_dir)
-        self.copy(pattern="*", src=self.install_dir)
+        package_dir = os.path.join(self.build_folder, "package")
+        print('Packaging install dir: ', package_dir)
+        subprocess.run(["cmake",
+                        "--install", self.build_folder,
+                        "--config", "Debug",
+                        "--prefix", os.path.join(package_dir, "Debug")])
+        subprocess.run(["cmake",
+                        "--install", self.build_folder,
+                        "--config", "Release",
+                        "--prefix", os.path.join(package_dir, "Release")])
+        self.copy(pattern="*", src=package_dir)
+        # Add the debug support files to the package
+        # (*.pdb) if building the Visual Studio version
+        if self.settings.compiler == "Visual Studio":
+            self.copy("*.pdb", dst="lib/Debug", keep_path=False)
 
     def package_info(self):
         self.cpp_info.debug.libdirs = ['Debug/lib']

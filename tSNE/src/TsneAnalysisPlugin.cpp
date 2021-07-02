@@ -8,7 +8,9 @@
 #include <QMenu>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 #include <set>
 
