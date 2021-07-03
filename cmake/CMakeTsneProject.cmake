@@ -56,7 +56,7 @@ if(USE_PREBUILT_LIBS)
     )
 endif()
 
-if (NOT $ENV{CI})
+if (NOT DEFINED ENV{CI})
     add_custom_command(TARGET ${TSNE_PLUGIN} POST_BUILD
         COMMAND "${CMAKE_COMMAND}"
         --install ${CMAKE_BINARY_DIR}
