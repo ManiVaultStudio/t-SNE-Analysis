@@ -135,9 +135,9 @@ HsneParameters HsneSettingsWidget::getHsneParameters() const
     int index = _hsneOptions.knnOptions->currentIndex();
     switch (index)
     {
-    case 0: parameters.setKnnLibrary(hdi::utils::KNN_FLANN); break;
-    case 1: parameters.setKnnLibrary(hdi::utils::KNN_HNSW); break;
-    case 2: parameters.setKnnLibrary(hdi::utils::KNN_ANNOY); break;
+    case 0: parameters.setKnnLibrary(hdi::dr::KNN_FLANN); break;
+    case 1: parameters.setKnnLibrary(hdi::dr::KNN_HNSW); break;
+    case 2: parameters.setKnnLibrary(hdi::dr::KNN_ANNOY); break;
     }
     parameters.setSeed(_hsneOptions.seed->text().toInt());
     parameters.useMonteCarloSampling(_hsneOptions.useMonteCarloSampling->checkState() == Qt::CheckState::Checked);
