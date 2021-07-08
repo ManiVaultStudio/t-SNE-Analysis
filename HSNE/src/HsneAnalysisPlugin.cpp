@@ -289,7 +289,6 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
     _hierarchy.getTransitionMatrixForSelection(currentScale, transitionMatrix, nextLevelIdxs);
 
     // Create a new data set for the embedding
-    //if (drillScale == 0)
     {
         Points& inputData = _core->requestData<Points>(_inputDataName);
         Points& selection = static_cast<Points&>(inputData.getSelection());
@@ -307,10 +306,6 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
 
         _embeddingName = createEmptyDerivedEmbedding("Drill Embedding", "Points", subsetName);
     }
-    //else
-    //{
-    //    _embeddingName = createEmptyEmbedding("Drill Embedding", "Points", _hierarchy.getInputDataName());
-    //}
 
     // Store drill indices with embedding
     Points& drillEmbedding = _core->requestData<Points>(_embeddingName);
@@ -321,7 +316,6 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
     drillEmbedding.setProperty("landmarkMap", qVariantFromValue(_hierarchy.getInfluenceHierarchy().getMap()[drillScale]));
     
     // Set t-SNE parameters
-    HsneParameters hsneParameters = _settings->getHsneParameters();
     TsneParameters tsneParameters = _settings->getTsneParameters();
     _tsne.setParameters(tsneParameters);
 
