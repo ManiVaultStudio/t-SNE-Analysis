@@ -143,8 +143,8 @@ void TsneSettingsWidget::onComputationStopped()
     _startButton->setText("Start Computation");
     _startButton->setChecked(false);
 
-	setSubtitle("");
-	setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("th"));
+    setSubtitle("");
+    setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("th"));
 }
 
 void TsneSettingsWidget::onStartToggled(bool pressed)
