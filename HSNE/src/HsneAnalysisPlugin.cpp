@@ -194,14 +194,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     // Set t-SNE parameters
     HsneParameters hsneParameters = _settings->getHsneParameters();
     TsneParameters tsneParameters = _settings->getTsneParameters();
-
-    _tsne.setIterations(tsneParameters.getNumIterations());
-    _tsne.setPerplexity(tsneParameters.getPerplexity());
-    _tsne.setNumTrees(tsneParameters.getNumTrees());
-    _tsne.setNumChecks(tsneParameters.getNumChecks());
-    _tsne.setExaggerationIter(tsneParameters.getExaggerationIter());
-    _tsne.setExponentialDecayIter(tsneParameters.getExponentialDecayIter());
-    _tsne.setKnnAlgorithm(hsneParameters.getKnnLibrary());
+    _tsne.setParameters(tsneParameters);
 
     if (_tsne.isRunning())
     {
@@ -330,14 +323,7 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
     // Set t-SNE parameters
     HsneParameters hsneParameters = _settings->getHsneParameters();
     TsneParameters tsneParameters = _settings->getTsneParameters();
-
-    _tsne.setIterations(tsneParameters.getNumIterations());
-    _tsne.setPerplexity(tsneParameters.getPerplexity());
-    _tsne.setNumTrees(tsneParameters.getNumTrees());
-    _tsne.setNumChecks(tsneParameters.getNumChecks());
-    _tsne.setExaggerationIter(tsneParameters.getExaggerationIter());
-    _tsne.setExponentialDecayIter(tsneParameters.getExponentialDecayIter());
-    _tsne.setKnnAlgorithm(hsneParameters.getKnnLibrary());
+    _tsne.setParameters(tsneParameters);
 
     if (_tsne.isRunning())
     {

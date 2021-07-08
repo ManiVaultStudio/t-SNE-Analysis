@@ -2,6 +2,7 @@
 
 #include <widgets/SettingsWidget.h>
 
+#include "TsneOptions.h"
 #include "PointData.h"
 
 #include "../Common/DimensionSelectionWidget.h" // FIXME
@@ -47,12 +48,13 @@ public:
     bool hasValidSettings();
 
     hdps::DimensionSelectionWidget& getDimensionSelectionWidget();
+    TsneParameters getTsneParameters() const;
 
     void dataChanged(const Points& points);
     QString getEmbeddingName();
 
 private:
-    void checkInputStyle(QLineEdit& input);
+    void checkInputStyle(QLineEdit* input);
 
 signals:
     void dataSetPicked(QString);
@@ -71,25 +73,16 @@ private slots:
     void expDecayChanged(const QString &value);
     void numTreesChanged(const QString &value);
     void numChecksChanged(const QString &value);
-    void thetaChanged(const QString& value);
 
 public:
     QComboBox* _dataOptions;
     hdps::DimensionSelectionWidget _dimensionSelectionWidget;
+    TsneOptions _tsneOptions;
+
     QPushButton* _startButton;
 
     QComboBox dataOptions;
-    QComboBox knnOptions;
-    QComboBox distanceMetric;
-
-    QLineEdit numIterations;
-    QLineEdit perplexity;
-    QLineEdit exaggeration;
-    QLineEdit expDecay;
-    QLineEdit numTrees;
-    QLineEdit numChecks;
-    QLineEdit theta;
-    QLineEdit embeddingNameLine;
+    QLineEdit* embeddingNameLine;
 
 private:
   TsneAnalysisPlugin& _analysisPlugin;

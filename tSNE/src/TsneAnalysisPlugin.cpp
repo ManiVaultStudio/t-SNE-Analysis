@@ -37,8 +37,6 @@ void TsneAnalysisPlugin::init()
     _settings = std::make_unique<TsneSettingsWidget>(*this);
 
     connect(_settings.get(), &TsneSettingsWidget::dataSetPicked, this, &TsneAnalysisPlugin::dataSetPicked);
-    connect(_settings.get(), &TsneSettingsWidget::knnAlgorithmPicked, this, &TsneAnalysisPlugin::onKnnAlgorithmPicked);
-    connect(_settings.get(), &TsneSettingsWidget::distanceMetricPicked, this, &TsneAnalysisPlugin::onDistanceMetricPicked);
     connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &TsneSettingsWidget::onComputationStopped);
     connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
 
@@ -88,16 +86,6 @@ void TsneAnalysisPlugin::dataSetPicked(const QString& name)
     _settings->setTitle(QString("%1: %2").arg(getGuiName(), name));
 }
 
-void TsneAnalysisPlugin::onKnnAlgorithmPicked(const int index)
-{
-    _tsne.setKnnAlgorithm(index);
-}
-
-void TsneAnalysisPlugin::onDistanceMetricPicked(const int index)
-{
-    _tsne.setDistanceMetric(index);
-}
-
 void TsneAnalysisPlugin::startComputation()
 {
     _settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
@@ -105,7 +93,7 @@ void TsneAnalysisPlugin::startComputation()
 
     qApp->processEvents();
 
-    initializeTsne();
+    _tsne.setParameters(_settings->getTsneParameters());
 
     // Prepare the data
     QString setName = _settings->getCurrentDataItem();
@@ -146,16 +134,6 @@ void TsneAnalysisPlugin::onNewEmbedding() {
     embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
 
     _core->notifyDataChanged(_embeddingName);
-}
-
-void TsneAnalysisPlugin::initializeTsne() {
-    // Initialize the tSNE computation with the settings from the settings widget
-    _tsne.setIterations(_settings->numIterations.text().toInt());
-    _tsne.setPerplexity(_settings->perplexity.text().toInt());
-    _tsne.setExaggerationIter(_settings->exaggeration.text().toInt());
-    _tsne.setExponentialDecayIter(_settings->expDecay.text().toInt());
-    _tsne.setNumTrees(_settings->numTrees.text().toInt());
-    _tsne.setNumChecks(_settings->numChecks.text().toInt());
 }
 
 void TsneAnalysisPlugin::stopComputation() {

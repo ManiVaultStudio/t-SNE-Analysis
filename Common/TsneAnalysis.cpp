@@ -56,13 +56,6 @@ private:
 OffscreenBuffer* offBuffer;
 
 TsneAnalysis::TsneAnalysis() :
-_iterations(1000),
-_numTrees(4),
-_numChecks(1024),
-_exaggerationIter(250),
-_exponentialDecayIter(150),
-_perplexity(30),
-_numDimensionsOutput(2),
 _verbose(false),
 _isGradientDescentRunning(false),
 _isTsneRunning(false),
@@ -100,12 +93,12 @@ void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
     qDebug() << "Output allocated.";
     {
         hdi::dr::HDJointProbabilityGenerator<float>::Parameters probGenParams;
-        probGenParams._perplexity = _perplexity;
+        probGenParams._perplexity = _tsneParameters.getPerplexity();
         probGenParams._perplexity_multiplier = 3;
-        probGenParams._num_trees = _numTrees;
-        probGenParams._num_checks = _numChecks;
-        probGenParams._aknn_algorithm = _knnLibrary;
-        probGenParams._aknn_metric = _knnDistanceMetric;
+        probGenParams._num_trees = _tsneParameters.getNumTrees();
+        probGenParams._num_checks = _tsneParameters.getNumChecks();
+        probGenParams._aknn_algorithm = _tsneParameters.getKnnAlgorithm();
+        probGenParams._aknn_metric = _tsneParameters.getKnnDistanceMetric();
 
         qDebug() << "tSNE initialized.";
 
@@ -155,12 +148,11 @@ void TsneAnalysis::initGradientDescent()
 
     hdi::dr::TsneParameters tsneParams;
 
-    tsneParams._embedding_dimensionality = _numDimensionsOutput;
-    tsneParams._mom_switching_iter = _exaggerationIter;
-    tsneParams._remove_exaggeration_iter = _exaggerationIter;
-    tsneParams._exponential_decay_iter = _exponentialDecayIter;
+    tsneParams._embedding_dimensionality = _tsneParameters.getNumDimensionsOutput();
+    tsneParams._mom_switching_iter = _tsneParameters.getExaggerationIter();
+    tsneParams._remove_exaggeration_iter = _tsneParameters.getExaggerationIter();
+    tsneParams._exponential_decay_iter = _tsneParameters.getExponentialDecayIter();
     tsneParams._exaggeration_factor = 4 + _numPoints / 60000.0;
-    _A_tSNE.setTheta(std::min(0.5, std::max(0.0, (_numPoints - 1000.0)*0.00005)));
 
     // Create a context local to this thread that shares with the global share context
     offBuffer = new OffscreenBuffer();
@@ -185,7 +177,7 @@ void TsneAnalysis::embed()
         _isGradientDescentRunning = true;
 
         // Performs gradient descent for every iteration
-        for (int iter = 0; iter < _iterations; ++iter)
+        for (int iter = 0; iter < _tsneParameters.getNumIterations(); ++iter)
         {
             hdi::utils::ScopedTimer<double> timer(t);
             if (!_isGradientDescentRunning)
@@ -208,7 +200,7 @@ void TsneAnalysis::embed()
 
             elapsed += t;
 
-            const auto percentageDone = static_cast<float>(iter) / static_cast<float>(_iterations);
+            const auto percentageDone = static_cast<float>(iter) / static_cast<float>(_tsneParameters.getNumIterations());
 
             emit progressMessage(QString("Computing gradient descent: %1 %").arg(QString::number(100.0f * percentageDone, 'f', 1)));
         }
@@ -238,7 +230,7 @@ void TsneAnalysis::run() {
 // Copy tSNE output to our output
 void TsneAnalysis::copyFloatOutput()
 {
-    _outputData.assign(_numPoints, _numDimensionsOutput, _embedding.getContainer());
+    _outputData.assign(_numPoints, _tsneParameters.getNumDimensionsOutput(), _embedding.getContainer());
 }
 
 const TsneData& TsneAnalysis::output()
@@ -246,69 +238,14 @@ const TsneData& TsneAnalysis::output()
     return _outputData;
 }
 
-void TsneAnalysis::setKnnAlgorithm(int algorithm)
-{
-    switch (algorithm)
-    {
-    case 0: _knnLibrary = hdi::dr::KNN_FLANN; break;
-    case 1: _knnLibrary = hdi::dr::KNN_HNSW; break;
-    case 2: _knnLibrary = hdi::dr::KNN_ANNOY; break;
-    default: _knnLibrary = hdi::dr::KNN_FLANN;
-    }
-}
-
-void TsneAnalysis::setDistanceMetric(int metric)
-{
-    switch (metric)
-    {
-    case 0: _knnDistanceMetric = hdi::dr::KNN_METRIC_EUCLIDEAN; break;
-    case 1: _knnDistanceMetric = hdi::dr::KNN_METRIC_COSINE; break;
-    case 2: _knnDistanceMetric = hdi::dr::KNN_METRIC_INNER_PRODUCT; break;
-    case 3: _knnDistanceMetric = hdi::dr::KNN_METRIC_MANHATTAN; break;
-    case 4: _knnDistanceMetric = hdi::dr::KNN_METRIC_HAMMING; break;
-    case 5: _knnDistanceMetric = hdi::dr::KNN_METRIC_DOT; break;
-    default: _knnDistanceMetric = hdi::dr::KNN_METRIC_EUCLIDEAN;
-    }
-}
-
 void TsneAnalysis::setVerbose(bool verbose)
 {
     _verbose = verbose;
 }
 
-void TsneAnalysis::setIterations(int iterations)
+void TsneAnalysis::setParameters(TsneParameters parameters)
 {
-    _iterations = iterations;
-}
-
-void TsneAnalysis::setNumTrees(int numTrees)
-{
-    _numTrees = numTrees;
-}
-
-void TsneAnalysis::setNumChecks(int numChecks)
-{
-    _numChecks = numChecks;
-}
-
-void TsneAnalysis::setExaggerationIter(int exaggerationIter)
-{
-    _exaggerationIter = exaggerationIter;
-}
-
-void TsneAnalysis::setExponentialDecayIter(int exponentialDecayIter)
-{
-    _exponentialDecayIter = exponentialDecayIter;
-}
-
-void TsneAnalysis::setPerplexity(int perplexity)
-{
-    _perplexity = perplexity;
-}
-
-void TsneAnalysis::setNumDimensionsOutput(int numDimensionsOutput)
-{
-    _numDimensionsOutput = numDimensionsOutput;
+    _tsneParameters = parameters;
 }
 
 void TsneAnalysis::stopGradientDescent()
