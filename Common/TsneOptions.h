@@ -59,12 +59,12 @@ public:
 
         switch (knnOptions->currentIndex())
         {
-        case 0: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_EUCLIDEAN);
-        case 1: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_COSINE);
-        case 2: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_INNER_PRODUCT);
-        case 3: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_MANHATTAN);
-        case 4: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_HAMMING);
-        case 5: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_DOT);
+        case 0: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_EUCLIDEAN); break;
+        case 1: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_COSINE); break;
+        case 2: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_INNER_PRODUCT); break;
+        case 3: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_MANHATTAN); break;
+        case 4: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_HAMMING); break;
+        case 5: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_DOT); break;
         default: parameters.setKnnDistanceMetric(hdi::dr::KNN_METRIC_EUCLIDEAN);
         }
 
