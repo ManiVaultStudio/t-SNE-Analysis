@@ -6,6 +6,8 @@ set(TSNE_COMMON_SOURCES
     ${DIR}/TsneData.h
     ${DIR}/TsneParameters.h
     ${DIR}/TsneOptions.h
+    ${DIR}/OffscreenBuffer.h
+    ${DIR}/OffscreenBuffer.cpp
 )
 
 set(DIMENSION_SELECTION_SOURCES

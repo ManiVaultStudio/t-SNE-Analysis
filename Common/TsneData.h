@@ -1,11 +1,32 @@
 #pragma once
 
+#include <QObject>
+#include <QMetaType>
+
 #include <vector>
 #include <cassert>
 
-class TsneData
+class TsneData : public QObject
 {
+    Q_OBJECT
 public:
+    TsneData::TsneData() :
+        _numPoints(0),
+        _numDimensions(0)
+    {
+    }
+
+    TsneData::TsneData(const TsneData& other)
+    {
+        _numPoints = other._numPoints;
+        _numDimensions = other._numDimensions;
+        _data = other._data;
+    }
+
+    TsneData::~TsneData()
+    {
+    }
+
     unsigned int getNumPoints() const
     {
         return _numPoints;
@@ -30,7 +51,7 @@ public:
     void assign(unsigned int numPoints, unsigned int numDimensions, const std::vector<float>& inputData)
     {
         assert(inputData.size() == numPoints * numDimensions);
-
+        
         _numPoints = numPoints;
         _numDimensions = numDimensions;
         _data = inputData;
@@ -42,3 +63,5 @@ private:
 
     std::vector<float> _data;
 };
+
+Q_DECLARE_METATYPE(TsneData);

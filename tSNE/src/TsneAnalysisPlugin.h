@@ -48,7 +48,7 @@ public: // GUI
 
 public slots:
     void dataSetPicked(const QString& name);
-    void onNewEmbedding();
+    void onNewEmbedding(const TsneData tsneData);
 
 private:
     TsneAnalysis _tsne;

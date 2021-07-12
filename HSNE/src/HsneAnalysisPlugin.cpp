@@ -46,7 +46,7 @@ void HsneAnalysisPlugin::init()
 
     //connect(_settings.get(), &HsneSettingsWidget::stopComputation, this, &HsneAnalysisPlugin::stopComputation);
     //connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &HsneSettingsWidget::onComputationStopped);
-    connect(&_tsne, &TsneAnalysis::newEmbedding, this, &HsneAnalysisPlugin::onNewEmbedding);
+    connect(&_tsne, &TsneAnalysis::embeddingUpdate, this, &HsneAnalysisPlugin::onNewEmbedding);
     //connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
 }
 
@@ -121,11 +121,10 @@ void HsneAnalysisPlugin::startComputation()
     computeTopLevelEmbedding();
 }
 
-void HsneAnalysisPlugin::onNewEmbedding() {
-    const TsneData& outputData = _tsne.output();
+void HsneAnalysisPlugin::onNewEmbedding(const TsneData& tsneData) {
     Points& embedding = _core->requestData<Points>(_embeddingName);
 
-    embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
+    embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
     _core->notifyDataChanged(_embeddingName);
 }
@@ -162,59 +161,44 @@ QString HsneAnalysisPlugin::createEmptyDerivedEmbedding(QString name, QString da
 
 void HsneAnalysisPlugin::computeTopLevelEmbedding()
 {
-    // Create a new data set for the embedding
-    int topScale = _hierarchy.getTopScale();
-    //_embeddingName = createEmptyEmbedding(_embeddingNameBase + "_scale_" + QString::number(topScale), "Points", _hierarchy.getInputDataName());
+    // Get the top scale of the HSNE hierarchy
+    int topScaleIndex = _hierarchy.getTopScale();
+    Hsne::scale_type& topScale = _hierarchy.getScale(topScaleIndex);
+    int numLandmarks = topScale.size();
 
+    // Create a subset of the points corresponding to the top level HSNE landmarks,
+    // Then create an empty embedding derived from this subset
     {
         Points& inputData = _core->requestData<Points>(_inputDataName);
         Points& selection = static_cast<Points&>(inputData.getSelection());
-        Hsne::scale_type& dScale = _hierarchy.getScale(topScale);
 
-        //std::vector<unsigned int> dataIndices;
-        selection.indices.clear();
-        for (int i = 0; i < dScale._landmark_to_original_data_idx.size(); i++)
-        {
-            selection.indices.push_back(dScale._landmark_to_original_data_idx[i]);
-        }
+        // Select the appropriate points to create a subset from
+        selection.indices.resize(numLandmarks);
+        for (int i = 0; i < numLandmarks; i++)
+            selection.indices[i] = topScale._landmark_to_original_data_idx[i];
 
+        // Create the subset and clear the selection
         QString subsetName = inputData.createSubset();
         selection.indices.clear();
+
+        // Create an empty embedding derived from the subset
         Points& subset = _core->requestData<Points>(subsetName);
-        std::cout << "Subset points: " << subset.getNumPoints() << std::endl;
-        _embeddingName = createEmptyDerivedEmbedding(_embeddingNameBase + "_scale_" + QString::number(topScale), "Points", subsetName);
+        _embeddingName = createEmptyDerivedEmbedding(_embeddingNameBase + "_scale_" + QString::number(topScaleIndex), "Points", subsetName);
     }
     
     Points& embedding = _core->requestData<Points>(_embeddingName);
-    embedding.setProperty("scale", topScale);
-    embedding.setProperty("landmarkMap", qVariantFromValue(_hierarchy.getInfluenceHierarchy().getMap()[topScale]));
+    embedding.setProperty("scale", topScaleIndex);
+    embedding.setProperty("landmarkMap", qVariantFromValue(_hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex]));
     
     _hierarchy.printScaleInfo();
 
     // Set t-SNE parameters
     HsneParameters hsneParameters = _settings->getHsneParameters();
     TsneParameters tsneParameters = _settings->getTsneParameters();
-    _tsne.setParameters(tsneParameters);
 
-    if (_tsne.isRunning())
-    {
-        // Request interruption of the computation
-        _tsne.stopGradientDescent();
-        _tsne.exit();
-
-        // Wait until the thread has terminated (max. 3 seconds)
-        if (!_tsne.wait(3000))
-        {
-            qDebug() << "tSNE computation thread did not close in time, terminating...";
-            _tsne.terminate();
-            _tsne.wait();
-        }
-        qDebug() << "tSNE computation stopped.";
-    }
-    // Initialize tsne, compute data to be embedded, start computation?
-    _tsne.initWithProbDist(_hierarchy.getNumPoints(), _hierarchy.getNumDimensions(), _hierarchy.getTransitionMatrixAtScale(topScale)); // FIXME
     // Embed data
-    _tsne.start();
+    _tsne.stopComputation();
+    _tsne.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
 }
 
 void HsneAnalysisPlugin::onDrillIn()
@@ -244,8 +228,6 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
     {
         QList<uint32_t> drillIndices = embedding.getProperty("drill_indices").value<QList<uint32_t>>();
         
-        //for (const uint32_t& selectionIndex : selection.indices)
-        //    selectionIndices.push_back(selectionIndex);//drillIndices[selectionIndex]);
         for (int i = 0; i < pointsSelected.size(); i++)
         {
             if (pointsSelected[i])
@@ -317,27 +299,10 @@ void HsneAnalysisPlugin::drillIn(QString embeddingName)
     
     // Set t-SNE parameters
     TsneParameters tsneParameters = _settings->getTsneParameters();
-    _tsne.setParameters(tsneParameters);
-
-    if (_tsne.isRunning())
-    {
-        // Request interruption of the computation
-        _tsne.stopGradientDescent();
-        _tsne.exit();
-
-        // Wait until the thread has terminated (max. 3 seconds)
-        if (!_tsne.wait(3000))
-        {
-            qDebug() << "tSNE computation thread did not close in time, terminating...";
-            _tsne.terminate();
-            _tsne.wait();
-        }
-        qDebug() << "tSNE computation stopped.";
-    }
-    // Initialize tsne, compute data to be embedded, start computation?
-    _tsne.initWithProbDist(nextLevelIdxs.size(), _hierarchy.getNumDimensions(), transitionMatrix);
+    
     // Embed data
-    _tsne.start();
+    _tsne.stopComputation();
+    _tsne.startComputation(tsneParameters, transitionMatrix, nextLevelIdxs.size(), _hierarchy.getNumDimensions());
 }
 
 QMenu* HsneAnalysisPlugin::contextMenu(const QVariant& context)

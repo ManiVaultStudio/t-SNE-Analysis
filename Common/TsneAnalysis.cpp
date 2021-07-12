@@ -1,5 +1,7 @@
 #include "TsneAnalysis.h"
 
+#include "OffscreenBuffer.h"
+
 #include <vector>
 #include <assert.h>
 
@@ -9,96 +11,51 @@
 #include "hdi/utils/scoped_timers.h"
 #include "hdi/utils/glad/glad.h"
 
-#include <QWindow>
-#include <QOpenGLContext>
-
-class OffscreenBuffer : public QWindow
+TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions) :
+    _currentIteration(0),
+    _parameters(parameters),
+    _probabilityDistribution(probDist),
+    _numPoints(numPoints),
+    _numDimensions(numDimensions),
+    _hasProbabilityDistribution(true),
+    _offscreenBuffer(nullptr),
+    _shouldStop(false)
 {
-public:
-    OffscreenBuffer()
-    {
-        setSurfaceType(QWindow::OpenGLSurface);
-
-        create();
-    }
-
-    QOpenGLContext* getContext() { return _context; }
-
-    void initialize()
-    {
-        QOpenGLContext* globalContext = QOpenGLContext::globalShareContext();
-        _context = new QOpenGLContext(this);
-        _context->setFormat(globalContext->format());
-
-        if (!_context->create())
-            qFatal("Cannot create requested OpenGL context.");
-
-        _context->makeCurrent(this);
-        if (!gladLoadGL()) {
-            qFatal("No OpenGL context is currently bound, therefore OpenGL function loading has failed.");
-        }
-    }
-
-    void bindContext()
-    {
-        _context->makeCurrent(this);
-    }
-
-    void releaseContext()
-    {
-        _context->doneCurrent();
-    }
-
-private:
-    QOpenGLContext* _context;
-};
-
-OffscreenBuffer* offBuffer;
-
-TsneAnalysis::TsneAnalysis() :
-_verbose(false),
-_isGradientDescentRunning(false),
-_isTsneRunning(false),
-_isMarkedForDeletion(false),
-_continueFromIteration(0)
-{
-    
+    // Offscreen buffer must be created in the UI thread because it is a QWindow, afterwards we move it
+    _offscreenBuffer = new OffscreenBuffer();
 }
 
-TsneAnalysis::~TsneAnalysis()
+TsneWorker::TsneWorker(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions) :
+    _currentIteration(0),
+    _parameters(parameters),
+    _data(data),
+    _numPoints(data.size() / numDimensions),
+    _numDimensions(numDimensions),
+    _hasProbabilityDistribution(false),
+    _offscreenBuffer(nullptr),
+    _shouldStop(false)
 {
+    // Offscreen buffer must be created in the UI thread because it is a QWindow, afterwards we move it
+    _offscreenBuffer = new OffscreenBuffer();
 }
 
-void TsneAnalysis::computeGradientDescent()
+void TsneWorker::changeThread(QThread* targetThread)
 {
-    initGradientDescent();
-
-    embed();
+    this->moveToThread(targetThread);
+    // Move the Offscreen buffer to the processing thread after creating it in the UI Thread
+    _offscreenBuffer->moveToThread(targetThread);
 }
 
-void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
+void TsneWorker::computeSimilarities()
 {
-    emit progressMessage("Initialize A-tSNE");
-
-    unsigned int numPoints = data.size() / numDimensions;
-    qDebug() << "Variables set. Num dims: " << numDimensions << " Num data points: " << numPoints;
-    
-    // Input data
-    //_inputData.assign(numPoints, numDimensions, data);
-    _numPoints = numPoints;
-    _numDimensions = numDimensions;
-    qDebug() << "t-SNE input data assigned.";
-    
-    /// Computation of the high dimensional similarities
-    qDebug() << "Output allocated.";
     {
         hdi::dr::HDJointProbabilityGenerator<float>::Parameters probGenParams;
-        probGenParams._perplexity = _tsneParameters.getPerplexity();
+        probGenParams._perplexity = _parameters.getPerplexity();
         probGenParams._perplexity_multiplier = 3;
-        probGenParams._num_trees = _tsneParameters.getNumTrees();
-        probGenParams._num_checks = _tsneParameters.getNumChecks();
-        probGenParams._aknn_algorithm = _tsneParameters.getKnnAlgorithm();
-        probGenParams._aknn_metric = _tsneParameters.getKnnDistanceMetric();
+        probGenParams._num_trees = _parameters.getNumTrees();
+        probGenParams._num_checks = _parameters.getNumChecks();
+        probGenParams._aknn_algorithm = _parameters.getKnnAlgorithm();
+        probGenParams._aknn_metric = _parameters.getKnnDistanceMetric();
 
         qDebug() << "tSNE initialized.";
 
@@ -107,19 +64,19 @@ void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
         emit progressMessage("Calculate probability distributions");
 
         _probabilityDistribution.clear();
-        _probabilityDistribution.resize(numPoints);
+        _probabilityDistribution.resize(_numPoints);
         qDebug() << "Sparse matrix allocated.";
 
-        qDebug() << "Computing high dimensional probability distributions.. Num dims: " << numDimensions << " Num data points: " << numPoints;
+        qDebug() << "Computing high dimensional probability distributions.. Num dims: " << _numDimensions << " Num data points: " << _numPoints;
         hdi::dr::HDJointProbabilityGenerator<float> probabilityGenerator;
         double t = 0.0;
         {
             hdi::utils::ScopedTimer<double> timer(t);
-            probabilityGenerator.computeJointProbabilityDistribution(data.data(), numDimensions, numPoints, _probabilityDistribution, probGenParams);
+            probabilityGenerator.computeJointProbabilityDistribution(_data.data(), _numDimensions, _numPoints, _probabilityDistribution, probGenParams);
         }
 
         emit progressMessage("Probability distributions calculated");
-
+        
         qDebug() << "Probability distributions calculated.";
         qDebug() << "================================================================================";
         qDebug() << "A-tSNE: Compute probability distribution: " << t / 1000 << " seconds";
@@ -127,72 +84,52 @@ void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
     }
 }
 
-void TsneAnalysis::initWithProbDist(const int numPoints, const int numDimensions, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist)
+void TsneWorker::computeGradientDescent()
 {
-    unsigned int nump = probDist.size();
-    qDebug() << "Variables set. Num dims: " << numDimensions << " Num data points: " << probDist.size();
+    if (_shouldStop)
+        return;
 
-    _numPoints = nump;
-    _numDimensions = numDimensions;
-    //_inputData.assign(numPoints, numDimensions, data);
-    _probabilityDistribution = probDist;
-}
-
-void TsneAnalysis::initGradientDescent()
-{
     emit progressMessage("Initializing gradient descent");
 
-    _continueFromIteration = 0;
+    _currentIteration = 0;
 
-    _isTsneRunning = true;
+    hdi::dr::TsneParameters tsneParameters;
 
-    hdi::dr::TsneParameters tsneParams;
+    tsneParameters._embedding_dimensionality = _parameters.getNumDimensionsOutput();
+    tsneParameters._mom_switching_iter = _parameters.getExaggerationIter();
+    tsneParameters._remove_exaggeration_iter = _parameters.getExaggerationIter();
+    tsneParameters._exponential_decay_iter = _parameters.getExponentialDecayIter();
+    tsneParameters._exaggeration_factor = 4 + _numPoints / 60000.0;
 
-    tsneParams._embedding_dimensionality = _tsneParameters.getNumDimensionsOutput();
-    tsneParams._mom_switching_iter = _tsneParameters.getExaggerationIter();
-    tsneParams._remove_exaggeration_iter = _tsneParameters.getExaggerationIter();
-    tsneParams._exponential_decay_iter = _tsneParameters.getExponentialDecayIter();
-    tsneParams._exaggeration_factor = 4 + _numPoints / 60000.0;
-
-    // Create a context local to this thread that shares with the global share context
-    offBuffer = new OffscreenBuffer();
-    offBuffer->initialize();
+    //// Create a context local to this thread that shares with the global share context
+    _offscreenBuffer->initialize();
 
     // Initialize GPGPU-SNE
-    offBuffer->bindContext();
-    _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParams);
-    
-    copyFloatOutput();
-}
+    _offscreenBuffer->bindContext();
+    _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParameters);
 
-// Computing gradient descent
-void TsneAnalysis::embed()
-{
+    copyEmbeddingOutput();
+    emit embeddingUpdate(_outEmbedding);
+    
     emit progressMessage("Embedding");
 
     double elapsed = 0;
     double t = 0;
     {
         qDebug() << "A-tSNE: Computing gradient descent..\n";
-        _isGradientDescentRunning = true;
 
         // Performs gradient descent for every iteration
-        for (int iter = 0; iter < _tsneParameters.getNumIterations(); ++iter)
+        for (_currentIteration = 0; _currentIteration < _parameters.getNumIterations(); ++_currentIteration)
         {
             hdi::utils::ScopedTimer<double> timer(t);
-            if (!_isGradientDescentRunning)
-            {
-                _continueFromIteration = iter;
-                break;
-            }
 
             // Perform a GPGPU-SNE iteration
             _GPGPU_tSNE.doAnIteration();
 
-            if (iter > 0 && iter % 10 == 0)
+            if (_currentIteration > 0 && _currentIteration % 10 == 0)
             {
-                copyFloatOutput();
-                emit newEmbedding();
+                copyEmbeddingOutput();
+                emit embeddingUpdate(_outEmbedding);
             }
 
             if (t > 1000)
@@ -200,20 +137,19 @@ void TsneAnalysis::embed()
 
             elapsed += t;
 
-            const auto percentageDone = static_cast<float>(iter) / static_cast<float>(_tsneParameters.getNumIterations());
+            const auto percentageDone = static_cast<float>(_currentIteration) / static_cast<float>(_parameters.getNumIterations());
 
             emit progressMessage(QString("Computing gradient descent: %1 %").arg(QString::number(100.0f * percentageDone, 'f', 1)));
+
+            // React to requests to stop
+            if (_shouldStop)
+                break;
         }
 
-        offBuffer->releaseContext();
+        _offscreenBuffer->releaseContext();
 
-        copyFloatOutput();
-        emit newEmbedding();
-        
-        _isGradientDescentRunning = false;
-        _isTsneRunning = false;
-
-        emit computationStopped();
+        copyEmbeddingOutput();
+        emit embeddingUpdate(_outEmbedding);
     }
 
     emit progressMessage("Finished embedding");
@@ -221,41 +157,80 @@ void TsneAnalysis::embed()
     qDebug() << "--------------------------------------------------------------------------------";
     qDebug() << "A-tSNE: Finished embedding of " << "tSNE Analysis" << " in: " << elapsed / 1000 << " seconds ";
     qDebug() << "================================================================================";
+
+    emit finished();
 }
 
-void TsneAnalysis::run() {
+void TsneWorker::copyEmbeddingOutput()
+{
+    _outEmbedding.assign(_numPoints, _parameters.getNumDimensionsOutput(), _embedding.getContainer());
+}
+
+void TsneWorker::compute()
+{
+    if (!_hasProbabilityDistribution)
+        computeSimilarities();
     computeGradientDescent();
 }
 
-// Copy tSNE output to our output
-void TsneAnalysis::copyFloatOutput()
+void TsneWorker::stop()
 {
-    _outputData.assign(_numPoints, _tsneParameters.getNumDimensionsOutput(), _embedding.getContainer());
+    _shouldStop = true;
 }
 
-const TsneData& TsneAnalysis::output()
+TsneAnalysis::TsneAnalysis()
 {
-    return _outputData;
+    qRegisterMetaType<TsneData>();
 }
 
-void TsneAnalysis::setVerbose(bool verbose)
+TsneAnalysis::~TsneAnalysis()
 {
-    _verbose = verbose;
 }
 
-void TsneAnalysis::setParameters(TsneParameters parameters)
+void TsneAnalysis::startComputation(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions)
 {
-    _tsneParameters = parameters;
+    TsneWorker* tsneWorker = new TsneWorker(parameters, probDist, numPoints, numDimensions);
+    startComputation(tsneWorker);
 }
 
-void TsneAnalysis::stopGradientDescent()
+void TsneAnalysis::startComputation(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions)
 {
-    _isGradientDescentRunning = false;
+    TsneWorker* tsneWorker = new TsneWorker(parameters, data, numDimensions);
+    startComputation(tsneWorker);
 }
 
-void TsneAnalysis::markForDeletion()
+void TsneAnalysis::stopComputation()
 {
-    _isMarkedForDeletion = true;
+    emit stopWorker();
 
-    stopGradientDescent();
+    _workerThread.exit();
+
+    // Wait until the thread has terminated (max. 3 seconds)
+    if (!_workerThread.wait(3000))
+    {
+        qDebug() << "tSNE computation thread did not close in time, terminating...";
+        _workerThread.terminate();
+        _workerThread.wait();
+    }
+    qDebug() << "tSNE computation stopped.";
+}
+
+void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
+{
+    tsneWorker->changeThread(&_workerThread);
+
+    // To-Worker signals
+    connect(this, &TsneAnalysis::startWorker, tsneWorker, &TsneWorker::compute);
+    connect(this, &TsneAnalysis::stopWorker, tsneWorker, &TsneWorker::stop);
+
+    // From-Worker signals
+    connect(tsneWorker, &TsneWorker::embeddingUpdate, this, &TsneAnalysis::embeddingUpdate);
+    connect(tsneWorker, &TsneWorker::progressMessage, this, &TsneAnalysis::progressMessage);
+    connect(tsneWorker, &TsneWorker::finished, this, &TsneAnalysis::finished);
+
+    // QThread signals
+    connect(&_workerThread, &QThread::finished, tsneWorker, &QObject::deleteLater);
+
+    _workerThread.start();
+    emit startWorker();
 }

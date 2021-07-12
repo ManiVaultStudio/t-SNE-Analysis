@@ -37,8 +37,8 @@ void TsneAnalysisPlugin::init()
     _settings = std::make_unique<TsneSettingsWidget>(*this);
 
     connect(_settings.get(), &TsneSettingsWidget::dataSetPicked, this, &TsneAnalysisPlugin::dataSetPicked);
-    connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &TsneSettingsWidget::onComputationStopped);
-    connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
+    connect(&_tsne, &TsneAnalysis::finished, _settings.get(), &TsneSettingsWidget::onComputationStopped);
+    connect(&_tsne, &TsneAnalysis::embeddingUpdate, this, &TsneAnalysisPlugin::onNewEmbedding);
 
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 }
@@ -93,7 +93,7 @@ void TsneAnalysisPlugin::startComputation()
 
     qApp->processEvents();
 
-    _tsne.setParameters(_settings->getTsneParameters());
+    TsneParameters parameters = _settings->getTsneParameters();
 
     // Prepare the data
     QString setName = _settings->getCurrentDataItem();
@@ -121,17 +121,13 @@ void TsneAnalysisPlugin::startComputation()
     embedding.setData(nullptr, 0, 2);
     _core->notifyDataAdded(_embeddingName);
 
-    _tsne.initTSNE(data, numEnabledDimensions);
-
-    _tsne.start();
+    _tsne.startComputation(parameters, data, numEnabledDimensions);
 }
 
-void TsneAnalysisPlugin::onNewEmbedding() {
-
-    const TsneData& outputData = _tsne.output();
+void TsneAnalysisPlugin::onNewEmbedding(const TsneData tsneData) {
     Points& embedding = _core->requestData<Points>(_embeddingName);
 
-    embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
+    embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
     _core->notifyDataChanged(_embeddingName);
 }
@@ -140,21 +136,8 @@ void TsneAnalysisPlugin::stopComputation() {
     _settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
     _settings->setSubtitle("Stopping computation...");
 
-    if (_tsne.isRunning())
-    {
-        // Request interruption of the computation
-        _tsne.stopGradientDescent();
-        _tsne.exit();
-
-        // Wait until the thread has terminated (max. 3 seconds)
-        if (!_tsne.wait(3000))
-        {
-            qDebug() << "tSNE computation thread did not close in time, terminating...";
-            _tsne.terminate();
-            _tsne.wait();
-        }
-        qDebug() << "tSNE computation stopped.";
-    }
+    _tsne.stopComputation();
+    qDebug() << "tSNE computation stopped.";
 }
 
 QMenu* TsneAnalysisPlugin::contextMenu(const QVariant& context)

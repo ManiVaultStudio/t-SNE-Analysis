@@ -37,7 +37,7 @@ public slots:
     void dataSetPicked(const QString& name);
     void startComputation();
     void onDrillIn();
-    void onNewEmbedding();
+    void onNewEmbedding(const TsneData& tsneData);
 
 public: // GUI
     /**
