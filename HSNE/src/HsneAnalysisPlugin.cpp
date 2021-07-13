@@ -45,7 +45,7 @@ void HsneAnalysisPlugin::init()
     registerDataEventByType(PointType, std::bind(&HsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 
     //connect(_settings.get(), &HsneSettingsWidget::stopComputation, this, &HsneAnalysisPlugin::stopComputation);
-    //connect(&_tsne, &TsneAnalysis::computationStopped, _settings.get(), &HsneSettingsWidget::onComputationStopped);
+    connect(&_tsne, &TsneAnalysis::finished, _settings.get(), &HsneSettingsWidget::onComputationStopped);
     connect(&_tsne, &TsneAnalysis::embeddingUpdate, this, &HsneAnalysisPlugin::onNewEmbedding);
     //connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
 }
@@ -129,24 +129,8 @@ void HsneAnalysisPlugin::onNewEmbedding(const TsneData& tsneData) {
     _core->notifyDataChanged(_embeddingName);
 }
 
-QString HsneAnalysisPlugin::createEmptyEmbedding(QString name, QString dataType, QString sourceName)
-{
-    QString embeddingName = _core->addData(dataType, name);
-    //QString embeddingName = _core->createDerivedData(dataType, name, sourceName);
-    Points& embedding = _core->requestData<Points>(embeddingName);
-    embedding.setData(nullptr, 0, 2);
-
-    auto analyses = embedding.getProperty("Analyses", QVariantList()).toList();
-    analyses.push_back(getName());
-    embedding.setProperty("Analyses", analyses);
-
-    _core->notifyDataAdded(embeddingName);
-    return embeddingName;
-}
-
 QString HsneAnalysisPlugin::createEmptyDerivedEmbedding(QString name, QString dataType, QString sourceName)
 {
-    //QString embeddingName = _core->addData(dataType, name);
     QString embeddingName = _core->createDerivedData(name, sourceName);
     Points& embedding = _core->requestData<Points>(embeddingName);
     embedding.setData(nullptr, 0, 2);

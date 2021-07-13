@@ -163,7 +163,6 @@ private:
     HsneOptions _hsneOptions;
     TsneOptions _tsneOptions;
     QPushButton* _startButton;
-    QPushButton* _drillButton;
 
     HsneAnalysisPlugin& _analysisPlugin;
 };

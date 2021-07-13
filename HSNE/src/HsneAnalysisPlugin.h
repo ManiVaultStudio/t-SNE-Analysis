@@ -48,7 +48,6 @@ public: // GUI
     QMenu* contextMenu(const QVariant& context) override;
 
 private:
-    QString createEmptyEmbedding(QString name, QString dataType, QString sourceName);
     QString createEmptyDerivedEmbedding(QString name, QString dataType, QString sourceName);
 
 private:
