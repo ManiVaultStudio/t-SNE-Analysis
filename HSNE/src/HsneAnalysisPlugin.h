@@ -29,8 +29,6 @@ public:
      */
     void onDataEvent(hdps::DataEvent* dataEvent);
 
-    SettingsWidget* const getSettings() override;
-
 public slots:
     void dataSetPicked(const QString& name);
     void startComputation();

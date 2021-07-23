@@ -5,8 +5,7 @@
 #include <AnalysisPlugin.h>
 
 #include "TsneAnalysis.h"
-
-#include "Application.h"
+#include "SettingsAction.h"
 
 class TsneSettingsWidget;
 
@@ -28,11 +27,7 @@ public:
     void onDataEvent(hdps::DataEvent* dataEvent);
 
 	/** Returns the icon of this plugin */
-	QIcon getIcon() const override {
-		return hdps::Application::getIconFont("FontAwesome").getIcon("table");
-	}
-
-    hdps::gui::SettingsWidget* const getSettings() override;
+	QIcon getIcon() const override;
 
     void startComputation();
     void stopComputation();
@@ -46,10 +41,8 @@ public slots:
 private:
     void initializeTsne();
 
-    TsneAnalysis _tsne;
-
-    std::unique_ptr<TsneSettingsWidget> _settings;
-    QString _embeddingName;
+    TsneAnalysis	_tsne;
+	SettingsAction	_settingsAction;
 };
 
 // =============================================================================

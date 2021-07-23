@@ -19,11 +19,10 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 
 using namespace hdps;
 TsneAnalysisPlugin::TsneAnalysisPlugin() :
-    AnalysisPlugin("tSNE Analysis")
+    AnalysisPlugin("tSNE Analysis"),
+	_tsne(),
+	_settingsAction(this)
 {
-	QObject::connect(&_tsne, &TsneAnalysis::progressMessage, [this](const QString& message) {
-		_settings->setSubtitle(message);
-	});
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
@@ -33,6 +32,14 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
+	_outputDatasetName = _core->addData("Points", "Embedding");
+	
+	DataSet& outputDataset = _core->requestData<Points>(_outputDatasetName);
+
+	outputDataset.setParentDatasetName(_inputDatasetName);
+	outputDataset.exposeAction(&_settingsAction);
+
+	/*
     _settings = std::make_unique<TsneSettingsWidget>(*this);
 
     connect(_settings.get(), &TsneSettingsWidget::dataSetPicked, this, &TsneAnalysisPlugin::dataSetPicked);
@@ -42,13 +49,12 @@ void TsneAnalysisPlugin::init()
     connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
 
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
+	*/
 }
 
 void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
-    if (dataEvent->getType() == EventType::DataAdded)
-        _settings->addDataItem(static_cast<DataAddedEvent*>(dataEvent)->dataSetName);
-
+	/*
     if (dataEvent->getType() == EventType::DataRemoved)
         _settings->removeDataItem(static_cast<DataRemovedEvent*>(dataEvent)->dataSetName);
 
@@ -65,34 +71,38 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 
         _settings->getDimensionSelectionWidget().dataChanged(points);
     }
+	*/
 }
 
-hdps::gui::SettingsWidget* const TsneAnalysisPlugin::getSettings()
+QIcon TsneAnalysisPlugin::getIcon() const
 {
-    return _settings.get();
+	return hdps::Application::getIconFont("FontAwesome").getIcon("table");
 }
 
 void TsneAnalysisPlugin::dataSetPicked(const QString& name)
 {
+	/*
     Points& points = _core->requestData<Points>(name);
 
     _settings->getDimensionSelectionWidget().dataChanged(points);
 
     _settings->setTitle(QString("%1: %2").arg(getGuiName(), name));
+	*/
 }
 
 void TsneAnalysisPlugin::onKnnAlgorithmPicked(const int index)
 {
-    _tsne.setKnnAlgorithm(index);
+    //_tsne.setKnnAlgorithm(index);
 }
 
 void TsneAnalysisPlugin::onDistanceMetricPicked(const int index)
 {
-    _tsne.setDistanceMetric(index);
+    //_tsne.setDistanceMetric(index);
 }
 
 void TsneAnalysisPlugin::startComputation()
 {
+	/*
     _settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
     _settings->setSubtitle("Initializing A-tSNE...");
 
@@ -149,19 +159,22 @@ void TsneAnalysisPlugin::startComputation()
     _tsne.initTSNE(data, numEnabledDimensions);
 
     _tsne.start();
+	*/
 }
 
 void TsneAnalysisPlugin::onNewEmbedding() {
-
+	/*
     const TsneData& outputData = _tsne.output();
     Points& embedding = _core->requestData<Points>(_embeddingName);
 
     embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
 
     _core->notifyDataChanged(_embeddingName);
+	*/
 }
 
 void TsneAnalysisPlugin::initializeTsne() {
+	/*
     // Initialize the tSNE computation with the settings from the settings widget
     _tsne.setIterations(_settings->numIterations.text().toInt());
     _tsne.setPerplexity(_settings->perplexity.text().toInt());
@@ -169,9 +182,11 @@ void TsneAnalysisPlugin::initializeTsne() {
     _tsne.setExponentialDecayIter(_settings->expDecay.text().toInt());
     _tsne.setNumTrees(_settings->numTrees.text().toInt());
     _tsne.setNumChecks(_settings->numChecks.text().toInt());
+	*/
 }
 
 void TsneAnalysisPlugin::stopComputation() {
+	/*
 	_settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
 	_settings->setSubtitle("Stopping computation...");
 
@@ -190,6 +205,7 @@ void TsneAnalysisPlugin::stopComputation() {
         }
         qDebug() << "tSNE computation stopped.";
     }
+	*/
 }
 
 // =============================================================================

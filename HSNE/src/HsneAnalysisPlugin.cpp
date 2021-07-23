@@ -77,11 +77,6 @@ void HsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     }
 }
 
-SettingsWidget* const HsneAnalysisPlugin::getSettings()
-{
-    return _settings.get();
-}
-
 // If a different input dataset is picked in the settings widget update the dimension widget
 void HsneAnalysisPlugin::dataSetPicked(const QString& name)
 {
