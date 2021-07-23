@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.15.0)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX $ENV{HDPS_INSTALL_DIR} CACHE PATH "..." FORCE)
+endif()
+
 set(HDILib_VERSION latest)
 set(VERBOSE TRUE)
 
@@ -22,8 +26,13 @@ if(MSVC)
 endif(MSVC)
 
 find_package(Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+
+set(INSTALL_DIR ${CMAKE_SOURCE_DIR} CACHE PATH "Canonical form of HDPS_INSTALL_DIR")
+
 # Normalize the incoming install path
-file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} INSTALL_DIR)
+file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} INSTALL_DIR_TEMP)
+
+set(INSTALL_DIR ${INSTALL_DIR_TEMP} CACHE PATH "" FORCE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -52,7 +61,7 @@ endif()
 if(USE_PREBUILT_LIBS AND PREBUILT_LIBS_INSTALLED)
     # If the HDILib_VERSION is not a x.y.z version number 
     # omit the version argument from find package
-    find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${CMAKE_SOURCE_DIR}/HDILib" CONFIG REQUIRED)
+    find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${INSTALL_DIR}/HDILib" CONFIG REQUIRED)
 endif()
 
 if (APPLE)
