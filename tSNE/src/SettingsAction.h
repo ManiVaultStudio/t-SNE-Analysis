@@ -27,6 +27,15 @@ public:
 	hdps::gui::TriggerAction& getStopComputationAction() { return _stopComputationAction; }
 
 protected:
+	hdps::gui::OptionAction		_knnTypeAction;				/** KNN action */
+	hdps::gui::OptionAction		_distanceMetricAction;		/** Distance metric action */
+	hdps::gui::IntegralAction	_numIterationsAction;		/** Number of iterations action */
+	hdps::gui::IntegralAction	_perplexityAction;			/** Perplexity action */
+	hdps::gui::IntegralAction	_exaggerationAction;		/** Exaggeration action */
+	hdps::gui::IntegralAction	_exponentialDecayAction;	/** Exponential decay action */
+	hdps::gui::IntegralAction	_numTreesAction;			/** Exponential decay action */
+	hdps::gui::IntegralAction	_numChecksAction;			/** Exponential decay action */
+	hdps::gui::IntegralAction	_thetaAction;				/** Exponential decay action */
 	hdps::gui::TriggerAction	_startComputationAction;	/** Start computation action */
 	hdps::gui::TriggerAction	_stopComputationAction;		/** Stop computation action */
 

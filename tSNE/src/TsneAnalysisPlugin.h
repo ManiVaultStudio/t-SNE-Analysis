@@ -11,10 +11,6 @@ class TsneSettingsWidget;
 
 using namespace hdps::plugin;
 
-// =============================================================================
-// View
-// =============================================================================
-
 class TsneAnalysisPlugin : public QObject, public AnalysisPlugin
 {
     Q_OBJECT   
@@ -29,25 +25,12 @@ public:
 	/** Returns the icon of this plugin */
 	QIcon getIcon() const override;
 
-    void startComputation();
-    void stopComputation();
-
-public slots:
-    void dataSetPicked(const QString& name);
-    void onKnnAlgorithmPicked(const int index);
-    void onDistanceMetricPicked(const int index);
-    void onNewEmbedding();
-
 private:
     void initializeTsne();
 
     TsneAnalysis	_tsne;
 	SettingsAction	_settingsAction;
 };
-
-// =============================================================================
-// Factory
-// =============================================================================
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory
 {

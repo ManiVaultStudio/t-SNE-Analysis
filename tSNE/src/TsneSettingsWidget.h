@@ -39,17 +39,12 @@ public:
 
     explicit TsneSettingsWidget(TsneAnalysisPlugin&);
 
-    QString getCurrentDataItem();
-    void addDataItem(const QString name);
-    void removeDataItem(const QString name);
-
     std::vector<bool> getEnabledDimensions();
     bool hasValidSettings();
 
     hdps::DimensionSelectionWidget& getDimensionSelectionWidget();
 
     void dataChanged(const Points& points);
-    QString getEmbeddingName();
 
 private:
     void checkInputStyle(QLineEdit& input);
@@ -61,7 +56,6 @@ signals:
 
 public slots:
     void onComputationStopped();
-    void setEmbeddingName(QString embName);
 
 private slots:
     void onStartToggled(bool pressed);
@@ -74,11 +68,8 @@ private slots:
     void thetaChanged(const QString& value);
 
 public:
-    QComboBox* _dataOptions;
     hdps::DimensionSelectionWidget _dimensionSelectionWidget;
-    QPushButton* _startButton;
 
-    QComboBox dataOptions;
     QComboBox knnOptions;
     QComboBox distanceMetric;
 
@@ -89,7 +80,6 @@ public:
     QLineEdit numTrees;
     QLineEdit numChecks;
     QLineEdit theta;
-    QLineEdit embeddingNameLine;
 
 private:
   TsneAnalysisPlugin& _analysisPlugin;

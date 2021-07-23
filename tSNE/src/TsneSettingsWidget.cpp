@@ -20,6 +20,7 @@ TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin) :
 	SettingsWidget(),
 	_analysisPlugin(analysisPlugin)
 {
+	/*
 	const auto guiName = analysisPlugin.getGuiName();
 
 	setObjectName(guiName);
@@ -49,11 +50,6 @@ TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin) :
     connect(&numTrees, SIGNAL(textChanged(QString)), SLOT(numTreesChanged(QString)));
     connect(&numChecks, SIGNAL(textChanged(QString)), SLOT(numChecksChanged(QString)));
     connect(&theta, SIGNAL(textChanged(QString)), SLOT(thetaChanged(QString)));
-
-    // Initialize data options
-    _dataOptions = new QComboBox();
-    connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SIGNAL(dataSetPicked(QString)));
-    connect(_dataOptions, SIGNAL(currentIndexChanged(QString)), this, SLOT(setEmbeddingName(QString)));
 
     // Initialize start button
     _startButton = new QPushButton();
@@ -138,38 +134,13 @@ TsneSettingsWidget::TsneSettingsWidget(TsneAnalysisPlugin& analysisPlugin) :
     addWidget(settingsBox);
     addWidget(advancedSettingsBox);
     addWidget(computeBox);
-}
-
-void TsneSettingsWidget::setEmbeddingName(QString embName)
-{
-    embeddingNameLine.setText(embName + "_tsne_emb");
-}
-
-QString TsneSettingsWidget::getEmbeddingName()
-{
-    return embeddingNameLine.text();
-}
-
-QString TsneSettingsWidget::getCurrentDataItem()
-{
-    return _dataOptions->currentText();
-}
-
-void TsneSettingsWidget::addDataItem(const QString name)
-{
-    _dataOptions->addItem(name);
-}
-
-void TsneSettingsWidget::removeDataItem(const QString name)
-{
-    int index = _dataOptions->findText(name);
-    _dataOptions->removeItem(index);
+	*/
 }
 
 void TsneSettingsWidget::onComputationStopped()
 {
-    _startButton->setText("Start Computation");
-    _startButton->setChecked(false);
+    //_startButton->setText("Start Computation");
+    //_startButton->setChecked(false);
 
 	setSubtitle("");
 	setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("th"));
@@ -177,11 +148,6 @@ void TsneSettingsWidget::onComputationStopped()
 
 void TsneSettingsWidget::onStartToggled(bool pressed)
 {
-    // Do nothing if we have no data set selected
-    if (getCurrentDataItem().isEmpty()) {
-        return;
-    }
-
     // Check if the tSNE settings are valid before running the computation
     if (!hasValidSettings()) {
         QMessageBox warningBox;
@@ -196,8 +162,8 @@ void TsneSettingsWidget::onStartToggled(bool pressed)
         }
     }
 
-    _startButton->setText(pressed ? "Stop Computation" : "Start Computation");
-    pressed ? _analysisPlugin.startComputation() : _analysisPlugin.stopComputation();
+    //_startButton->setText(pressed ? "Stop Computation" : "Start Computation");
+    //pressed ? _analysisPlugin.startComputation() : _analysisPlugin.stopComputation();
 }
 
 void TsneSettingsWidget::dataChanged(const Points& points)
