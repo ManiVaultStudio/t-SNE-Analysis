@@ -27,6 +27,7 @@ public:
 	hdps::gui::TriggerAction& getStopComputationAction() { return _stopComputationAction; }
 
 protected:
+	TsneAnalysisPlugin*			_tsneAnalysisPlugin;		/** Pointer to TSNE analysis plugin */
 	hdps::gui::OptionAction		_knnTypeAction;				/** KNN action */
 	hdps::gui::OptionAction		_distanceMetricAction;		/** Distance metric action */
 	hdps::gui::IntegralAction	_numIterationsAction;		/** Number of iterations action */
@@ -35,9 +36,9 @@ protected:
 	hdps::gui::IntegralAction	_exponentialDecayAction;	/** Exponential decay action */
 	hdps::gui::IntegralAction	_numTreesAction;			/** Exponential decay action */
 	hdps::gui::IntegralAction	_numChecksAction;			/** Exponential decay action */
-	hdps::gui::IntegralAction	_thetaAction;				/** Exponential decay action */
+	hdps::gui::TriggerAction	_resetAction;				/** Reset all input to defaults */
 	hdps::gui::TriggerAction	_startComputationAction;	/** Start computation action */
 	hdps::gui::TriggerAction	_stopComputationAction;		/** Stop computation action */
-
+	
     friend class Widget;
 };

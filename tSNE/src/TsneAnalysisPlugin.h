@@ -25,11 +25,11 @@ public:
 	/** Returns the icon of this plugin */
 	QIcon getIcon() const override;
 
-private:
-    void initializeTsne();
-
+protected:
     TsneAnalysis	_tsne;
 	SettingsAction	_settingsAction;
+
+	friend class SettingsAction;
 };
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory

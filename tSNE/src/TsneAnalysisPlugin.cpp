@@ -135,8 +135,6 @@ void TsneAnalysisPlugin::init()
 	});
 
 	/*
-
-    connect(_settings.get(), &TsneSettingsWidget::dataSetPicked, this, &TsneAnalysisPlugin::dataSetPicked);
     connect(_settings.get(), &TsneSettingsWidget::knnAlgorithmPicked, this, &TsneAnalysisPlugin::onKnnAlgorithmPicked);
     connect(_settings.get(), &TsneSettingsWidget::distanceMetricPicked, this, &TsneAnalysisPlugin::onDistanceMetricPicked);
     connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
@@ -182,28 +180,7 @@ void TsneAnalysisPlugin::dataSetPicked(const QString& name)
     _settings->setTitle(QString("%1: %2").arg(getGuiName(), name));
 }
 
-void TsneAnalysisPlugin::onKnnAlgorithmPicked(const int index)
-{
-    _tsne.setKnnAlgorithm(index);
-}
-
-void TsneAnalysisPlugin::onDistanceMetricPicked(const int index)
-{
-    _tsne.setDistanceMetric(index);
-}
 */
-
-void TsneAnalysisPlugin::initializeTsne() {
-	/*
-    // Initialize the tSNE computation with the settings from the settings widget
-    _tsne.setIterations(_settings->numIterations.text().toInt());
-    _tsne.setPerplexity(_settings->perplexity.text().toInt());
-    _tsne.setExaggerationIter(_settings->exaggeration.text().toInt());
-    _tsne.setExponentialDecayIter(_settings->expDecay.text().toInt());
-    _tsne.setNumTrees(_settings->numTrees.text().toInt());
-    _tsne.setNumChecks(_settings->numChecks.text().toInt());
-	*/
-}
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
 {
