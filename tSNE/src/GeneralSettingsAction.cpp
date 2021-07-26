@@ -18,7 +18,7 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 	_stopComputationAction(this, "Stop computation"),
 	_computationAction(this, "Computation")
 {
-	setText("General settings");
+	setText("General");
 
 	_knnTypeAction.setOptions(QStringList() << "FLANN" << "HNSW" << "ANNOY");
 	_distanceMetricAction.setOptions(QStringList() << "Euclidean" << "Cosine" << "Inner Product" << "Manhattan" << "Hamming" << "Dot");
@@ -111,7 +111,6 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 	});
 
 	connect(&_stopComputationAction, &TriggerAction::triggered, this, [this, enableControls, updateComputation](const std::int32_t& value) {
-		qDebug() << "Stop computation";
 		enableControls(true);
 		updateComputation();
 	});
@@ -178,14 +177,14 @@ GeneralSettingsAction::Widget::Widget(QWidget* parent, GeneralSettingsAction* ge
 	const auto addOptionActionToLayout = [this, layout](OptionAction& optionAction) -> void {
 		const auto numRows = layout->rowCount();
 
-		layout->addWidget(new QLabel(optionAction.text()), numRows, 0);
+		layout->addWidget(optionAction.createLabelWidget(this), numRows, 0);
 		layout->addWidget(optionAction.createWidget(this), numRows, 1);
 	};
 
 	const auto addIntegralActionToLayout = [this, layout](IntegralAction& integralAction) -> void {
 		const auto numRows = layout->rowCount();
 
-		layout->addWidget(new QLabel(integralAction.text()), numRows, 0);
+		layout->addWidget(integralAction.createLabelWidget(this), numRows, 0);
 		layout->addWidget(integralAction.createWidget(this), numRows, 1);
 	};
 

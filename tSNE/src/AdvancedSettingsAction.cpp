@@ -15,7 +15,7 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 	_numChecksAction(this, "Number of checks"),
 	_resetAction(this, "Reset all")
 {
-	setText("Advanced settings");
+	setText("Advanced");
 
 	_exaggerationAction.setRange(1, 10000);
 	_exponentialDecayAction.setRange(1, 10000);
@@ -68,7 +68,9 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 		_resetAction.setEnabled(canReset());
 	};
 
-	const auto enableControls = [this](const bool& enabled) -> void {
+	const auto enableControls = [this]() -> void {
+		const auto enabled = !_tsneAnalysisPlugin->getGeneralSettingsAction().getComputingAction().isChecked();
+
 		_exaggerationAction.setEnabled(enabled);
 		_exponentialDecayAction.setEnabled(enabled);
 		_numTreesAction.setEnabled(enabled);
@@ -96,15 +98,9 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 		updateReset();
 	});
 
-	/*
-	connect(&_startComputationAction, &TriggerAction::triggered, this, [this, enableControls](const std::int32_t& value) {
-		enableControls(false);
+	connect(&_tsneAnalysisPlugin->getGeneralSettingsAction().getComputingAction(), &ToggleAction::toggled, this, [this, enableControls](bool toggled) {
+		enableControls();
 	});
-
-	connect(&_stopComputationAction, &TriggerAction::triggered, this, [this, enableControls](const std::int32_t& value) {
-		enableControls(true);
-	});
-	*/
 
 	connect(&_resetAction, &TriggerAction::triggered, this, [this, enableControls](const std::int32_t& value) {
 		_exaggerationAction.reset();
@@ -118,6 +114,7 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 	updateNumTrees();
 	updateNumChecks();
 	updateReset();
+	enableControls();
 }
 
 QMenu* AdvancedSettingsAction::getContextMenu()
@@ -147,17 +144,10 @@ AdvancedSettingsAction::Widget::Widget(QWidget* parent, AdvancedSettingsAction* 
 {
     auto layout = new QGridLayout();
 
-	const auto addOptionActionToLayout = [this, layout](OptionAction& optionAction) -> void {
-		const auto numRows = layout->rowCount();
-
-		layout->addWidget(new QLabel(optionAction.text()), numRows, 0);
-		layout->addWidget(optionAction.createWidget(this), numRows, 1);
-	};
-
 	const auto addIntegralActionToLayout = [this, layout](IntegralAction& integralAction) -> void {
 		const auto numRows = layout->rowCount();
 
-		layout->addWidget(new QLabel(integralAction.text()), numRows, 0);
+		layout->addWidget(integralAction.createLabelWidget(this), numRows, 0);
 		layout->addWidget(integralAction.createWidget(this), numRows, 1);
 	};
 

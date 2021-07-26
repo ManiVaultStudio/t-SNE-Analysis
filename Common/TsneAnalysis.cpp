@@ -208,7 +208,7 @@ void TsneAnalysis::embed()
 
             elapsed += t;
 
-            emit progressPercentage(static_cast<float>(iter) / static_cast<float>(_iterations));
+            emit progressPercentage(static_cast<float>(iter + 1) / static_cast<float>(_iterations));
         }
 
         offBuffer->releaseContext();

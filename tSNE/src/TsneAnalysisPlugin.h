@@ -27,6 +27,10 @@ public:
 	/** Returns the icon of this plugin */
 	QIcon getIcon() const override;
 
+	GeneralSettingsAction& getGeneralSettingsAction() { return _generalSettingsAction; }
+	AdvancedSettingsAction& getAdvancedSettingsAction() { return _advancedSettingsAction; }
+	DimensionsSettingsAction& getDimensionsSettingsAction() { return _dimensionsSettingsAction; }
+
 protected:
     TsneAnalysis				_tsne;
 	GeneralSettingsAction		_generalSettingsAction;

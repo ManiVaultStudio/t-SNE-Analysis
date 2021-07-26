@@ -25,6 +25,7 @@ public:
 
 	hdps::gui::TriggerAction& getStartComputationAction() { return _startComputationAction; }
 	hdps::gui::TriggerAction& getStopComputationAction() { return _stopComputationAction; }
+	hdps::gui::ToggleAction& getComputingAction() { return _computationAction; }
 
 protected:
 	TsneAnalysisPlugin*			_tsneAnalysisPlugin;		/** Pointer to TSNE analysis plugin */
@@ -35,7 +36,7 @@ protected:
 	hdps::gui::TriggerAction	_resetAction;				/** Reset all input to defaults */
 	hdps::gui::TriggerAction	_startComputationAction;	/** Start computation action */
 	hdps::gui::TriggerAction	_stopComputationAction;		/** Stop computation action */
-	hdps::gui::ToggleAction		_computationAction;			/** Computation action */
+	hdps::gui::ToggleAction		_computationAction;				/** Computing action */
 	
     friend class Widget;
 };

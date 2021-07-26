@@ -13,11 +13,8 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 
 #include <set>
 
-// =============================================================================
-// View
-// =============================================================================
-
 using namespace hdps;
+
 TsneAnalysisPlugin::TsneAnalysisPlugin() :
 	AnalysisPlugin("tSNE Analysis"),
 	_tsne(),
@@ -55,98 +52,101 @@ void TsneAnalysisPlugin::init()
 
 	connect(&_tsne, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
 		notifyProgressPercentage(percentage);
+
+		if (percentage == 1.0f) {
+			_generalSettingsAction.getComputingAction().setChecked(false);
+			notifyFinished();
+		}
 	});
 
 	connect(&_tsne, &TsneAnalysis::progressSection, this, [this](const QString& section) {
 		notifyProgressSection(section);
 	});
 
-	connect(&_generalSettingsAction.getStartComputationAction(), &TriggerAction::triggered, this, [this]() {
+	connect(&_generalSettingsAction.getComputingAction(), &ToggleAction::toggled, this, [this](bool toggled) {
+		if (toggled) {
+			QCoreApplication::processEvents();
 
-		qApp->processEvents();
+			notifyStarted();
+			notifyProgressPercentage(0.0f);
+			notifyProgressSection("Preparing data");
 
-		notifyStarted();
-		notifyProgressSection("Preparing data");
+			const Points& points = _core->requestData<Points>(_inputDatasetName);
 
-		const Points& points = _core->requestData<Points>(_inputDatasetName);
+			const auto numDimensions = points.getNumDimensions();
 
-		const auto numDimensions = points.getNumDimensions();
+			// Create list of data from the enabled dimensions
+			std::vector<float> data;
 
-		// Create list of data from the enabled dimensions
-		std::vector<float> data;
+			auto selection = points.indices;
 
-		auto selection = points.indices;
+			// If the dataset is not a subset, use all data points
+			if (points.isFull()) {
+				std::vector<std::uint32_t> all(points.getNumPoints());
+				std::iota(std::begin(all), std::end(all), 0);
 
-		// If the dataset is not a subset, use all data points
-		if (points.isFull()) {
-			std::vector<std::uint32_t> all(points.getNumPoints());
-			std::iota(std::begin(all), std::end(all), 0);
+				selection = all;
+			}
 
-			selection = all;
-		}
+			// Extract the enabled dimensions from the data
+			//std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
+			std::vector<bool> enabledDimensions;
 
-		// Extract the enabled dimensions from the data
-		//std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
-		std::vector<bool> enabledDimensions;
+			enabledDimensions.resize(numDimensions);
 
-		enabledDimensions.resize(numDimensions);
+			std::fill(enabledDimensions.begin(), enabledDimensions.end(), true);
 
-		std::fill(enabledDimensions.begin(), enabledDimensions.end(), true);
+			unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 
-		unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
-
-		data.resize(selection.size() * numEnabledDimensions);
-		//data.reserve(selection.size() * numEnabledDimensions);
-		/*
-		points.visitFromBeginToEnd([&data, &selection, &enabledDimensions, numDimensions](auto beginOfData, auto endOfData)
-		{
-			for (const auto& pointId : selection)
+			data.resize(selection.size() * numEnabledDimensions);
+			//data.reserve(selection.size() * numEnabledDimensions);
+			/*
+			points.visitFromBeginToEnd([&data, &selection, &enabledDimensions, numDimensions](auto beginOfData, auto endOfData)
 			{
-				for (int dimensionId = 0; dimensionId < numDimensions; dimensionId++)
+				for (const auto& pointId : selection)
 				{
-					if (enabledDimensions[dimensionId]) {
-						const auto index = pointId * numDimensions + dimensionId;
-						data.push_back(beginOfData[index]);
+					for (int dimensionId = 0; dimensionId < numDimensions; dimensionId++)
+					{
+						if (enabledDimensions[dimensionId]) {
+							const auto index = pointId * numDimensions + dimensionId;
+							data.push_back(beginOfData[index]);
+						}
 					}
 				}
-			}
-		});
-		*/
+			});
+			*/
 
-		notifyProgressSection("Initializing");
+			notifyProgressSection("Initializing");
 
-		_tsne.initTSNE(data, numEnabledDimensions);
-		_tsne.start();
-		
-	});
+			_tsne.initTSNE(data, numEnabledDimensions);
 
-	connect(&_generalSettingsAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
-		if (_tsne.isRunning())
-		{
-			// Request interruption of the computation
-			_tsne.stopGradientDescent();
-			_tsne.exit();
-
-			// Wait until the thread has terminated (max. 3 seconds)
-			if (!_tsne.wait(3000))
+			_tsne.start();
+		}
+		else {
+			if (_tsne.isRunning())
 			{
-				qDebug() << "tSNE computation thread did not close in time, terminating...";
-				_tsne.terminate();
-				_tsne.wait();
+				// Request interruption of the computation
+				_tsne.stopGradientDescent();
+				_tsne.exit();
+
+				// Wait until the thread has terminated (max. 3 seconds)
+				if (!_tsne.wait(3000))
+				{
+					qDebug() << "tSNE computation thread did not close in time, terminating...";
+					_tsne.terminate();
+					_tsne.wait();
+
+					notifyAborted("Interrupted by user");
+				}
+				qDebug() << "tSNE computation stopped.";
+
+				notifyAborted("Interrupted by user");
+				//notifyProgressSection("");
 			}
-			qDebug() << "tSNE computation stopped.";
 
 			notifyAborted("Interrupted by user");
 		}
 	});
-
-	/*
-	connect(_settings.get(), &TsneSettingsWidget::knnAlgorithmPicked, this, &TsneAnalysisPlugin::onKnnAlgorithmPicked);
-	connect(_settings.get(), &TsneSettingsWidget::distanceMetricPicked, this, &TsneAnalysisPlugin::onDistanceMetricPicked);
-	connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
-
-	registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
-	*/
 }
 
 void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
