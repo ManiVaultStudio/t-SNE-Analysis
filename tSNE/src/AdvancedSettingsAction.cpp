@@ -7,7 +7,7 @@
 using namespace hdps::gui;
 
 AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
-	WidgetActionGroup(tsneAnalysisPlugin),
+	WidgetActionGroup(tsneAnalysisPlugin, true),
 	_tsneAnalysisPlugin(tsneAnalysisPlugin),
 	_exaggerationAction(this, "Exaggeration"),
 	_exponentialDecayAction(this, "Exponential decay"),
@@ -31,6 +31,8 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 	_exponentialDecayAction.setDefaultValue(70);
 	_numTreesAction.setDefaultValue(4);
 	_numChecksAction.setDefaultValue(1024);
+
+	_resetAction.setEnabled(false);
 
 	const auto updateExaggeration = [this]() -> void {
 		_tsneAnalysisPlugin->_tsne.setExaggerationIter(_exaggerationAction.getValue());

@@ -35,6 +35,8 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 	_numIterationsAction.setDefaultValue(1000);
 	_perplexityAction.setDefaultValue(30);
 
+	_resetAction.setEnabled(false);
+
 	const auto updateKnnAlgorithm = [this]() -> void {
 		_tsneAnalysisPlugin->_tsne.setKnnAlgorithm(_knnTypeAction.getCurrentIndex());
 	};
@@ -108,11 +110,23 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 	connect(&_startComputationAction, &TriggerAction::triggered, this, [this, enableControls, updateComputation](const std::int32_t& value) {
 		enableControls(false);
 		updateComputation();
+
+		QSignalBlocker blocker(&_computationAction);
+
+		_computationAction.setChecked(true);
+		_computationAction.setText("");
+		_computationAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
 	});
 
 	connect(&_stopComputationAction, &TriggerAction::triggered, this, [this, enableControls, updateComputation](const std::int32_t& value) {
 		enableControls(true);
 		updateComputation();
+
+		QSignalBlocker blocker(&_computationAction);
+
+		_computationAction.setChecked(false);
+		_computationAction.setText("");
+		_computationAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
 	});
 
 	connect(&_computationAction, &ToggleAction::toggled, this, [this, updateComputation](bool toggled) {
