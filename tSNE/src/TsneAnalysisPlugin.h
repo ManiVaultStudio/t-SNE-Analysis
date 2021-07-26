@@ -5,7 +5,9 @@
 #include <AnalysisPlugin.h>
 
 #include "TsneAnalysis.h"
-#include "SettingsAction.h"
+#include "GeneralSettingsAction.h"
+#include "AdvancedSettingsAction.h"
+#include "DimensionsSettingsAction.h"
 
 class TsneSettingsWidget;
 
@@ -26,10 +28,14 @@ public:
 	QIcon getIcon() const override;
 
 protected:
-    TsneAnalysis	_tsne;
-	SettingsAction	_settingsAction;
+    TsneAnalysis				_tsne;
+	GeneralSettingsAction		_generalSettingsAction;
+	AdvancedSettingsAction		_advancedSettingsAction;
+	DimensionsSettingsAction	_dimensionsSettingsAction;
 
-	friend class SettingsAction;
+	friend class GeneralSettingsAction;
+	friend class AdvancedSettingsAction;
+	friend class DimensionsSettingsAction;
 };
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory

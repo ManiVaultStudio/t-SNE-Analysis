@@ -6,7 +6,11 @@ set(TSNE_PLUGIN_SOURCES
     ${DIR}/TsneAnalysisPlugin.json
     ${DIR}/TsneSettingsWidget.h
     ${DIR}/TsneSettingsWidget.cpp
-	${DIR}/SettingsAction.h
-    ${DIR}/SettingsAction.cpp
+	${DIR}/DimensionsSettingsAction.h
+    ${DIR}/DimensionsSettingsAction.cpp
+	${DIR}/GeneralSettingsAction.h
+    ${DIR}/GeneralSettingsAction.cpp
+	${DIR}/AdvancedSettingsAction.h
+    ${DIR}/AdvancedSettingsAction.cpp
     PARENT_SCOPE
 )

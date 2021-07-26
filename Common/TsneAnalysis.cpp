@@ -85,7 +85,7 @@ void TsneAnalysis::computeGradientDescent()
 
 void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
 {
-    emit progressMessage("Initialize A-tSNE");
+    emit progressSection("Initialize A-tSNE");
 
     unsigned int numPoints = data.size() / numDimensions;
     qDebug() << "Variables set. Num dims: " << numDimensions << " Num data points: " << numPoints;
@@ -109,9 +109,9 @@ void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
 
         qDebug() << "tSNE initialized.";
 
-        emit progressMessage("tSNE initialized");
+        emit progressSection("tSNE initialized");
 
-        emit progressMessage("Calculate probability distributions");
+        emit progressSection("Calculate probability distributions");
 
         _probabilityDistribution.clear();
         _probabilityDistribution.resize(numPoints);
@@ -125,7 +125,7 @@ void TsneAnalysis::initTSNE(std::vector<float>& data, const int numDimensions)
             probabilityGenerator.computeJointProbabilityDistribution(data.data(), numDimensions, numPoints, _probabilityDistribution, probGenParams);
         }
 
-        emit progressMessage("Probability distributions calculated");
+        emit progressSection("Probability distributions calculated");
 
         qDebug() << "Probability distributions calculated.";
         qDebug() << "================================================================================";
@@ -147,7 +147,7 @@ void TsneAnalysis::initWithProbDist(const int numPoints, const int numDimensions
 
 void TsneAnalysis::initGradientDescent()
 {
-    emit progressMessage("Initializing gradient descent");
+    emit progressSection("Initializing gradient descent");
 
     _continueFromIteration = 0;
 
@@ -176,7 +176,7 @@ void TsneAnalysis::initGradientDescent()
 // Computing gradient descent
 void TsneAnalysis::embed()
 {
-    emit progressMessage("Embedding");
+    emit progressSection("Embedding");
 
     double elapsed = 0;
     double t = 0;
@@ -208,9 +208,7 @@ void TsneAnalysis::embed()
 
             elapsed += t;
 
-            const auto percentageDone = static_cast<float>(iter) / static_cast<float>(_iterations);
-
-            emit progressMessage(QString("Computing gradient descent: %1 %").arg(QString::number(100.0f * percentageDone, 'f', 1)));
+            emit progressPercentage(static_cast<float>(iter) / static_cast<float>(_iterations));
         }
 
         offBuffer->releaseContext();
@@ -224,7 +222,7 @@ void TsneAnalysis::embed()
         emit computationStopped();
     }
 
-    emit progressMessage("Finished embedding");
+    emit progressSection("Finished embedding");
 
     qDebug() << "--------------------------------------------------------------------------------";
     qDebug() << "A-tSNE: Finished embedding of " << "tSNE Analysis" << " in: " << elapsed / 1000 << " seconds ";

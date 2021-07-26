@@ -5,13 +5,13 @@
 class QMenu;
 class TsneAnalysisPlugin;
 
-class SettingsAction : public hdps::gui::WidgetAction
+class GeneralSettingsAction : public hdps::gui::WidgetActionGroup
 {
 protected:
 
-    class Widget : public hdps::gui::WidgetAction::Widget {
+    class Widget : public hdps::gui::WidgetActionGroup::Widget {
     public:
-        Widget(QWidget* parent, SettingsAction* settingsAction, const Widget::State& state);
+        Widget(QWidget* parent, GeneralSettingsAction* generalSettingsAction, const Widget::State& state);
     };
 
     QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
@@ -19,7 +19,7 @@ protected:
     };
 
 public:
-	SettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin);
+	GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin);
 
     QMenu* getContextMenu();
 
@@ -32,13 +32,10 @@ protected:
 	hdps::gui::OptionAction		_distanceMetricAction;		/** Distance metric action */
 	hdps::gui::IntegralAction	_numIterationsAction;		/** Number of iterations action */
 	hdps::gui::IntegralAction	_perplexityAction;			/** Perplexity action */
-	hdps::gui::IntegralAction	_exaggerationAction;		/** Exaggeration action */
-	hdps::gui::IntegralAction	_exponentialDecayAction;	/** Exponential decay action */
-	hdps::gui::IntegralAction	_numTreesAction;			/** Exponential decay action */
-	hdps::gui::IntegralAction	_numChecksAction;			/** Exponential decay action */
 	hdps::gui::TriggerAction	_resetAction;				/** Reset all input to defaults */
 	hdps::gui::TriggerAction	_startComputationAction;	/** Start computation action */
 	hdps::gui::TriggerAction	_stopComputationAction;		/** Stop computation action */
+	hdps::gui::ToggleAction		_computationAction;			/** Computation action */
 	
     friend class Widget;
 };
