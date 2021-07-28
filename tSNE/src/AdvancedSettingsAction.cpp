@@ -7,7 +7,7 @@
 using namespace hdps::gui;
 
 AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
-	WidgetActionGroup(tsneAnalysisPlugin, true),
+	WidgetActionGroup(tsneAnalysisPlugin),
 	_tsneAnalysisPlugin(tsneAnalysisPlugin),
 	_exaggerationAction(this, "Exaggeration"),
 	_exponentialDecayAction(this, "Exponential decay"),
@@ -31,8 +31,6 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 	_exponentialDecayAction.setDefaultValue(70);
 	_numTreesAction.setDefaultValue(4);
 	_numChecksAction.setDefaultValue(1024);
-
-	_resetAction.setEnabled(false);
 
 	const auto updateExaggeration = [this]() -> void {
 		_tsneAnalysisPlugin->_tsne.setExaggerationIter(_exaggerationAction.getValue());
@@ -70,14 +68,14 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 		_resetAction.setEnabled(canReset());
 	};
 
-	const auto enableControls = [this]() -> void {
+	const auto enableControls = [this, canReset]() -> void {
 		const auto enabled = !_tsneAnalysisPlugin->getGeneralSettingsAction().getComputingAction().isChecked();
 
 		_exaggerationAction.setEnabled(enabled);
 		_exponentialDecayAction.setEnabled(enabled);
 		_numTreesAction.setEnabled(enabled);
 		_numChecksAction.setEnabled(enabled);
-		_resetAction.setEnabled(enabled);
+		_resetAction.setEnabled(enabled && canReset());
 	};
 
 	connect(&_exaggerationAction, &IntegralAction::valueChanged, this, [this, updateExaggeration, updateReset](const std::int32_t& value) {
@@ -117,6 +115,8 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 	updateNumChecks();
 	updateReset();
 	enableControls();
+
+	_resetAction.setEnabled(false);
 }
 
 QMenu* AdvancedSettingsAction::getContextMenu()

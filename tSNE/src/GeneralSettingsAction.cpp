@@ -79,12 +79,12 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 		_resetAction.setEnabled(canReset());
 	};
 
-	const auto enableControls = [this](const bool& enabled) -> void {
+	const auto enableControls = [this, canReset](const bool& enabled) -> void {
 		_knnTypeAction.setEnabled(enabled);
 		_distanceMetricAction.setEnabled(enabled);
 		_numIterationsAction.setEnabled(enabled);
 		_perplexityAction.setEnabled(enabled);
-		_resetAction.setEnabled(enabled);
+		_resetAction.setEnabled(enabled && canReset());
 	};
 
 	connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric, updateReset](const std::int32_t& currentIndex) {
@@ -162,23 +162,19 @@ QMenu* GeneralSettingsAction::getContextMenu()
 
 	menu->addSeparator();
 
-	auto settingsMenu = new QMenu("Settings");
-
-	const auto addSetting = [this, settingsMenu](WidgetAction& widgetAction) -> void {
+	const auto addSetting = [this, menu](WidgetAction& widgetAction) -> void {
 		auto settingMenu = new QMenu(widgetAction.text());
 		settingMenu->addAction(&widgetAction);
-		settingsMenu->addMenu(settingMenu);
+		menu->addMenu(settingMenu);
 	};
 
 	addSetting(_knnTypeAction);
 	addSetting(_distanceMetricAction);
 	addSetting(_numIterationsAction);
 
-	settingsMenu->addSeparator();
+	menu->addSeparator();
 
-	settingsMenu->addAction(&_resetAction);
-
-    menu->addMenu(settingsMenu);
+	menu->addAction(&_resetAction);
 
     return menu;
 }
