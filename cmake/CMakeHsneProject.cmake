@@ -5,7 +5,7 @@ project(${HSNE_PLUGIN})
 
 add_subdirectory(HSNE/src)
 # Normalize the incoming install path
-file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} INSTALL_DIR)
+#file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} INSTALL_DIR)
 
 source_group( DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
 source_group( Hsne FILES ${HSNE_PLUGIN_SOURCES})
@@ -46,7 +46,7 @@ set_flann_project_link_libraries()
 set_HDILib_project_link_libraries()
 
 install(TARGETS ${HSNE_PLUGIN}
-   RUNTIME DESTINATION Plugins COMPONENT HSNE_SHAREDLIB
+   RUNTIME DESTINATION "${INSTALL_DIR}/$<CONFIGURATION>/Plugins" COMPONENT HSNE_SHAREDLIB
 )
 
 if (NOT DEFINED ENV{CI})
