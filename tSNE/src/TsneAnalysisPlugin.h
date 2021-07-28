@@ -27,10 +27,12 @@ public:
 
     void onDataEvent(hdps::DataEvent* dataEvent);
 
-	/** Returns the icon of this plugin */
-	QIcon getIcon() const override {
-		return hdps::Application::getIconFont("FontAwesome").getIcon("table");
-	}
+    /** Returns the icon of this plugin */
+    QIcon getIcon() const override {
+        return hdps::Application::getIconFont("FontAwesome").getIcon("table");
+    }
+
+    hdps::DataTypes supportedDataTypes() const override;
 
     hdps::gui::SettingsWidget* const getSettings() override;
 
@@ -39,12 +41,12 @@ public:
 
 public: // GUI
 
-	/**
-	 * Generates a context menu for display in other (view) plugins
-	 * @param kind Kind of plugin in which the context menu will be shown
-	 * @return Context menu
-	 */
-	QMenu* contextMenu(const QVariant& context) override;
+    /**
+     * Generates a context menu for display in other (view) plugins
+     * @param kind Kind of plugin in which the context menu will be shown
+     * @return Context menu
+     */
+    QMenu* contextMenu(const QVariant& context) override;
 
 public slots:
     void dataSetPicked(const QString& name);

@@ -80,6 +80,13 @@ void HsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     }
 }
 
+hdps::DataTypes HsneAnalysisPlugin::supportedDataTypes() const
+{
+    DataTypes supportedTypes;
+    supportedTypes.append(PointType);
+    return supportedTypes;
+}
+
 SettingsWidget* const HsneAnalysisPlugin::getSettings()
 {
     return _settings.get();

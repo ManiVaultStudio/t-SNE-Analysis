@@ -31,6 +31,9 @@ public:
 
     void computeTopLevelEmbedding();
     void drillIn(QString embeddingName);
+
+    hdps::DataTypes supportedDataTypes() const override;
+
     SettingsWidget* const getSettings() override;
 
 public slots:

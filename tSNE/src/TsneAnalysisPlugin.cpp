@@ -63,6 +63,13 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     }
 }
 
+hdps::DataTypes TsneAnalysisPlugin::supportedDataTypes() const
+{
+    DataTypes supportedTypes;
+    supportedTypes.append(PointType);
+    return supportedTypes;
+}
+
 hdps::gui::SettingsWidget* const TsneAnalysisPlugin::getSettings()
 {
     return _settings.get();
