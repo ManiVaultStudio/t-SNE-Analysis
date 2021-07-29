@@ -33,19 +33,19 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 	_numChecksAction.setDefaultValue(1024);
 
 	const auto updateExaggeration = [this]() -> void {
-		_tsneAnalysisPlugin->_tsne.setExaggerationIter(_exaggerationAction.getValue());
+		_tsneAnalysisPlugin->_tsneAnalysis.setExaggerationIter(_exaggerationAction.getValue());
 	};
 
 	const auto updateExponentialDecay = [this]() -> void {
-		_tsneAnalysisPlugin->_tsne.setExponentialDecayIter(_exponentialDecayAction.getValue());
+		_tsneAnalysisPlugin->_tsneAnalysis.setExponentialDecayIter(_exponentialDecayAction.getValue());
 	};
 
 	const auto updateNumTrees = [this]() -> void {
-		_tsneAnalysisPlugin->_tsne.setNumTrees(_numTreesAction.getValue());
+		_tsneAnalysisPlugin->_tsneAnalysis.setNumTrees(_numTreesAction.getValue());
 	};
 
 	const auto updateNumChecks = [this]() -> void {
-		_tsneAnalysisPlugin->_tsne.setNumChecks(_numChecksAction.getValue());
+		_tsneAnalysisPlugin->_tsneAnalysis.setNumChecks(_numChecksAction.getValue());
 	};
 
 	const auto canReset = [this]() -> bool {
@@ -68,16 +68,6 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 		_resetAction.setEnabled(canReset());
 	};
 
-	const auto enableControls = [this, canReset]() -> void {
-		const auto enabled = !_tsneAnalysisPlugin->getGeneralSettingsAction().getComputingAction().isChecked();
-
-		_exaggerationAction.setEnabled(enabled);
-		_exponentialDecayAction.setEnabled(enabled);
-		_numTreesAction.setEnabled(enabled);
-		_numChecksAction.setEnabled(enabled);
-		_resetAction.setEnabled(enabled && canReset());
-	};
-
 	connect(&_exaggerationAction, &IntegralAction::valueChanged, this, [this, updateExaggeration, updateReset](const std::int32_t& value) {
 		updateExaggeration();
 		updateReset();
@@ -98,15 +88,24 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 		updateReset();
 	});
 
-	connect(&_tsneAnalysisPlugin->getGeneralSettingsAction().getComputingAction(), &ToggleAction::toggled, this, [this, enableControls](bool toggled) {
-		enableControls();
-	});
-
-	connect(&_resetAction, &TriggerAction::triggered, this, [this, enableControls](const std::int32_t& value) {
+	connect(&_resetAction, &TriggerAction::triggered, this, [this](const std::int32_t& value) {
 		_exaggerationAction.reset();
 		_exponentialDecayAction.reset();
 		_numTreesAction.reset();
 		_numChecksAction.reset();
+	});
+
+	const auto enableControls = [this]() -> void {
+		const auto enable = !_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction().isChecked();
+
+		_exaggerationAction.setEnabled(enable);
+		_exponentialDecayAction.setEnabled(enable);
+		_numTreesAction.setEnabled(enable);
+		_numChecksAction.setEnabled(enable);
+	};
+
+	connect(&_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction(), &ToggleAction::toggled, this, [this, enableControls](bool toggled) {
+		enableControls();
 	});
 
 	updateExaggeration();

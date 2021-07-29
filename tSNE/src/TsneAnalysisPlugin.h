@@ -27,7 +27,8 @@ public:
 	/** Returns the icon of this plugin */
 	QIcon getIcon() const override;
 
-	void startComputation();
+	void initComputation();
+	void startComputation(const bool& restart);
 	void stopComputation();
 	
 	GeneralSettingsAction& getGeneralSettingsAction() { return _generalSettingsAction; }
@@ -35,7 +36,8 @@ public:
 	DimensionsSettingsAction& getDimensionsSettingsAction() { return _dimensionsSettingsAction; }
 
 protected:
-    TsneAnalysis				_tsne;
+    TsneAnalysis				_tsneAnalysis;
+	bool						_tsneAnalysisDirty;
 	GeneralSettingsAction		_generalSettingsAction;
 	AdvancedSettingsAction		_advancedSettingsAction;
 	DimensionsSettingsAction	_dimensionsSettingsAction;

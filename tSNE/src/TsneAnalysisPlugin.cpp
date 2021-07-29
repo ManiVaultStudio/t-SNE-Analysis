@@ -17,7 +17,8 @@ using namespace hdps;
 
 TsneAnalysisPlugin::TsneAnalysisPlugin() :
 	AnalysisPlugin("tSNE Analysis"),
-	_tsne(),
+	_tsneAnalysis(),
+	_tsneAnalysisDirty(true),
 	_generalSettingsAction(this),
 	_advancedSettingsAction(this),
 	_dimensionsSettingsAction(this)
@@ -31,7 +32,7 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-	_outputDatasetName = _core->addData("Points", "Embedding");
+	_outputDatasetName = _core->addData("Points", QString("%1_embedding").arg(_inputDatasetName));
 
 	auto& inputDataset	= _core->requestData<Points>(_inputDatasetName);
 	auto& outputDataset = _core->requestData<Points>(_outputDatasetName);
@@ -47,65 +48,67 @@ void TsneAnalysisPlugin::init()
 	outputDataset.exposeAction(&_advancedSettingsAction);
 	outputDataset.exposeAction(&_dimensionsSettingsAction);
 
-	connect(&_tsne, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
+	connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
 		notifyProgressPercentage(percentage);
 
 		if (percentage == 1.0f) {
-			_generalSettingsAction.getComputingAction().setChecked(false);
+			_generalSettingsAction.getRunningAction().setChecked(false);
 			notifyFinished();
 		}
 	});
 
-	connect(&_tsne, &TsneAnalysis::progressSection, this, [this](const QString& section) {
+	connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
 		notifyProgressSection(section);
 	});
 
-	connect(&_tsne, &TsneAnalysis::computationStopped, this, [this]() {
-		getGeneralSettingsAction().getComputingAction().setChecked(false);
-		getGeneralSettingsAction().getComputingAction().setText("");
-		getGeneralSettingsAction().getComputingAction().setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
+	connect(&_tsneAnalysis, &TsneAnalysis::computationStopped, this, [this]() {
+		getGeneralSettingsAction().getRunningAction().setChecked(false);
+		getGeneralSettingsAction().getRunningAction().setText("");
+		getGeneralSettingsAction().getRunningAction().setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
 		notifyFinished();
 		notifyProgressSection("");
 	});
 
 	connect(&_generalSettingsAction.getStartComputationAction(), &TriggerAction::triggered, this, [this]() {
-		startComputation();
+		startComputation(true);
+	});
+
+	connect(&_generalSettingsAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
+		startComputation(false);
 	});
 
 	connect(&_generalSettingsAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
 		stopComputation();
 	});
 
-	connect(&_tsne, &TsneAnalysis::newEmbedding, this, [this]() {
-		const TsneData& outputData = _tsne.output();
+	connect(&_tsneAnalysis, &TsneAnalysis::newEmbedding, this, [this]() {
+		const TsneData& outputData = _tsneAnalysis.output();
 		auto& embedding = _core->requestData<Points>(_outputDatasetName);
 
 		embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
 
 		_core->notifyDataChanged(_outputDatasetName);
 	});
+
+	_dimensionsSettingsAction.dataChanged(inputDataset);
+
+	registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 }
 
 void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
-	/*
-	if (dataEvent->getType() == EventType::DataRemoved)
-		_settings->removeDataItem(static_cast<DataRemovedEvent*>(dataEvent)->dataSetName);
-
 	if (dataEvent->getType() == EventType::DataChanged)
 	{
 		auto dataChangedEvent = static_cast<DataChangedEvent*>(dataEvent);
 
 		// If we are not looking at the changed dataset, ignore it
-		if (dataChangedEvent->dataSetName != _settings->getCurrentDataItem())
+		if (dataChangedEvent->dataSetName != _inputDatasetName)
 			return;
 
-		// Passes changes to the current dataset to the dimension selection widget
-		Points& points = _core->requestData<Points>(dataChangedEvent->dataSetName);
+		_dimensionsSettingsAction.dataChanged(_core->requestData<Points>(dataChangedEvent->dataSetName));
 
-		_settings->getDimensionSelectionWidget().dataChanged(points);
+		_tsneAnalysisDirty = true;
 	}
-	*/
 }
 
 QIcon TsneAnalysisPlugin::getIcon() const
@@ -113,7 +116,7 @@ QIcon TsneAnalysisPlugin::getIcon() const
 	return hdps::Application::getIconFont("FontAwesome").getIcon("table");
 }
 
-void TsneAnalysisPlugin::startComputation()
+void TsneAnalysisPlugin::initComputation()
 {
 	notifyStarted();
 	notifyProgressPercentage(0.0f);
@@ -136,11 +139,7 @@ void TsneAnalysisPlugin::startComputation()
 		selection = all;
 	}
 
-	std::vector<bool> enabledDimensions;
-
-	enabledDimensions.resize(numDimensions);
-
-	std::fill(enabledDimensions.begin(), enabledDimensions.end(), true);
+	std::vector<bool> enabledDimensions = _dimensionsSettingsAction.getEnabledDimensions();
 
 	unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 
@@ -160,27 +159,37 @@ void TsneAnalysisPlugin::startComputation()
 		}
 	});
 
-	notifyProgressSection("Initializing");
+	_tsneAnalysis.initTSNE(data, numEnabledDimensions);
 
-	_tsne.initTSNE(data, numEnabledDimensions);
+	_tsneAnalysisDirty = false;
+}
 
-	_tsne.start();
+void TsneAnalysisPlugin::startComputation(const bool& restart)
+{
+	if (_tsneAnalysisDirty)
+		initComputation();
+
+	notifyStarted();
+
+	_generalSettingsAction.getRunningAction().setChecked(true);
+
+	_tsneAnalysis.start();
 }
 
 void TsneAnalysisPlugin::stopComputation()
 {
-	if (_tsne.isRunning())
+	if (_tsneAnalysis.isRunning())
 	{
 		// Request interruption of the computation
-		_tsne.stopGradientDescent();
-		_tsne.exit();
+		_tsneAnalysis.stopGradientDescent();
+		_tsneAnalysis.exit();
 
 		// Wait until the thread has terminated (max. 3 seconds)
-		if (!_tsne.wait(3000))
+		if (!_tsneAnalysis.wait(3000))
 		{
 			qDebug() << "tSNE computation thread did not close in time, terminating...";
-			_tsne.terminate();
-			_tsne.wait();
+			_tsneAnalysis.terminate();
+			_tsneAnalysis.wait();
 
 			notifyAborted("Interrupted by user");
 		}

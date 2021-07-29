@@ -24,19 +24,21 @@ public:
     QMenu* getContextMenu();
 
 	hdps::gui::TriggerAction& getStartComputationAction() { return _startComputationAction; }
+	hdps::gui::TriggerAction& getContinueComputationAction() { return _continueComputationAction; }
 	hdps::gui::TriggerAction& getStopComputationAction() { return _stopComputationAction; }
-	hdps::gui::ToggleAction& getComputingAction() { return _computationAction; }
+	hdps::gui::ToggleAction& getRunningAction() { return _runningAction; }
 
 protected:
-	TsneAnalysisPlugin*			_tsneAnalysisPlugin;		/** Pointer to TSNE analysis plugin */
-	hdps::gui::OptionAction		_knnTypeAction;				/** KNN action */
-	hdps::gui::OptionAction		_distanceMetricAction;		/** Distance metric action */
-	hdps::gui::IntegralAction	_numIterationsAction;		/** Number of iterations action */
-	hdps::gui::IntegralAction	_perplexityAction;			/** Perplexity action */
-	hdps::gui::TriggerAction	_resetAction;				/** Reset all input to defaults */
-	hdps::gui::TriggerAction	_startComputationAction;	/** Start computation action */
-	hdps::gui::TriggerAction	_stopComputationAction;		/** Stop computation action */
-	hdps::gui::ToggleAction		_computationAction;				/** Computing action */
+	TsneAnalysisPlugin*			_tsneAnalysisPlugin;			/** Pointer to TSNE analysis plugin */
+	hdps::gui::OptionAction		_knnTypeAction;					/** KNN action */
+	hdps::gui::OptionAction		_distanceMetricAction;			/** Distance metric action */
+	hdps::gui::IntegralAction	_numIterationsAction;			/** Number of iterations action */
+	hdps::gui::IntegralAction	_perplexityAction;				/** Perplexity action */
+	hdps::gui::TriggerAction	_resetAction;					/** Reset all input to defaults */
+	hdps::gui::TriggerAction	_startComputationAction;		/** Start computation action */
+	hdps::gui::TriggerAction	_continueComputationAction;		/** Start computation action */
+	hdps::gui::TriggerAction	_stopComputationAction;			/** Stop computation action */
+	hdps::gui::ToggleAction		_runningAction;					/** Running action */
 	
     friend class Widget;
 };

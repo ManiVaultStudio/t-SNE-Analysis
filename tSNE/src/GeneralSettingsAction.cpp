@@ -14,9 +14,10 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 	_numIterationsAction(this, "Number of iterations"),
 	_perplexityAction(this, "Perplexity"),
 	_resetAction(this, "Reset all"),
-	_startComputationAction(this, "Start computation"),
-	_stopComputationAction(this, "Stop computation"),
-	_computationAction(this, "Computation")
+	_startComputationAction(this, "Start"),
+	_continueComputationAction(this, "Continue"),
+	_stopComputationAction(this, "Stop"),
+	_runningAction(this, "Running")
 {
 	setText("General");
 
@@ -38,19 +39,19 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 	_resetAction.setEnabled(false);
 
 	const auto updateKnnAlgorithm = [this]() -> void {
-		_tsneAnalysisPlugin->_tsne.setKnnAlgorithm(_knnTypeAction.getCurrentIndex());
+		_tsneAnalysisPlugin->_tsneAnalysis.setKnnAlgorithm(_knnTypeAction.getCurrentIndex());
 	};
 
 	const auto updateDistanceMetric = [this]() -> void {
-		_tsneAnalysisPlugin->_tsne.setDistanceMetric(_distanceMetricAction.getCurrentIndex());
+		_tsneAnalysisPlugin->_tsneAnalysis.setDistanceMetric(_distanceMetricAction.getCurrentIndex());
 	};
 
 	const auto updateNumIterations = [this]() -> void {
-		_tsneAnalysisPlugin->_tsne.setIterations(_numIterationsAction.getValue());
+		_tsneAnalysisPlugin->_tsneAnalysis.setIterations(_numIterationsAction.getValue());
 	};
 
 	const auto updatePerplexity = [this]() -> void {
-		_tsneAnalysisPlugin->_tsne.setPerplexity(_perplexityAction.getValue());
+		_tsneAnalysisPlugin->_tsneAnalysis.setPerplexity(_perplexityAction.getValue());
 	};
 
 	const auto canReset = [this]() -> bool {
@@ -69,22 +70,32 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 		return false;
 	};
 
+	/*
 	const auto updateComputation = [this]() -> void {
-		_computationAction.setText(_computationAction.isChecked() ? "Stop computation" : "Start computation");
+		const auto isRunning = _runningAction.isChecked();
+
+		_computationAction.setText(isRunning ? "Stop computation" : "Start computation");
 		_computationAction.setText("");
-		_computationAction.setIcon(_computationAction.isChecked() ? hdps::Application::getIconFont("FontAwesome").getIcon("stop") : hdps::Application::getIconFont("FontAwesome").getIcon("play"));
+		_computationAction.setIcon(isRunning ? hdps::Application::getIconFont("FontAwesome").getIcon("stop") : hdps::Application::getIconFont("FontAwesome").getIcon("play"));
 	};
+	*/
 
 	const auto updateReset = [this, canReset]() -> void {
 		_resetAction.setEnabled(canReset());
 	};
 
-	const auto enableControls = [this, canReset](const bool& enabled) -> void {
-		_knnTypeAction.setEnabled(enabled);
-		_distanceMetricAction.setEnabled(enabled);
-		_numIterationsAction.setEnabled(enabled);
-		_perplexityAction.setEnabled(enabled);
-		_resetAction.setEnabled(enabled && canReset());
+	const auto enableControls = [this, canReset]() -> void {
+		const auto isRunning	= _runningAction.isChecked();
+		const auto enable		= !isRunning;
+
+		_knnTypeAction.setEnabled(enable);
+		_distanceMetricAction.setEnabled(enable);
+		_numIterationsAction.setEnabled(enable);
+		_perplexityAction.setEnabled(enable);
+		_resetAction.setEnabled(enable && canReset());
+		_startComputationAction.setEnabled(enable);
+		_continueComputationAction.setEnabled(enable);
+		_stopComputationAction.setEnabled(isRunning);
 	};
 
 	connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric, updateReset](const std::int32_t& currentIndex) {
@@ -107,35 +118,38 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 		updateReset();
 	});
 
-	connect(&_startComputationAction, &TriggerAction::triggered, this, [this, enableControls, updateComputation](const std::int32_t& value) {
-		enableControls(false);
-		updateComputation();
-
+	connect(&_startComputationAction, &TriggerAction::triggered, this, [this]() {
+		/*
 		QSignalBlocker blocker(&_computationAction);
 
 		_computationAction.setChecked(true);
 		_computationAction.setText("");
 		_computationAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
+		*/
 	});
 
-	connect(&_stopComputationAction, &TriggerAction::triggered, this, [this, enableControls, updateComputation](const std::int32_t& value) {
-		enableControls(true);
-		updateComputation();
+	connect(&_continueComputationAction, &TriggerAction::triggered, this, [this]() {
+		/*
+		QSignalBlocker blocker(&_computationAction);
 
+		_computationAction.setChecked(true);
+		_computationAction.setText("");
+		_computationAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
+		*/
+	});
+
+	connect(&_stopComputationAction, &TriggerAction::triggered, this, [this]() {
+		/*
 		QSignalBlocker blocker(&_computationAction);
 
 		_computationAction.setChecked(false);
 		_computationAction.setText("");
 		_computationAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
+		*/
 	});
 
-	connect(&_computationAction, &ToggleAction::toggled, this, [this, updateComputation](bool toggled) {
-		updateComputation();
-
-		if (toggled)
-			_startComputationAction.trigger();
-		else
-			_stopComputationAction.trigger();
+	connect(&_runningAction, &TriggerAction::toggled, this, [this, enableControls](bool toggled) {
+		enableControls();
 	});
 
 	connect(&_resetAction, &TriggerAction::triggered, this, [this, enableControls](const std::int32_t& value) {
@@ -149,8 +163,8 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 	updateDistanceMetric();
 	updateNumIterations();
 	updatePerplexity();
-	updateComputation();
 	updateReset();
+	enableControls();
 }
 
 QMenu* GeneralSettingsAction::getContextMenu()
@@ -203,8 +217,15 @@ GeneralSettingsAction::Widget::Widget(QWidget* parent, GeneralSettingsAction* ge
 	addIntegralActionToLayout(generalSettingsAction->_numIterationsAction);
 	addIntegralActionToLayout(generalSettingsAction->_perplexityAction);
 
-	layout->addWidget(generalSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 3);
-	layout->addWidget(generalSettingsAction->_computationAction.createPushButtonWidget(this), layout->rowCount(), 0, 1, 3);
+	layout->addWidget(generalSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 1, 1, 2);
+	
+	auto computeLayout = new QHBoxLayout();
+
+	computeLayout->addWidget(generalSettingsAction->_startComputationAction.createWidget(this));
+	computeLayout->addWidget(generalSettingsAction->_continueComputationAction.createWidget(this));
+	computeLayout->addWidget(generalSettingsAction->_stopComputationAction.createWidget(this));
+
+	layout->addLayout(computeLayout, layout->rowCount(), 1, 1, 2);
 
     switch (state)
     {
