@@ -1,97 +1,102 @@
 #pragma once
 
+#include "TsneParameters.h"
 #include "TsneData.h"
 
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
-#include "hdi/dimensionality_reduction/sparse_tsne_user_def_probabilities.h"
 #include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h"
-#include "hdi/dimensionality_reduction/knn_utils.h"
 
 #include <QThread>
 
 #include <vector>
 #include <string>
 
-class TsneAnalysis : public QThread
+class OffscreenBuffer;
+
+class TsneWorker : public QObject
+{
+    Q_OBJECT
+public:
+    TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions);
+    TsneWorker(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions);
+    void changeThread(QThread* targetThread);
+
+public slots:
+    void compute();
+    void stop();
+
+signals:
+    void progressMessage(const QString message);
+    void embeddingUpdate(TsneData tsneData);
+    void finished();
+
+private:
+    void computeSimilarities();
+    void computeGradientDescent();
+    
+    void copyEmbeddingOutput();
+
+    /** Parameters for the execution of the similarity computation and gradient descent */
+    TsneParameters _parameters;
+
+    /** Current iteration in the embedding / gradient descent process */
+    int _currentIteration;
+
+    // Data variables
+    int _numPoints;
+    int _numDimensions;
+
+    /** High-dimensional input data */
+    std::vector<float> _data;
+
+    /** High-dimensional probability distribution encoding point similarities */
+    hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type _probabilityDistribution;
+
+    /** Check if the worker was initialized with a probability distribution or data */
+    bool _hasProbabilityDistribution;
+
+    /** GPGPU t-SNE gradient descent implementation */
+    hdi::dr::GradientDescentTSNETexture _GPGPU_tSNE;
+
+    /** Storage of current embedding */
+    hdi::data::Embedding<float> _embedding;
+
+    /** Transfer embedding data array */
+    TsneData _outEmbedding;
+
+    /** Offscreen OpenGL buffer required to run the gradient descent */
+    OffscreenBuffer* _offscreenBuffer;
+
+    // Termination flags
+    bool _shouldStop;
+};
+
+class TsneAnalysis : public QObject
 {
     Q_OBJECT
 public:
     TsneAnalysis();
     ~TsneAnalysis() override;
 
-    void setKnnAlgorithm(int algorithm);
-    void setDistanceMetric(int metric);
-    void setVerbose(bool verbose);
-    void setIterations(int iterations);
-    void setNumTrees(int numTrees);
-    void setNumChecks(int numChecks);
-    void setExaggerationIter(int exaggerationIter);
-    void setExponentialDecayIter(int exponentialDecayIter);
-    void setPerplexity(int perplexity);
-    void setNumDimensionsOutput(int numDimensionsOutput);
-
-    inline bool verbose() { return _verbose; }
-    inline int iterations() { return _iterations; }
-    inline int numTrees() { return _numTrees; }
-    inline int numChecks() { return _numChecks; }
-    inline int exaggerationIter() { return _exaggerationIter; }
-    inline int perplexity() { return _perplexity; }
-    inline int numDimensionsOutput() { return _numDimensionsOutput; }
-
-    void initTSNE(std::vector<float>& data, const int numDimensions);
-    void initWithProbDist(const int numPoints, const int numDimensions, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist);
-    void stopGradientDescent();
-    void markForDeletion();
-
-    const TsneData& output();
-
-    inline bool isTsneRunning() { return _isTsneRunning; }
-    inline bool isGradientDescentRunning() { return _isGradientDescentRunning; }
-    inline bool isMarkedForDeletion() { return _isMarkedForDeletion; }
+    void startComputation(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions);
+    void startComputation(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions);
+    void stopComputation();
 
 private:
-    void run() override;
-
-    void computeGradientDescent();
-    void initGradientDescent();
-    void embed();
-    void copyFloatOutput();
+    void startComputation(TsneWorker* tsneWorker);
 
 signals:
-    void newEmbedding();
-    void computationStopped();
+    // Local signals
+    void startWorker();
+    void stopWorker();
+
+    // Outgoing signals
+    void embeddingUpdate(const TsneData tsneData);
+    void progressMessage(const QString& message);
     void progressPercentage(const float& percentage);
     void progressSection(const QString& section);
+    void finished();
 
 private:
-    // TSNE structures
-    hdi::dr::knn_library _knnLibrary = hdi::dr::KNN_FLANN;
-    hdi::dr::knn_distance_metric _knnDistanceMetric = hdi::dr::KNN_METRIC_EUCLIDEAN;
-    hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type _probabilityDistribution;
-    hdi::dr::SparseTSNEUserDefProbabilities<float> _A_tSNE;
-    hdi::dr::GradientDescentTSNETexture _GPGPU_tSNE;
-    hdi::data::Embedding<float> _embedding;
-
-    // Data
-    //TsneData _inputData;
-    TsneData _outputData;
-    unsigned int _numPoints;
-    unsigned int _numDimensions;
-
-    // Options
-    int _iterations;
-    int _numTrees;
-    int _numChecks;
-    int _exaggerationIter;
-    int _exponentialDecayIter;
-    int _perplexity;
-    int _numDimensionsOutput;
-
-    // Flags
-    bool _verbose;
-    bool _isGradientDescentRunning;
-    bool _isTsneRunning;
-    bool _isMarkedForDeletion;
-
-    int _continueFromIteration;
+    QThread _workerThread;
 };

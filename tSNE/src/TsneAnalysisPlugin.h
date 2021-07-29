@@ -35,6 +35,8 @@ public:
 	AdvancedSettingsAction& getAdvancedSettingsAction() { return _advancedSettingsAction; }
 	DimensionsSettingsAction& getDimensionsSettingsAction() { return _dimensionsSettingsAction; }
 
+    //hdps::DataTypes supportedDataTypes() const override;
+
 protected:
     TsneAnalysis				_tsneAnalysis;
 	bool						_tsneAnalysisDirty;

@@ -2,8 +2,8 @@
 
 #include <AnalysisPlugin.h>
 
+#include "HsneHierarchy.h"
 #include "TsneAnalysis.h"
-#include "HsneAnalysis.h"
 #include "HsneSettingsWidget.h"
 
 using namespace hdps::plugin;
@@ -29,12 +29,36 @@ public:
      */
     void onDataEvent(hdps::DataEvent* dataEvent);
 
+    void computeTopLevelEmbedding();
+    void drillIn(QString embeddingName);
+
+    hdps::DataTypes supportedDataTypes() const override;
+
 public slots:
     void dataSetPicked(const QString& name);
     void startComputation();
+    void onDrillIn();
+    void onNewEmbedding(const TsneData& tsneData);
+
+public: // GUI
+    /**
+     * Generates a context menu for display in other (view) plugins
+     * @param kind Kind of plugin in which the context menu will be shown
+     * @return Context menu
+     */
+    QMenu* contextMenu(const QVariant& context) override;
 
 private:
-    HsneAnalysis _hsne;
+    QString createEmptyDerivedEmbedding(QString name, QString dataType, QString sourceName);
+
+private:
+    HsneHierarchy _hierarchy;
+
+    TsneAnalysis _tsne;
+
+    QString _inputDataName;
+    QString _embeddingNameBase;
+    QString _embeddingName;
 
     std::unique_ptr<HsneSettingsWidget> _settings;
 };

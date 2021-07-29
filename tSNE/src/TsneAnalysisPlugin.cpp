@@ -5,11 +5,9 @@
 
 #include <QtCore>
 #include <QtDebug>
+#include <QMenu>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 #include <set>
 
@@ -81,12 +79,9 @@ void TsneAnalysisPlugin::init()
 		stopComputation();
 	});
 
-	connect(&_tsneAnalysis, &TsneAnalysis::newEmbedding, this, [this]() {
-		const TsneData& outputData = _tsneAnalysis.output();
+	connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData tsneData) {
 		auto& embedding = _core->requestData<Points>(_outputDatasetName);
-
-		embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
-
+		embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 		_core->notifyDataChanged(_outputDatasetName);
 	});
 
@@ -111,6 +106,15 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 	}
 }
 
+/*
+hdps::DataTypes TsneAnalysisPlugin::supportedDataTypes() const
+{
+    DataTypes supportedTypes;
+    supportedTypes.append(PointType);
+    return supportedTypes;
+}
+*/
+
 QIcon TsneAnalysisPlugin::getIcon() const
 {
 	return hdps::Application::getIconFont("FontAwesome").getIcon("table");
@@ -124,6 +128,7 @@ void TsneAnalysisPlugin::initComputation()
 
 	const Points& points = _core->requestData<Points>(_inputDatasetName);
 
+    //TsneParameters parameters = _settings->getTsneParameters();
 	const auto numDimensions = points.getNumDimensions();
 
 	// Create list of data from the enabled dimensions
@@ -159,9 +164,30 @@ void TsneAnalysisPlugin::initComputation()
 		}
 	});
 
-	_tsneAnalysis.initTSNE(data, numEnabledDimensions);
+    /*
+    // Create list of data from the enabled dimensions
+    std::vector<float> data;
+    std::vector<unsigned int> indices;
 
-	_tsneAnalysisDirty = false;
+    // Extract the enabled dimensions from the data
+    std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
+    unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
+    data.resize((points.isFull() ? points.getNumPoints() : points.indices.size()) * numEnabledDimensions);
+    for (int i = 0; i < points.getNumDimensions(); i++)
+        if (enabledDimensions[i]) indices.push_back(i);
+
+    points.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
+
+    // Create new data set for the embedding
+    _embeddingName = _core->createDerivedData(_settings->getEmbeddingName(), points.getName());
+
+    Points& embedding = _core->requestData<Points>(_embeddingName);
+    embedding.setData(nullptr, 0, 2);
+    _core->notifyDataAdded(_embeddingName);
+
+    _tsne.startComputation(parameters, data, numEnabledDimensions);
+    */
+	//_tsneAnalysis.startComputation(data, numEnabledDimensions);
 }
 
 void TsneAnalysisPlugin::startComputation(const bool& restart)
@@ -173,11 +199,12 @@ void TsneAnalysisPlugin::startComputation(const bool& restart)
 
 	_generalSettingsAction.getRunningAction().setChecked(true);
 
-	_tsneAnalysis.start();
+	//_tsneAnalysis.start();
 }
 
 void TsneAnalysisPlugin::stopComputation()
 {
+    /*
 	if (_tsneAnalysis.isRunning())
 	{
 		// Request interruption of the computation
@@ -198,6 +225,7 @@ void TsneAnalysisPlugin::stopComputation()
 		notifyAborted("Interrupted by user");
 		//notifyProgressSection("");
 	}
+    */
 
 	notifyAborted("Interrupted by user");
 }
