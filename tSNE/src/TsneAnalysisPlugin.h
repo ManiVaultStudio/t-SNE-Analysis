@@ -34,7 +34,7 @@ public:
 	AdvancedSettingsAction& getAdvancedSettingsAction() { return _advancedSettingsAction; }
 	DimensionsSettingsAction& getDimensionsSettingsAction() { return _dimensionsSettingsAction; }
 
-    //hdps::DataTypes supportedDataTypes() const override;
+    hdps::DataTypes supportedDataTypes() const override;
 
     TsneParameters& getTsneParameters();
 

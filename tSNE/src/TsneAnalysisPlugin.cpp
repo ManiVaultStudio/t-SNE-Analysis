@@ -31,7 +31,7 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-	_outputDatasetName = _core->addData("Points", QString("%1_embedding").arg(_inputDatasetName));
+	_outputDatasetName = _core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName);
 
 	auto& inputDataset	= _core->requestData<Points>(_inputDatasetName);
 	auto& outputDataset = _core->requestData<Points>(_outputDatasetName);
@@ -42,7 +42,7 @@ void TsneAnalysisPlugin::init()
 
 	outputDataset.setData(initialData, 2);
 	outputDataset.setParentDatasetName(_inputDatasetName);
-
+    
 	outputDataset.exposeAction(&_generalSettingsAction);
 	outputDataset.exposeAction(&_advancedSettingsAction);
 	outputDataset.exposeAction(&_dimensionsSettingsAction);
@@ -107,14 +107,12 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 	}
 }
 
-/*
 hdps::DataTypes TsneAnalysisPlugin::supportedDataTypes() const
 {
     DataTypes supportedTypes;
     supportedTypes.append(PointType);
     return supportedTypes;
 }
-*/
 
 QIcon TsneAnalysisPlugin::getIcon() const
 {

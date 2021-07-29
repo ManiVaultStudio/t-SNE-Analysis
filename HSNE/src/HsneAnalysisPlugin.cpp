@@ -80,14 +80,12 @@ void HsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     }
 }
 
-/*
 hdps::DataTypes HsneAnalysisPlugin::supportedDataTypes() const
 {
     DataTypes supportedTypes;
     supportedTypes.append(PointType);
     return supportedTypes;
 }
-*/
 
 // If a different input dataset is picked in the settings widget update the dimension widget
 void HsneAnalysisPlugin::dataSetPicked(const QString& name)
