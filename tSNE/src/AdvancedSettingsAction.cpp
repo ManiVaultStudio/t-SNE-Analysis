@@ -33,19 +33,19 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 	_numChecksAction.setDefaultValue(1024);
 
 	const auto updateExaggeration = [this]() -> void {
-		_tsneAnalysisPlugin->_tsneAnalysis.setExaggerationIter(_exaggerationAction.getValue());
+        _tsneAnalysisPlugin->getTsneParameters().setExaggerationIter(_exaggerationAction.getValue());
 	};
 
 	const auto updateExponentialDecay = [this]() -> void {
-		_tsneAnalysisPlugin->_tsneAnalysis.setExponentialDecayIter(_exponentialDecayAction.getValue());
+        _tsneAnalysisPlugin->getTsneParameters().setExponentialDecayIter(_exponentialDecayAction.getValue());
 	};
 
 	const auto updateNumTrees = [this]() -> void {
-		_tsneAnalysisPlugin->_tsneAnalysis.setNumTrees(_numTreesAction.getValue());
+        _tsneAnalysisPlugin->getTsneParameters().setNumTrees(_numTreesAction.getValue());
 	};
 
 	const auto updateNumChecks = [this]() -> void {
-		_tsneAnalysisPlugin->_tsneAnalysis.setNumChecks(_numChecksAction.getValue());
+        _tsneAnalysisPlugin->getTsneParameters().setNumChecks(_numChecksAction.getValue());
 	};
 
 	const auto canReset = [this]() -> bool {

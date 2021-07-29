@@ -32,7 +32,7 @@ public:
     void computeTopLevelEmbedding();
     void drillIn(QString embeddingName);
 
-    hdps::DataTypes supportedDataTypes() const override;
+    //hdps::DataTypes supportedDataTypes() const override;
 
 public slots:
     void dataSetPicked(const QString& name);
@@ -60,7 +60,7 @@ private:
     QString _embeddingNameBase;
     QString _embeddingName;
 
-    std::unique_ptr<HsneSettingsWidget> _settings;
+    //std::unique_ptr<HsneSettingsWidget> _settings;
 };
 
 // =============================================================================

@@ -26,8 +26,9 @@ public slots:
     void stop();
 
 signals:
-    void progressMessage(const QString message);
     void embeddingUpdate(TsneData tsneData);
+    void progressPercentage(const float& percentage);
+    void progressSection(const QString& section);
     void finished();
 
 private:
@@ -92,7 +93,6 @@ signals:
 
     // Outgoing signals
     void embeddingUpdate(const TsneData tsneData);
-    void progressMessage(const QString& message);
     void progressPercentage(const float& percentage);
     void progressSection(const QString& section);
     void finished();

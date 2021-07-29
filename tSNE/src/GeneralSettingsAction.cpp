@@ -39,19 +39,19 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 	_resetAction.setEnabled(false);
 
 	const auto updateKnnAlgorithm = [this]() -> void {
-		_tsneAnalysisPlugin->_tsneAnalysis.setKnnAlgorithm(_knnTypeAction.getCurrentIndex());
+		_tsneAnalysisPlugin->getTsneParameters().setKnnAlgorithm(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
 	};
 
 	const auto updateDistanceMetric = [this]() -> void {
-		_tsneAnalysisPlugin->_tsneAnalysis.setDistanceMetric(_distanceMetricAction.getCurrentIndex());
+        _tsneAnalysisPlugin->getTsneParameters().setKnnDistanceMetric(static_cast<hdi::dr::knn_distance_metric>(_distanceMetricAction.getCurrentIndex()));
 	};
 
 	const auto updateNumIterations = [this]() -> void {
-		_tsneAnalysisPlugin->_tsneAnalysis.setIterations(_numIterationsAction.getValue());
+        _tsneAnalysisPlugin->getTsneParameters().setNumIterations(_numIterationsAction.getValue());
 	};
 
 	const auto updatePerplexity = [this]() -> void {
-		_tsneAnalysisPlugin->_tsneAnalysis.setPerplexity(_perplexityAction.getValue());
+        _tsneAnalysisPlugin->getTsneParameters().setPerplexity(_perplexityAction.getValue());
 	};
 
 	const auto canReset = [this]() -> bool {
@@ -93,9 +93,9 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 		_numIterationsAction.setEnabled(enable);
 		_perplexityAction.setEnabled(enable);
 		_resetAction.setEnabled(enable && canReset());
-		_startComputationAction.setEnabled(enable);
-		_continueComputationAction.setEnabled(enable);
-		_stopComputationAction.setEnabled(isRunning);
+		//_startComputationAction.setEnabled(enable);
+		//_continueComputationAction.setEnabled(enable);
+		//_stopComputationAction.setEnabled(isRunning);
 	};
 
 	connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric, updateReset](const std::int32_t& currentIndex) {

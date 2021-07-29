@@ -89,11 +89,11 @@ HsneSettingsWidget::HsneSettingsWidget(HsneAnalysisPlugin& analysisPlugin) :
     computeBox->setLayout(computeLayout);
 
     // Add all the parts of the settings widget together
-    addWidget(_dataOptions);
-    addWidget(&_dimensionSelectionWidget);
-    addWidget(hsneSettingsBox);
-    addWidget(tsneSettingsBox);
-    addWidget(computeBox);
+    //addWidget(_dataOptions);
+    //addWidget(&_dimensionSelectionWidget);
+    //addWidget(hsneSettingsBox);
+    //addWidget(tsneSettingsBox);
+    //addWidget(computeBox);
 }
 
 void HsneSettingsWidget::setEmbeddingName(QString embName)

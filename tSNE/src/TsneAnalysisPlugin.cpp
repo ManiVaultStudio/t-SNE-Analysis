@@ -1,5 +1,4 @@
 #include "TsneAnalysisPlugin.h"
-#include "TsneSettingsWidget.h"
 
 #include "PointData.h"
 
@@ -12,10 +11,12 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 #include <set>
 
 using namespace hdps;
+using namespace hdps::gui;
 
 TsneAnalysisPlugin::TsneAnalysisPlugin() :
 	AnalysisPlugin("tSNE Analysis"),
 	_tsneAnalysis(),
+    _tsneParameters(),
 	_tsneAnalysisDirty(true),
 	_generalSettingsAction(this),
 	_advancedSettingsAction(this),
@@ -120,114 +121,45 @@ QIcon TsneAnalysisPlugin::getIcon() const
 	return hdps::Application::getIconFont("FontAwesome").getIcon("table");
 }
 
-void TsneAnalysisPlugin::initComputation()
+void TsneAnalysisPlugin::startComputation(const bool& restart)
 {
-	notifyStarted();
-	notifyProgressPercentage(0.0f);
-	notifyProgressSection("Preparing data");
+    notifyStarted();
+    notifyProgressPercentage(0.0f);
+    notifyProgressSection("Preparing data");
 
-	const Points& points = _core->requestData<Points>(_inputDatasetName);
+    const auto& inputPoints = _core->requestData<Points>(_inputDatasetName);
 
-    //TsneParameters parameters = _settings->getTsneParameters();
-	const auto numDimensions = points.getNumDimensions();
-
-	// Create list of data from the enabled dimensions
-	std::vector<float> data;
-
-	auto selection = points.indices;
-
-	// If the dataset is not a subset, use all data points
-	if (points.isFull()) {
-		std::vector<std::uint32_t> all(points.getNumPoints());
-		std::iota(std::begin(all), std::end(all), 0);
-
-		selection = all;
-	}
-
-	std::vector<bool> enabledDimensions = _dimensionsSettingsAction.getEnabledDimensions();
-
-	unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
-
-	data.reserve(selection.size() * numEnabledDimensions);
-
-	points.visitFromBeginToEnd([&data, &selection, &enabledDimensions, numDimensions](auto beginOfData, auto endOfData)
-	{
-		for (const auto& pointId : selection)
-		{
-			for (int dimensionId = 0; dimensionId < numDimensions; dimensionId++)
-			{
-				if (enabledDimensions[dimensionId]) {
-					const auto index = pointId * numDimensions + dimensionId;
-					data.push_back(beginOfData[index]);
-				}
-			}
-		}
-	});
-
-    /*
     // Create list of data from the enabled dimensions
     std::vector<float> data;
     std::vector<unsigned int> indices;
 
     // Extract the enabled dimensions from the data
-    std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
-    unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
-    data.resize((points.isFull() ? points.getNumPoints() : points.indices.size()) * numEnabledDimensions);
-    for (int i = 0; i < points.getNumDimensions(); i++)
-        if (enabledDimensions[i]) indices.push_back(i);
+    std::vector<bool> enabledDimensions = _dimensionsSettingsAction.getEnabledDimensions();
 
-    points.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
+    const auto numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 
-    // Create new data set for the embedding
-    _embeddingName = _core->createDerivedData(_settings->getEmbeddingName(), points.getName());
+    data.resize((inputPoints.isFull() ? inputPoints.getNumPoints() : inputPoints.indices.size()) * numEnabledDimensions);
 
-    Points& embedding = _core->requestData<Points>(_embeddingName);
-    embedding.setData(nullptr, 0, 2);
-    _core->notifyDataAdded(_embeddingName);
+    for (int i = 0; i < inputPoints.getNumDimensions(); i++)
+        if (enabledDimensions[i])
+            indices.push_back(i);
 
-    _tsne.startComputation(parameters, data, numEnabledDimensions);
-    */
-	//_tsneAnalysis.startComputation(data, numEnabledDimensions);
-}
+    inputPoints.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
-void TsneAnalysisPlugin::startComputation(const bool& restart)
-{
-	if (_tsneAnalysisDirty)
-		initComputation();
+    _generalSettingsAction.getRunningAction().setChecked(true);
 
-	notifyStarted();
-
-	_generalSettingsAction.getRunningAction().setChecked(true);
-
-	//_tsneAnalysis.start();
+    _tsneAnalysis.startComputation(_tsneParameters, data, numEnabledDimensions);
 }
 
 void TsneAnalysisPlugin::stopComputation()
 {
-    /*
-	if (_tsneAnalysis.isRunning())
-	{
-		// Request interruption of the computation
-		_tsneAnalysis.stopGradientDescent();
-		_tsneAnalysis.exit();
+    _tsneAnalysis.stopComputation();
+    emit notifyAborted("Interrupted by user");
+}
 
-		// Wait until the thread has terminated (max. 3 seconds)
-		if (!_tsneAnalysis.wait(3000))
-		{
-			qDebug() << "tSNE computation thread did not close in time, terminating...";
-			_tsneAnalysis.terminate();
-			_tsneAnalysis.wait();
-
-			notifyAborted("Interrupted by user");
-		}
-		qDebug() << "tSNE computation stopped.";
-
-		notifyAborted("Interrupted by user");
-		//notifyProgressSection("");
-	}
-    */
-
-	notifyAborted("Interrupted by user");
+TsneParameters& TsneAnalysisPlugin::getTsneParameters()
+{
+    return _tsneParameters;
 }
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()

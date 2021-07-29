@@ -120,7 +120,7 @@ public:
     QLabel* embeddingNameLabel;
 };
 
-class HsneSettingsWidget : public SettingsWidget
+class HsneSettingsWidget : public QWidget
 {
     Q_OBJECT
 public:

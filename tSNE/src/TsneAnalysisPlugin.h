@@ -27,7 +27,6 @@ public:
 	/** Returns the icon of this plugin */
 	QIcon getIcon() const override;
 
-	void initComputation();
 	void startComputation(const bool& restart);
 	void stopComputation();
 	
@@ -37,8 +36,11 @@ public:
 
     //hdps::DataTypes supportedDataTypes() const override;
 
+    TsneParameters& getTsneParameters();
+
 protected:
     TsneAnalysis				_tsneAnalysis;
+    TsneParameters              _tsneParameters;
 	bool						_tsneAnalysisDirty;
 	GeneralSettingsAction		_generalSettingsAction;
 	AdvancedSettingsAction		_advancedSettingsAction;
