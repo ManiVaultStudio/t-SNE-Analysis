@@ -59,7 +59,7 @@ void TsneAnalysisPlugin::init()
 		notifyProgressSection(section);
 	});
 
-	connect(&_tsneAnalysis, &TsneAnalysis::computationStopped, this, [this]() {
+	connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
 		getGeneralSettingsAction().getRunningAction().setChecked(false);
 		getGeneralSettingsAction().getRunningAction().setText("");
 		getGeneralSettingsAction().getRunningAction().setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
