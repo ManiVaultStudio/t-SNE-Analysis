@@ -229,7 +229,7 @@ void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
     connect(tsneWorker, &TsneWorker::finished, this, &TsneAnalysis::finished);
 
     // QThread signals
-    connect(&_workerThread, &QThread::finished, tsneWorker, &QObject::deleteLater);
+    connect(tsneWorker, &TsneWorker::finished, tsneWorker, &QObject::deleteLater);
 
     _workerThread.start();
     emit startWorker();
