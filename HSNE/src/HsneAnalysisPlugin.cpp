@@ -24,12 +24,10 @@ using namespace hdps;
 HsneAnalysisPlugin::HsneAnalysisPlugin() :
     AnalysisPlugin("H-SNE Analysis")
 {
-
 }
 
 HsneAnalysisPlugin::~HsneAnalysisPlugin(void)
 {
-    
 }
 
 void HsneAnalysisPlugin::init()

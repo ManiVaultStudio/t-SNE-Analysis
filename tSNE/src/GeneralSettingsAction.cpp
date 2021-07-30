@@ -9,10 +9,10 @@ using namespace hdps::gui;
 GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
 	WidgetActionGroup(tsneAnalysisPlugin, true),
 	_tsneAnalysisPlugin(tsneAnalysisPlugin),
-	_knnTypeAction(this, "KNN Type"),
-	_distanceMetricAction(this, "Distance metric"),
-	_numIterationsAction(this, "Number of iterations"),
-	_perplexityAction(this, "Perplexity"),
+	_knnTypeAction(this, "KNN Type", QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN"),
+    _distanceMetricAction(this, "Distance metric", QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean"),
+	_numIterationsAction(this, "Number of iterations", 1, 10000, 1000, 1000),
+	_perplexityAction(this, "Perplexity", 2, 50, 30, 30),
 	_resetAction(this, "Reset all"),
 	_startComputationAction(this, "Start"),
 	_continueComputationAction(this, "Continue"),
@@ -21,22 +21,7 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 {
 	setText("General");
 
-	_knnTypeAction.setOptions(QStringList() << "FLANN" << "HNSW" << "ANNOY");
-	_distanceMetricAction.setOptions(QStringList() << "Euclidean" << "Cosine" << "Inner Product" << "Manhattan" << "Hamming" << "Dot");
-	_numIterationsAction.setRange(1, 10000);
-	_perplexityAction.setRange(2, 50);
-
-	_knnTypeAction.setCurrentText("FLANN");
-	_distanceMetricAction.setCurrentText("Euclidean");
-	_numIterationsAction.setValue(1000);
-	_perplexityAction.setValue(30);
-
-	_knnTypeAction.setDefaultText("FLANN");
-	_distanceMetricAction.setDefaultText("Euclidean");
-	_numIterationsAction.setDefaultValue(1000);
-	_perplexityAction.setDefaultValue(30);
-
-	_resetAction.setEnabled(false);
+	//_resetAction.setEnabled(false);
 
 	const auto updateKnnAlgorithm = [this]() -> void {
 		_tsneAnalysisPlugin->getTsneParameters().setKnnAlgorithm(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
@@ -69,16 +54,6 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 
 		return false;
 	};
-
-	/*
-	const auto updateComputation = [this]() -> void {
-		const auto isRunning = _runningAction.isChecked();
-
-		_computationAction.setText(isRunning ? "Stop computation" : "Start computation");
-		_computationAction.setText("");
-		_computationAction.setIcon(isRunning ? hdps::Application::getIconFont("FontAwesome").getIcon("stop") : hdps::Application::getIconFont("FontAwesome").getIcon("play"));
-	};
-	*/
 
 	const auto updateReset = [this, canReset]() -> void {
 		_resetAction.setEnabled(canReset());
@@ -116,36 +91,6 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
 	connect(&_perplexityAction, &IntegralAction::valueChanged, this, [this, updatePerplexity, updateReset](const std::int32_t& value) {
 		updatePerplexity();
 		updateReset();
-	});
-
-	connect(&_startComputationAction, &TriggerAction::triggered, this, [this]() {
-		/*
-		QSignalBlocker blocker(&_computationAction);
-
-		_computationAction.setChecked(true);
-		_computationAction.setText("");
-		_computationAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
-		*/
-	});
-
-	connect(&_continueComputationAction, &TriggerAction::triggered, this, [this]() {
-		/*
-		QSignalBlocker blocker(&_computationAction);
-
-		_computationAction.setChecked(true);
-		_computationAction.setText("");
-		_computationAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
-		*/
-	});
-
-	connect(&_stopComputationAction, &TriggerAction::triggered, this, [this]() {
-		/*
-		QSignalBlocker blocker(&_computationAction);
-
-		_computationAction.setChecked(false);
-		_computationAction.setText("");
-		_computationAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
-		*/
 	});
 
 	connect(&_runningAction, &TriggerAction::toggled, this, [this, enableControls](bool toggled) {
