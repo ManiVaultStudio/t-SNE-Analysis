@@ -32,8 +32,6 @@ public:
     void computeTopLevelEmbedding();
     void drillIn(QString embeddingName);
 
-    hdps::DataTypes supportedDataTypes() const override;
-
 public slots:
     void dataSetPicked(const QString& name);
     void startComputation();
@@ -79,4 +77,6 @@ public:
     ~HsneAnalysisPluginFactory(void) override {}
 
     AnalysisPlugin* produce() override;
+
+    hdps::DataTypes supportedDataTypes() const override;
 };

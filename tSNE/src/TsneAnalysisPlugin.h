@@ -31,8 +31,6 @@ public:
     TsneSettingsAction& getGeneralSettingsAction() { return _tsneSettingsAction; }
     DimensionSelectionAction& getDimensionSelectionAction() { return _dimensionSelectionAction; }
 
-    hdps::DataTypes supportedDataTypes() const override;
-
 protected:
     TsneAnalysis                _tsneAnalysis;                  /** TSNE analysis */
     TsneSettingsAction          _tsneSettingsAction;            /** TSNE settings action */
@@ -51,4 +49,6 @@ public:
     ~TsneAnalysisPluginFactory(void) override {}
 
     AnalysisPlugin* produce() override;
+
+    hdps::DataTypes supportedDataTypes() const override;
 };

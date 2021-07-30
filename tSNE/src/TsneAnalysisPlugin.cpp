@@ -124,13 +124,6 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     }
 }
 
-hdps::DataTypes TsneAnalysisPlugin::supportedDataTypes() const
-{
-    DataTypes supportedTypes;
-    supportedTypes.append(PointType);
-    return supportedTypes;
-}
-
 QIcon TsneAnalysisPlugin::getIcon() const
 {
     return hdps::Application::getIconFont("FontAwesome").getIcon("table");
@@ -180,4 +173,11 @@ void TsneAnalysisPlugin::stopComputation()
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
 {
     return new TsneAnalysisPlugin();
+}
+
+hdps::DataTypes TsneAnalysisPluginFactory::supportedDataTypes() const
+{
+    DataTypes supportedTypes;
+    supportedTypes.append(PointType);
+    return supportedTypes;
 }
