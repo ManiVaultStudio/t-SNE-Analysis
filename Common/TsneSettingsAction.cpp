@@ -1,30 +1,57 @@
-#include "ContextMenuAction.h"
-#include "TsneAnalysisPlugin.h"
+#include "TsneSettingsAction.h"
+
+#include <QTabWidget>
 
 using namespace hdps::gui;
 
-ContextMenuAction::ContextMenuAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
-    WidgetAction(tsneAnalysisPlugin),
-    _tsneAnalysisPlugin(tsneAnalysisPlugin)
+TsneSettingsAction::TsneSettingsAction(QObject* parent) :
+    WidgetActionGroup(parent),
+    _tsneParameters(),
+    _generalTsneSettingsAction(*this),
+    _advancedTsneSettingsAction(*this),
+    _startComputationAction(this, "Start"),
+    _continueComputationAction(this, "Continue"),
+    _stopComputationAction(this, "Stop"),
+    _runningAction(this, "Running")
 {
-    setText("TSNE");
+    setText("TSNE settings");
 }
 
-QMenu* ContextMenuAction::getContextMenu()
+QMenu* TsneSettingsAction::getContextMenu()
 {
     auto menu = new QMenu(text());
 
-    menu->addAction(&_tsneAnalysisPlugin->getGeneralSettingsAction().getStartComputationAction());
-    menu->addAction(&_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction());
-    menu->addAction(&_tsneAnalysisPlugin->getGeneralSettingsAction().getStopComputationAction());
+    menu->addAction(&_startComputationAction);
+    menu->addAction(&_continueComputationAction);
+    menu->addAction(&_runningAction);
 
     return menu;
 }
 
-ContextMenuAction::Widget::Widget(QWidget* parent, ContextMenuAction* contextMenuAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, contextMenuAction, state)
+TsneSettingsAction::Widget::Widget(QWidget* parent, TsneSettingsAction* tsneSettingsAction, const Widget::State& state) :
+    WidgetAction::Widget(parent, tsneSettingsAction, state)
 {
-    auto layout = new QGridLayout();
+    auto layout = new QVBoxLayout();
+
+    /*
+    auto tabs = new QTabWidget();
+
+    const auto getTabWidget = [](QWidget* widget) -> QWidget* {
+        auto containerWidget    = new QWidget();
+        auto containerLayout    = new QVBoxLayout();
+
+        containerLayout->addWidget(widget);
+        containerWidget->setLayout(containerLayout);
+
+        return containerWidget;
+    };
+
+    tabs->addTab(getTabWidget(tsneSettingsAction->getGeneralTsneSettingsAction().createWidget(this)), "General");
+    tabs->addTab(getTabWidget(tsneSettingsAction->getAdvancedTsneSettingsAction().createWidget(this)), "Advanced");
+
+    layout->setMargin(2);
+    layout->addWidget(tabs);
+    */
 
     switch (state)
     {

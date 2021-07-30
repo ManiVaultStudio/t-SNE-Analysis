@@ -7,7 +7,6 @@
 #include "actions/Actions.h"
 
 class QMenu;
-class TsneAnalysisPlugin;
 class Points;
 
 class DimensionSelectionAction : public hdps::gui::WidgetActionGroup
@@ -24,7 +23,7 @@ protected:
     };
 
 public:
-	DimensionSelectionAction(TsneAnalysisPlugin* tsneAnalysisPlugin);
+	DimensionSelectionAction(QObject* parent);
 	~DimensionSelectionAction();
 
     QMenu* getContextMenu() { return nullptr; }
@@ -68,7 +67,6 @@ protected:
 	}
 
 protected:
-	TsneAnalysisPlugin*									_tsneAnalysisPlugin;					/** Pointer to TSNE analysis plugin */
 	Points*												_pointData;								/** Pointer to points set */
 	hdps::DimensionSelectionHolder						_selectionHolder;						/** Selection holder */
 	std::unique_ptr<hdps::DimensionSelectionItemModel>	_selectionItemModel;					/** Selection item model */

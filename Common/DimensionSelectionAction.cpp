@@ -1,5 +1,4 @@
 #include "DimensionSelectionAction.h"
-#include "TsneAnalysisPlugin.h"
 #include "Application.h"
 #include "ModelResetter.h"
 #include "PointData.h"
@@ -21,9 +20,8 @@
 using namespace hdps;
 using namespace hdps::gui;
 
-DimensionSelectionAction::DimensionSelectionAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
-	WidgetActionGroup(tsneAnalysisPlugin),
-	_tsneAnalysisPlugin(tsneAnalysisPlugin),
+DimensionSelectionAction::DimensionSelectionAction(QObject* parent) :
+	WidgetActionGroup(parent),
 	_pointData(nullptr),
 	_selectionHolder(),
 	_selectionItemModel(new DimensionSelectionItemModel(_selectionHolder)),
@@ -108,27 +106,6 @@ DimensionSelectionAction::DimensionSelectionAction(TsneAnalysisPlugin* tsneAnaly
 
 	connect(&_saveSelectionAction, &TriggerAction::triggered, this, [this, selectionFileFilter]() {
 		saveSelectionToFile(QFileDialog::getOpenFileName(nullptr, tr("Dimension selection"), {}, selectionFileFilter));
-	});
-
-	const auto enableControls = [this]() -> void {
-		const auto enable = !_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction().isChecked();
-
-		_nameFilterAction.setEnabled(enable);
-		_showOnlySelectedDimensionsAction.setEnabled(enable);
-		_applyExclusionListAction.setEnabled(enable);
-		_ignoreZeroValuesAction.setEnabled(enable);
-		_selectionThresholdAction.setEnabled(enable && !_selectionHolder._statistics.empty());
-		//_summaryAction.setEnabled(enable);
-		_computeStatisticsAction.setEnabled(enable);
-		_selectVisibleAction.setEnabled(enable);
-		_selectNonVisibleAction.setEnabled(enable);
-		_loadSelectionAction.setEnabled(enable);
-		_saveSelectionAction.setEnabled(enable);
-		_loadExclusionAction.setEnabled(enable);
-	};
-
-	connect(&_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction(), &ToggleAction::toggled, this, [this, enableControls](bool toggled) {
-		enableControls();
 	});
 
 	_summaryAction.setEnabled(false);

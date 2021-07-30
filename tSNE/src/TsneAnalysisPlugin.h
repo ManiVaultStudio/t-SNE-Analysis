@@ -5,12 +5,8 @@
 #include <AnalysisPlugin.h>
 
 #include "TsneAnalysis.h"
-#include "GeneralSettingsAction.h"
-#include "AdvancedSettingsAction.h"
+#include "TsneSettingsAction.h"
 #include "DimensionSelectionAction.h"
-#include "ContextMenuAction.h"
-
-class TsneSettingsWidget;
 
 using namespace hdps::plugin;
 
@@ -31,26 +27,15 @@ public:
     void startComputation(const bool& restart);
     void stopComputation();
 
-    GeneralSettingsAction& getGeneralSettingsAction() { return _generalSettingsAction; }
-    AdvancedSettingsAction& getAdvancedSettingsAction() { return _advancedSettingsAction; }
-    DimensionSelectionAction& getDimensionsSettingsAction() { return _dimensionSelectionAction; }
-    ContextMenuAction& getContextMenuAction() { return _contextMenuAction; }
+    TsneSettingsAction& getGeneralSettingsAction() { return _tsneSettingsAction; }
+    DimensionSelectionAction& getDimensionSelectionAction() { return _dimensionSelectionAction; }
 
     hdps::DataTypes supportedDataTypes() const override;
 
-    TsneParameters& getTsneParameters();
-
 protected:
     TsneAnalysis                _tsneAnalysis;                  /** TSNE analysis */
-    TsneParameters              _tsneParameters;                /** TSNE analysis */
-    GeneralSettingsAction       _generalSettingsAction;         /** General settings action */
-    AdvancedSettingsAction      _advancedSettingsAction;        /** Advanced settings action */
-    DimensionSelectionAction    _dimensionSelectionAction;      /** Dimension selection action */
-    ContextMenuAction           _contextMenuAction;             /** Context menu action */
-
-    friend class GeneralSettingsAction;
-    friend class AdvancedSettingsAction;
-    friend class DimensionSelectionAction;
+    TsneSettingsAction          _tsneSettingsAction;            /** TSNE settings action */
+    DimensionSelectionAction    _dimensionSelectionAction;      /** Dimension selection settings action */
 };
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory

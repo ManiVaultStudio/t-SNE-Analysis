@@ -16,17 +16,14 @@ using namespace hdps::gui;
 TsneAnalysisPlugin::TsneAnalysisPlugin() :
     AnalysisPlugin("tSNE Analysis"),
     _tsneAnalysis(),
-    _tsneParameters(),
-    _generalSettingsAction(this),
-    _advancedSettingsAction(this),
-    _dimensionSelectionAction(this),
-    _contextMenuAction(this)
+    _tsneSettingsAction(this),
+    _dimensionSelectionAction(this)
 {
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 {
-    _generalSettingsAction.getStopComputationAction().trigger();
+    _tsneSettingsAction.getStopComputationAction().trigger();
 }
 
 void TsneAnalysisPlugin::init()
@@ -43,16 +40,15 @@ void TsneAnalysisPlugin::init()
     outputDataset.setData(initialData, 2);
     outputDataset.setParentDatasetName(_inputDatasetName);
 
-    outputDataset.exposeAction(&_generalSettingsAction);
-    outputDataset.exposeAction(&_advancedSettingsAction);
+    outputDataset.exposeAction(&_tsneSettingsAction.getGeneralTsneSettingsAction());
+    outputDataset.exposeAction(&_tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset.exposeAction(&_dimensionSelectionAction);
-    outputDataset.exposeAction(&_contextMenuAction);
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
         notifyProgressPercentage(percentage);
 
         if (percentage == 1.0f) {
-            _generalSettingsAction.getRunningAction().setChecked(false);
+            _tsneSettingsAction.getRunningAction().setChecked(false);
             notifyFinished();
         }
     });
@@ -62,22 +58,25 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
-        getGeneralSettingsAction().getRunningAction().setChecked(false);
-        getGeneralSettingsAction().getRunningAction().setText("");
-        getGeneralSettingsAction().getRunningAction().setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
+        auto& runningAction = _tsneSettingsAction.getRunningAction();
+
+        runningAction.setChecked(false);
+        runningAction.setText("");
+        runningAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
+
         notifyFinished();
         notifyProgressSection("");
     });
 
-    connect(&_generalSettingsAction.getStartComputationAction(), &TriggerAction::triggered, this, [this]() {
+    connect(&_tsneSettingsAction.getStartComputationAction(), &TriggerAction::triggered, this, [this]() {
         startComputation(true);
     });
 
-    connect(&_generalSettingsAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
+    connect(&_tsneSettingsAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
         startComputation(false);
     });
 
-    connect(&_generalSettingsAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
+    connect(&_tsneSettingsAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
         stopComputation();
     });
 
@@ -88,6 +87,25 @@ void TsneAnalysisPlugin::init()
     });
 
     _dimensionSelectionAction.dataChanged(inputDataset);
+
+    /*
+    connect(&getGeneralSettingsAction().getRunningAction(), &ToggleAction::toggled, this, [this](bool toggled) {
+        _dimensionSelectionAction.setEnabled(!toggled);
+    });
+
+    const auto enableControls = [this]() -> void {
+        const auto enable = !_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction().isChecked();
+
+        _exaggerationAction.setEnabled(enable);
+        _exponentialDecayAction.setEnabled(enable);
+        _numTreesAction.setEnabled(enable);
+        _numChecksAction.setEnabled(enable);
+    };
+
+    connect(&_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction(), &ToggleAction::toggled, this, [this, enableControls](bool toggled) {
+        enableControls();
+    });
+    */
 
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 }
@@ -143,20 +161,15 @@ void TsneAnalysisPlugin::startComputation(const bool& restart)
 
     inputPoints.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
-    _generalSettingsAction.getRunningAction().setChecked(true);
+    _tsneSettingsAction.getRunningAction().setChecked(true);
 
-    _tsneAnalysis.startComputation(_tsneParameters, data, numEnabledDimensions);
+    _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), data, numEnabledDimensions);
 }
 
 void TsneAnalysisPlugin::stopComputation()
 {
     _tsneAnalysis.stopComputation();
     emit notifyAborted("Interrupted by user");
-}
-
-TsneParameters& TsneAnalysisPlugin::getTsneParameters()
-{
-    return _tsneParameters;
 }
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()

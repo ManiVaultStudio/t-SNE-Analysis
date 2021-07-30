@@ -1,14 +1,13 @@
-#include "AdvancedSettingsAction.h"
-#include "Application.h"
-#include "TsneAnalysisPlugin.h"
+#include "AdvancedTsneSettingsAction.h"
+#include "TsneSettingsAction.h"
 
 #include <QLabel>
 
 using namespace hdps::gui;
 
-AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
-    WidgetActionGroup(tsneAnalysisPlugin),
-	_tsneAnalysisPlugin(tsneAnalysisPlugin),
+AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
+    WidgetActionGroup(&tsneSettingsAction),
+    _tsneSettingsAction(tsneSettingsAction),
 	_exaggerationAction(this, "Exaggeration", 1, 10000, 250, 250),
 	_exponentialDecayAction(this, "Exponential decay", 1, 10000, 70, 70),
 	_numTreesAction(this, "Number of trees", 1, 10000, 4, 4),
@@ -18,19 +17,19 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 	setText("Advanced");
 
 	const auto updateExaggeration = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setExaggerationIter(_exaggerationAction.getValue());
+        _tsneSettingsAction.getTsneParameters().setExaggerationIter(_exaggerationAction.getValue());
 	};
 
 	const auto updateExponentialDecay = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setExponentialDecayIter(_exponentialDecayAction.getValue());
+        _tsneSettingsAction.getTsneParameters().setExponentialDecayIter(_exponentialDecayAction.getValue());
 	};
 
 	const auto updateNumTrees = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setNumTrees(_numTreesAction.getValue());
+        _tsneSettingsAction.getTsneParameters().setNumTrees(_numTreesAction.getValue());
 	};
 
 	const auto updateNumChecks = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setNumChecks(_numChecksAction.getValue());
+        _tsneSettingsAction.getTsneParameters().setNumChecks(_numChecksAction.getValue());
 	};
 
 	const auto canReset = [this]() -> bool {
@@ -80,31 +79,15 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 		_numChecksAction.reset();
 	});
 
-	const auto enableControls = [this]() -> void {
-		const auto enable = !_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction().isChecked();
-
-		_exaggerationAction.setEnabled(enable);
-		_exponentialDecayAction.setEnabled(enable);
-		_numTreesAction.setEnabled(enable);
-		_numChecksAction.setEnabled(enable);
-	};
-
-	connect(&_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction(), &ToggleAction::toggled, this, [this, enableControls](bool toggled) {
-		enableControls();
-	});
-
 	updateExaggeration();
 	updateExponentialDecay();
 	updateNumTrees();
 	updateNumChecks();
 	updateReset();
-	enableControls();
-
-	_resetAction.setEnabled(false);
 }
 
-AdvancedSettingsAction::Widget::Widget(QWidget* parent, AdvancedSettingsAction* advancedSettingsAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, advancedSettingsAction, state)
+AdvancedTsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedTsneSettingsAction* advancedTsneSettingsAction, const Widget::State& state) :
+    WidgetAction::Widget(parent, advancedTsneSettingsAction, state)
 {
     auto layout = new QGridLayout();
 
@@ -115,12 +98,12 @@ AdvancedSettingsAction::Widget::Widget(QWidget* parent, AdvancedSettingsAction* 
 		layout->addWidget(integralAction.createWidget(this), numRows, 1);
 	};
 
-	addIntegralActionToLayout(advancedSettingsAction->_exaggerationAction);
-	addIntegralActionToLayout(advancedSettingsAction->_exponentialDecayAction);
-	addIntegralActionToLayout(advancedSettingsAction->_numTreesAction);
-	addIntegralActionToLayout(advancedSettingsAction->_numChecksAction);
+	addIntegralActionToLayout(advancedTsneSettingsAction->_exaggerationAction);
+	addIntegralActionToLayout(advancedTsneSettingsAction->_exponentialDecayAction);
+	addIntegralActionToLayout(advancedTsneSettingsAction->_numTreesAction);
+	addIntegralActionToLayout(advancedTsneSettingsAction->_numChecksAction);
 
-	layout->addWidget(advancedSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
 
     switch (state)
     {

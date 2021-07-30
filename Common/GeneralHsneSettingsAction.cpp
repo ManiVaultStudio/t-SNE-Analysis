@@ -1,6 +1,5 @@
 #include "HsneSettingsAction.h"
 #include "Application.h"
-#include "HsneAnalysisPlugin.h"
 
 #include <QLabel>
 

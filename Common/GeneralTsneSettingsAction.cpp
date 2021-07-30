@@ -1,42 +1,35 @@
-#include "GeneralSettingsAction.h"
-#include "Application.h"
-#include "TsneAnalysisPlugin.h"
+#include "GeneralTsneSettingsAction.h"
+#include "TsneSettingsAction.h"
 
 #include <QLabel>
 
 using namespace hdps::gui;
 
-GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
-    WidgetActionGroup(tsneAnalysisPlugin),
-    _tsneAnalysisPlugin(tsneAnalysisPlugin),
+GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
+    WidgetActionGroup(&tsneSettingsAction),
+    _tsneSettingsAction(tsneSettingsAction),
     _knnTypeAction(this, "KNN Type", QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN"),
     _distanceMetricAction(this, "Distance metric", QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean"),
     _numIterationsAction(this, "Number of iterations", 1, 10000, 1000, 1000),
     _perplexityAction(this, "Perplexity", 2, 50, 30, 30),
-    _resetAction(this, "Reset all"),
-    _startComputationAction(this, "Start"),
-    _continueComputationAction(this, "Continue"),
-    _stopComputationAction(this, "Stop"),
-    _runningAction(this, "Running")
+    _resetAction(this, "Reset all")
 {
     setText("General");
 
-    //_resetAction.setEnabled(false);
-
     const auto updateKnnAlgorithm = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setKnnAlgorithm(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
+        _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
     };
 
     const auto updateDistanceMetric = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setKnnDistanceMetric(static_cast<hdi::dr::knn_distance_metric>(_distanceMetricAction.getCurrentIndex()));
+        _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(static_cast<hdi::dr::knn_distance_metric>(_distanceMetricAction.getCurrentIndex()));
     };
 
     const auto updateNumIterations = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setNumIterations(_numIterationsAction.getValue());
+        _tsneSettingsAction.getTsneParameters().setNumIterations(_numIterationsAction.getValue());
     };
 
     const auto updatePerplexity = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setPerplexity(_perplexityAction.getValue());
+        _tsneSettingsAction.getTsneParameters().setPerplexity(_perplexityAction.getValue());
     };
 
     const auto canReset = [this]() -> bool {
@@ -60,7 +53,7 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
     };
 
     const auto enableControls = [this, canReset]() -> void {
-        const auto isRunning = _runningAction.isChecked();
+        const auto isRunning = _tsneSettingsAction.getRunningAction().isChecked();
         const auto enable = !isRunning;
 
         _knnTypeAction.setEnabled(enable);
@@ -93,7 +86,7 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
         updateReset();
     });
 
-    connect(&_runningAction, &TriggerAction::toggled, this, [this, enableControls](bool toggled) {
+    connect(&_tsneSettingsAction.getRunningAction(), &TriggerAction::toggled, this, [this, enableControls](bool toggled) {
         enableControls();
     });
 
@@ -112,8 +105,8 @@ GeneralSettingsAction::GeneralSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlu
     enableControls();
 }
 
-GeneralSettingsAction::Widget::Widget(QWidget* parent, GeneralSettingsAction* generalSettingsAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, generalSettingsAction, state)
+GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAction* generalTsneSettingsAction, const Widget::State& state) :
+    WidgetAction::Widget(parent, generalTsneSettingsAction, state)
 {
     auto layout = new QGridLayout();
 
@@ -131,18 +124,20 @@ GeneralSettingsAction::Widget::Widget(QWidget* parent, GeneralSettingsAction* ge
         layout->addWidget(integralAction.createWidget(this), numRows, 1);
     };
 
-    addOptionActionToLayout(generalSettingsAction->_knnTypeAction);
-    addOptionActionToLayout(generalSettingsAction->_distanceMetricAction);
-    addIntegralActionToLayout(generalSettingsAction->_numIterationsAction);
-    addIntegralActionToLayout(generalSettingsAction->_perplexityAction);
+    addOptionActionToLayout(generalTsneSettingsAction->_knnTypeAction);
+    addOptionActionToLayout(generalTsneSettingsAction->_distanceMetricAction);
+    addIntegralActionToLayout(generalTsneSettingsAction->_numIterationsAction);
+    addIntegralActionToLayout(generalTsneSettingsAction->_perplexityAction);
 
-    layout->addWidget(generalSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 1, 1, 2);
+    layout->addWidget(generalTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 1, 1, 2);
 
     auto computeLayout = new QHBoxLayout();
 
-    computeLayout->addWidget(generalSettingsAction->_startComputationAction.createWidget(this));
-    computeLayout->addWidget(generalSettingsAction->_continueComputationAction.createWidget(this));
-    computeLayout->addWidget(generalSettingsAction->_stopComputationAction.createWidget(this));
+    auto& tsneSettingsAction = generalTsneSettingsAction->getTsneSettingsAction();
+
+    computeLayout->addWidget(tsneSettingsAction.getStartComputationAction().createWidget(this));
+    computeLayout->addWidget(tsneSettingsAction.getContinueComputationAction().createWidget(this));
+    computeLayout->addWidget(tsneSettingsAction.getStopComputationAction().createWidget(this));
 
     layout->addLayout(computeLayout, layout->rowCount(), 1, 1, 2);
 
