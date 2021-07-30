@@ -5,10 +5,10 @@
 #include <AnalysisPlugin.h>
 
 #include "TsneAnalysis.h"
-#include "TsneSettingsAction.h"
 #include "GeneralSettingsAction.h"
 #include "AdvancedSettingsAction.h"
 #include "DimensionSelectionAction.h"
+#include "ContextMenuAction.h"
 
 class TsneSettingsWidget;
 
@@ -31,10 +31,10 @@ public:
     void startComputation(const bool& restart);
     void stopComputation();
 
-    TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
     GeneralSettingsAction& getGeneralSettingsAction() { return _generalSettingsAction; }
     AdvancedSettingsAction& getAdvancedSettingsAction() { return _advancedSettingsAction; }
     DimensionSelectionAction& getDimensionsSettingsAction() { return _dimensionSelectionAction; }
+    ContextMenuAction& getContextMenuAction() { return _contextMenuAction; }
 
     hdps::DataTypes supportedDataTypes() const override;
 
@@ -43,10 +43,10 @@ public:
 protected:
     TsneAnalysis                _tsneAnalysis;                  /** TSNE analysis */
     TsneParameters              _tsneParameters;                /** TSNE analysis */
-    TsneSettingsAction          _tsneSettingsAction;            /** TSNE settings action (purely for context menu purposes) */
     GeneralSettingsAction       _generalSettingsAction;         /** General settings action */
     AdvancedSettingsAction      _advancedSettingsAction;        /** Advanced settings action */
     DimensionSelectionAction    _dimensionSelectionAction;      /** Dimension selection action */
+    ContextMenuAction           _contextMenuAction;             /** Context menu action */
 
     friend class GeneralSettingsAction;
     friend class AdvancedSettingsAction;

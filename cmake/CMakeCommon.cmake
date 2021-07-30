@@ -25,6 +25,29 @@ set(DIMENSION_SELECTION_SOURCES
     #${DIR}/GeneralSettingsWidget.cpp
 )
 
+set(TSNE_ACTIONS_SOURCES
+    ${DIR}/TsneSettingsAction.h
+    ${DIR}/TsneSettingsAction.cpp
+    ${DIR}/GeneralTsneSettingsAction.h
+    ${DIR}/GeneralTsneSettingsAction.cpp
+	${DIR}/AdvancedTsneSettingsAction.h
+    ${DIR}/AdvancedTsneSettingsAction.cpp
+)
+
+set(HSNE_ACTIONS_SOURCES
+	${DIR}/HsneSettingsAction.h
+    ${DIR}/HsneSettingsAction.cpp
+    ${DIR}/GeneralHsneSettingsAction.h
+    ${DIR}/GeneralHsneSettingsAction.cpp
+	${DIR}/AdvancedHsneSettingsAction.h
+    ${DIR}/AdvancedHsneSettingsAction.cpp
+)
+
+set(DIMENSION_SELECTION_ACTION_SOURCES
+	${DIR}/DimensionSelectionAction.h
+    ${DIR}/DimensionSelectionAction.cpp
+)
+
 set(UI_FILES
     ${DIR}/ui/DimensionSelectionWidget.ui
 )

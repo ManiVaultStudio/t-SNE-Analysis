@@ -1,16 +1,16 @@
-#include "TsneSettingsAction.h"
+#include "ContextMenuAction.h"
 #include "TsneAnalysisPlugin.h"
 
 using namespace hdps::gui;
 
-TsneSettingsAction::TsneSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
+ContextMenuAction::ContextMenuAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
     WidgetAction(tsneAnalysisPlugin),
     _tsneAnalysisPlugin(tsneAnalysisPlugin)
 {
     setText("TSNE");
 }
 
-QMenu* TsneSettingsAction::getContextMenu()
+QMenu* ContextMenuAction::getContextMenu()
 {
     auto menu = new QMenu(text());
 
@@ -21,8 +21,8 @@ QMenu* TsneSettingsAction::getContextMenu()
     return menu;
 }
 
-TsneSettingsAction::Widget::Widget(QWidget* parent, TsneSettingsAction* tsneSettingsAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, tsneSettingsAction, state)
+ContextMenuAction::Widget::Widget(QWidget* parent, ContextMenuAction* contextMenuAction, const Widget::State& state) :
+    WidgetAction::Widget(parent, contextMenuAction, state)
 {
     auto layout = new QGridLayout();
 

@@ -5,13 +5,13 @@
 class TsneAnalysisPlugin;
 class QMenu;
 
-class TsneSettingsAction : public hdps::gui::WidgetAction
+class ContextMenuAction : public hdps::gui::WidgetAction
 {
 protected:
 
     class Widget : public hdps::gui::WidgetActionGroup::Widget {
     public:
-        Widget(QWidget* parent, TsneSettingsAction* tsneSettingsAction, const Widget::State& state);
+        Widget(QWidget* parent, ContextMenuAction* contextMenuAction, const Widget::State& state);
     };
 
     QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
@@ -19,7 +19,7 @@ protected:
     };
 
 public:
-    TsneSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin);
+    ContextMenuAction(TsneAnalysisPlugin* tsneAnalysisPlugin);
 
     QMenu* getContextMenu();
 

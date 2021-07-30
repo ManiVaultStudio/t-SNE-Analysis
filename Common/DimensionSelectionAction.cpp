@@ -42,7 +42,7 @@ DimensionSelectionAction::DimensionSelectionAction(TsneAnalysisPlugin* tsneAnaly
 	_loadExclusionAction(this, "Load exclusion"),
 	_summaryUpdateAwakeConnection()
 {
-	setText("Dimensions");
+    setText("Dimensions");
 
 	connect(&_nameFilterAction, &StringAction::stringChanged, this, [this](const QString& name) {
 		setNameFilter(name);

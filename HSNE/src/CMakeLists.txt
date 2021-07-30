@@ -10,7 +10,5 @@ set(HSNE_PLUGIN_SOURCES
     ${DIR}/HsneParameters.cpp
     ${DIR}/HsneSettingsWidget.h
     ${DIR}/HsneSettingsWidget.cpp
-	${DIR}/HsneSettingsAction.h
-    ${DIR}/HsneSettingsAction.cpp
     PARENT_SCOPE
 )

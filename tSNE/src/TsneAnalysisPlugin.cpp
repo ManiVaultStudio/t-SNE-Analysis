@@ -17,10 +17,10 @@ TsneAnalysisPlugin::TsneAnalysisPlugin() :
     AnalysisPlugin("tSNE Analysis"),
     _tsneAnalysis(),
     _tsneParameters(),
-    _tsneSettingsAction(this),
     _generalSettingsAction(this),
     _advancedSettingsAction(this),
-    _dimensionSelectionAction(this)
+    _dimensionSelectionAction(this),
+    _contextMenuAction(this)
 {
 }
 
@@ -43,10 +43,10 @@ void TsneAnalysisPlugin::init()
     outputDataset.setData(initialData, 2);
     outputDataset.setParentDatasetName(_inputDatasetName);
 
-    outputDataset.exposeAction(&_tsneSettingsAction);
     outputDataset.exposeAction(&_generalSettingsAction);
     outputDataset.exposeAction(&_advancedSettingsAction);
     outputDataset.exposeAction(&_dimensionSelectionAction);
+    outputDataset.exposeAction(&_contextMenuAction);
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
         notifyProgressPercentage(percentage);
