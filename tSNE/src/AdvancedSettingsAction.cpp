@@ -7,30 +7,15 @@
 using namespace hdps::gui;
 
 AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
-	WidgetActionGroup(tsneAnalysisPlugin),
+    WidgetActionGroup(tsneAnalysisPlugin),
 	_tsneAnalysisPlugin(tsneAnalysisPlugin),
-	_exaggerationAction(this, "Exaggeration"),
-	_exponentialDecayAction(this, "Exponential decay"),
-	_numTreesAction(this, "Number of trees"),
-	_numChecksAction(this, "Number of checks"),
+	_exaggerationAction(this, "Exaggeration", 1, 10000, 250, 250),
+	_exponentialDecayAction(this, "Exponential decay", 1, 10000, 70, 70),
+	_numTreesAction(this, "Number of trees", 1, 10000, 4, 4),
+	_numChecksAction(this, "Number of checks", 1, 10000, 1024, 1024),
 	_resetAction(this, "Reset all")
 {
 	setText("Advanced");
-
-	_exaggerationAction.setRange(1, 10000);
-	_exponentialDecayAction.setRange(1, 10000);
-	_numTreesAction.setRange(1, 10000);
-	_numChecksAction.setRange(1, 10000);
-
-	_exaggerationAction.setValue(250);
-	_exponentialDecayAction.setValue(70);
-	_numTreesAction.setValue(4);
-	_numChecksAction.setValue(1024);
-
-	_exaggerationAction.setDefaultValue(250);
-	_exponentialDecayAction.setDefaultValue(70);
-	_numTreesAction.setDefaultValue(4);
-	_numChecksAction.setDefaultValue(1024);
 
 	const auto updateExaggeration = [this]() -> void {
         _tsneAnalysisPlugin->getTsneParameters().setExaggerationIter(_exaggerationAction.getValue());
@@ -116,28 +101,6 @@ AdvancedSettingsAction::AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisP
 	enableControls();
 
 	_resetAction.setEnabled(false);
-}
-
-QMenu* AdvancedSettingsAction::getContextMenu()
-{
-    auto menu = new QMenu(text());
-
-	const auto addSetting = [this, menu](WidgetAction& widgetAction) -> void {
-		auto settingMenu = new QMenu(widgetAction.text());
-		settingMenu->addAction(&widgetAction);
-		menu->addMenu(settingMenu);
-	};
-
-	addSetting(_exaggerationAction);
-	addSetting(_exponentialDecayAction);
-	addSetting(_numTreesAction);
-	addSetting(_numChecksAction);
-
-	menu->addSeparator();
-
-	menu->addAction(&_resetAction);
-
-    return menu;
 }
 
 AdvancedSettingsAction::Widget::Widget(QWidget* parent, AdvancedSettingsAction* advancedSettingsAction, const Widget::State& state) :

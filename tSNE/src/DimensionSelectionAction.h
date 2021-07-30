@@ -10,13 +10,13 @@ class QMenu;
 class TsneAnalysisPlugin;
 class Points;
 
-class DimensionsSettingsAction : public hdps::gui::WidgetActionGroup
+class DimensionSelectionAction : public hdps::gui::WidgetActionGroup
 {
 protected:
 
     class Widget : public hdps::gui::WidgetActionGroup::Widget {
     public:
-        Widget(QWidget* parent, DimensionsSettingsAction* dimensionsSettingsAction, const Widget::State& state);
+        Widget(QWidget* parent, DimensionSelectionAction* dimensionsSettingsAction, const Widget::State& state);
     };
 
     QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
@@ -24,10 +24,10 @@ protected:
     };
 
 public:
-	DimensionsSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin);
-	~DimensionsSettingsAction();
+	DimensionSelectionAction(TsneAnalysisPlugin* tsneAnalysisPlugin);
+	~DimensionSelectionAction();
 
-    QMenu* getContextMenu();
+    QMenu* getContextMenu() { return nullptr; }
 
 	void setDimensions(const std::uint32_t numDimensions, const std::vector<QString>& names);
 	std::vector<bool> getEnabledDimensions() const;

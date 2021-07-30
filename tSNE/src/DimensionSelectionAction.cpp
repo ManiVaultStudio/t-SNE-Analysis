@@ -1,4 +1,4 @@
-#include "DimensionsSettingsAction.h"
+#include "DimensionSelectionAction.h"
 #include "TsneAnalysisPlugin.h"
 #include "Application.h"
 #include "ModelResetter.h"
@@ -21,7 +21,7 @@
 using namespace hdps;
 using namespace hdps::gui;
 
-DimensionsSettingsAction::DimensionsSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
+DimensionSelectionAction::DimensionSelectionAction(TsneAnalysisPlugin* tsneAnalysisPlugin) :
 	WidgetActionGroup(tsneAnalysisPlugin),
 	_tsneAnalysisPlugin(tsneAnalysisPlugin),
 	_pointData(nullptr),
@@ -142,18 +142,12 @@ DimensionsSettingsAction::DimensionsSettingsAction(TsneAnalysisPlugin* tsneAnaly
 	_selectionThresholdAction.setEnabled(false);
 }
 
-DimensionsSettingsAction::~DimensionsSettingsAction()
+DimensionSelectionAction::~DimensionSelectionAction()
 {
 	disconnect(_summaryUpdateAwakeConnection);
 }
 
-QMenu* DimensionsSettingsAction::getContextMenu()
-{
-    auto menu = new QMenu(text());
-    return menu;
-}
-
-void DimensionsSettingsAction::setDimensions(const std::uint32_t numDimensions, const std::vector<QString>& names)
+void DimensionSelectionAction::setDimensions(const std::uint32_t numDimensions, const std::vector<QString>& names)
 {
 	if (names.size() == numDimensions)
 	{
@@ -176,12 +170,12 @@ void DimensionsSettingsAction::setDimensions(const std::uint32_t numDimensions, 
 	updateSlider();
 }
 
-std::vector<bool> DimensionsSettingsAction::getEnabledDimensions() const
+std::vector<bool> DimensionSelectionAction::getEnabledDimensions() const
 {
 	return _selectionHolder.getEnabledDimensions();
 }
 
-void DimensionsSettingsAction::dataChanged(Points& points)
+void DimensionSelectionAction::dataChanged(Points& points)
 {
 	_pointData = &points;
 
@@ -190,12 +184,12 @@ void DimensionsSettingsAction::dataChanged(Points& points)
 	_computeStatisticsAction.setEnabled(true);
 }
 
-hdps::DimensionSelectionProxyModel* DimensionsSettingsAction::getProxyModel()
+hdps::DimensionSelectionProxyModel* DimensionSelectionAction::getProxyModel()
 {
 	return _selectionProxyModel.get();
 }
 
-void DimensionsSettingsAction::setNameFilter(const QString& nameFilter)
+void DimensionSelectionAction::setNameFilter(const QString& nameFilter)
 {
 	if (_selectionProxyModel == nullptr)
 		return;
@@ -204,7 +198,7 @@ void DimensionsSettingsAction::setNameFilter(const QString& nameFilter)
 	_selectionProxyModel->setFilterRegExp(nameFilter);
 }
 
-void DimensionsSettingsAction::setShowOnlySelectedDimensions(const bool& showOnlySelectedDimensions)
+void DimensionSelectionAction::setShowOnlySelectedDimensions(const bool& showOnlySelectedDimensions)
 {
 	if (_selectionProxyModel == nullptr)
 		return;
@@ -213,7 +207,7 @@ void DimensionsSettingsAction::setShowOnlySelectedDimensions(const bool& showOnl
 	_selectionProxyModel->SetFilterShouldAcceptOnlySelected(showOnlySelectedDimensions);
 }
 
-void DimensionsSettingsAction::setApplyExclusionList(const bool& applyExclusionList)
+void DimensionSelectionAction::setApplyExclusionList(const bool& applyExclusionList)
 {
 	if (_selectionProxyModel == nullptr)
 		return;
@@ -222,7 +216,7 @@ void DimensionsSettingsAction::setApplyExclusionList(const bool& applyExclusionL
 	_selectionProxyModel->SetFilterShouldAppyExclusion(applyExclusionList);
 }
 
-void DimensionsSettingsAction::setIgnoreZeroValues(const bool& ignoreZeroValues)
+void DimensionSelectionAction::setIgnoreZeroValues(const bool& ignoreZeroValues)
 {
 	const ModelResetter modelResetter(_selectionProxyModel.get());
 	_selectionHolder._ignoreZeroValues = ignoreZeroValues;
@@ -230,7 +224,7 @@ void DimensionsSettingsAction::setIgnoreZeroValues(const bool& ignoreZeroValues)
 	updateSlider();
 }
 
-void DimensionsSettingsAction::loadSelectionFromFile(const QString& fileName)
+void DimensionSelectionAction::loadSelectionFromFile(const QString& fileName)
 {
 	QFile file(fileName);
 
@@ -259,7 +253,7 @@ void DimensionsSettingsAction::loadSelectionFromFile(const QString& fileName)
 	}
 }
 
-void DimensionsSettingsAction::loadExclusionFromFile(const QString& fileName)
+void DimensionSelectionAction::loadExclusionFromFile(const QString& fileName)
 {
 	if (fileName.isEmpty())
 		return;
@@ -288,7 +282,7 @@ void DimensionsSettingsAction::loadExclusionFromFile(const QString& fileName)
 	}
 }
 
-void DimensionsSettingsAction::saveSelectionToFile(const QString& fileName)
+void DimensionSelectionAction::saveSelectionToFile(const QString& fileName)
 {
 	if (fileName.isEmpty())
 		return;
@@ -314,7 +308,7 @@ void DimensionsSettingsAction::saveSelectionToFile(const QString& fileName)
 	}
 }
 
-void DimensionsSettingsAction::computeStatistics()
+void DimensionSelectionAction::computeStatistics()
 {
 	const ModelResetter modelResetter(_selectionProxyModel.get());
 
@@ -443,7 +437,7 @@ void DimensionsSettingsAction::computeStatistics()
 	}
 }
 
-void DimensionsSettingsAction::updateSlider()
+void DimensionSelectionAction::updateSlider()
 {
 	const auto numberOfDistinctStandardDeviations	= _selectionHolder.distinctStandardDeviationsWithAndWithoutZero[_selectionHolder._ignoreZeroValues ? 1 : 0].size();
 	const auto isSliderValueAtMaximum				= (_selectionThresholdAction.isAtMaximum());
@@ -466,7 +460,7 @@ void DimensionsSettingsAction::updateSlider()
 	_selectionThresholdAction.setEnabled(!_selectionHolder._statistics.empty());
 }
 
-void DimensionsSettingsAction::updateSummary()
+void DimensionSelectionAction::updateSummary()
 {
 	const auto& holder = _selectionHolder;
 
@@ -476,7 +470,7 @@ void DimensionsSettingsAction::updateSummary()
 	_summaryAction.setString(tr("%1 available, %2 visible, %3 selected").arg(numberOfDimensions).arg(numberOfVisibleDimensions).arg(holder.getNumberOfSelectedDimensions()));
 }
 
-DimensionsSettingsAction::Widget::Widget(QWidget* parent, DimensionsSettingsAction* dimensionsSettingsAction, const Widget::State& state) :
+DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionAction* dimensionsSettingsAction, const Widget::State& state) :
     WidgetAction::Widget(parent, dimensionsSettingsAction, state)
 {
     auto layout = new QVBoxLayout();

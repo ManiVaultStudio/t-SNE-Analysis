@@ -19,17 +19,17 @@ protected:
     };
 
 public:
-	AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin);
+    AdvancedSettingsAction(TsneAnalysisPlugin* tsneAnalysisPlugin);
 
-    QMenu* getContextMenu();
+    QMenu* getContextMenu() { return nullptr; }
 
 protected:
-	TsneAnalysisPlugin*			_tsneAnalysisPlugin;		/** Pointer to TSNE analysis plugin */
-	hdps::gui::IntegralAction	_exaggerationAction;		/** Exaggeration action */
-	hdps::gui::IntegralAction	_exponentialDecayAction;	/** Exponential decay action */
-	hdps::gui::IntegralAction	_numTreesAction;			/** Exponential decay action */
-	hdps::gui::IntegralAction	_numChecksAction;			/** Exponential decay action */
-	hdps::gui::TriggerAction	_resetAction;				/** Reset all input to defaults */
-	
+    TsneAnalysisPlugin*         _tsneAnalysisPlugin;        /** Pointer to TSNE analysis plugin */
+    hdps::gui::IntegralAction   _exaggerationAction;        /** Exaggeration action */
+    hdps::gui::IntegralAction   _exponentialDecayAction;    /** Exponential decay action */
+    hdps::gui::IntegralAction   _numTreesAction;            /** Exponential decay action */
+    hdps::gui::IntegralAction   _numChecksAction;           /** Exponential decay action */
+    hdps::gui::TriggerAction    _resetAction;               /** Reset all input to defaults */
+
     friend class Widget;
 };
