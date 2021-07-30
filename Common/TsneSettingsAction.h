@@ -6,11 +6,11 @@
 
 class QMenu;
 
-class TsneSettingsAction : public hdps::gui::WidgetActionGroup
+class TsneSettingsAction : public hdps::gui::WidgetAction
 {
 protected:
 
-    class Widget : public hdps::gui::WidgetActionGroup::Widget {
+    class Widget : public hdps::gui::WidgetAction::Widget {
     public:
         Widget(QWidget* parent, TsneSettingsAction* tsneSettingsAction, const Widget::State& state);
     };

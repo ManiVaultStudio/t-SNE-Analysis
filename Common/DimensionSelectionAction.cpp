@@ -40,7 +40,7 @@ DimensionSelectionAction::DimensionSelectionAction(QObject* parent) :
 	_loadExclusionAction(this, "Load exclusion"),
 	_summaryUpdateAwakeConnection()
 {
-    setText("Dimensions");
+    setText("Dimension selection");
 
 	connect(&_nameFilterAction, &StringAction::stringChanged, this, [this](const QString& name) {
 		setNameFilter(name);
@@ -164,6 +164,22 @@ void DimensionSelectionAction::dataChanged(Points& points)
 hdps::DimensionSelectionProxyModel* DimensionSelectionAction::getProxyModel()
 {
 	return _selectionProxyModel.get();
+}
+
+void DimensionSelectionAction::setEnabled(const bool& enabled)
+{
+    _nameFilterAction.setEnabled(enabled);
+    _showOnlySelectedDimensionsAction.setEnabled(enabled);
+    _applyExclusionListAction.setEnabled(enabled);
+    _ignoreZeroValuesAction.setEnabled(enabled);
+    _selectionThresholdAction.setEnabled(enabled);
+    _summaryAction.setEnabled(enabled);
+    _computeStatisticsAction.setEnabled(enabled);
+    _selectVisibleAction.setEnabled(enabled);
+    _selectNonVisibleAction.setEnabled(enabled);
+    _loadSelectionAction.setEnabled(enabled);
+    _saveSelectionAction.setEnabled(enabled);
+    _loadExclusionAction.setEnabled(enabled);
 }
 
 void DimensionSelectionAction::setNameFilter(const QString& nameFilter)

@@ -40,6 +40,7 @@ void TsneAnalysisPlugin::init()
     outputDataset.setData(initialData, 2);
     outputDataset.setParentDatasetName(_inputDatasetName);
 
+    outputDataset.exposeAction(&_tsneSettingsAction);
     outputDataset.exposeAction(&_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset.exposeAction(&_tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset.exposeAction(&_dimensionSelectionAction);
@@ -88,24 +89,9 @@ void TsneAnalysisPlugin::init()
 
     _dimensionSelectionAction.dataChanged(inputDataset);
 
-    /*
-    connect(&getGeneralSettingsAction().getRunningAction(), &ToggleAction::toggled, this, [this](bool toggled) {
+    connect(&_tsneSettingsAction.getRunningAction(), &ToggleAction::toggled, this, [this](bool toggled) {
         _dimensionSelectionAction.setEnabled(!toggled);
     });
-
-    const auto enableControls = [this]() -> void {
-        const auto enable = !_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction().isChecked();
-
-        _exaggerationAction.setEnabled(enable);
-        _exponentialDecayAction.setEnabled(enable);
-        _numTreesAction.setEnabled(enable);
-        _numChecksAction.setEnabled(enable);
-    };
-
-    connect(&_tsneAnalysisPlugin->getGeneralSettingsAction().getRunningAction(), &ToggleAction::toggled, this, [this, enableControls](bool toggled) {
-        enableControls();
-    });
-    */
 
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 }

@@ -5,7 +5,7 @@
 using namespace hdps::gui;
 
 TsneSettingsAction::TsneSettingsAction(QObject* parent) :
-    WidgetActionGroup(parent),
+    WidgetAction(parent),
     _tsneParameters(),
     _generalTsneSettingsAction(*this),
     _advancedTsneSettingsAction(*this),
@@ -14,7 +14,7 @@ TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     _stopComputationAction(this, "Stop"),
     _runningAction(this, "Running")
 {
-    setText("TSNE settings");
+    setText("TSNE");
 }
 
 QMenu* TsneSettingsAction::getContextMenu()

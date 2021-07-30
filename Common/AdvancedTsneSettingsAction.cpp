@@ -14,7 +14,7 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 	_numChecksAction(this, "Number of checks", 1, 10000, 1024, 1024),
 	_resetAction(this, "Reset all")
 {
-	setText("Advanced");
+	setText("Advanced TSNE");
 
 	const auto updateExaggeration = [this]() -> void {
         _tsneSettingsAction.getTsneParameters().setExaggerationIter(_exaggerationAction.getValue());
@@ -52,6 +52,16 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 		_resetAction.setEnabled(canReset());
 	};
 
+    const auto enableControls = [this, canReset]() -> void {
+        const auto enable = !_tsneSettingsAction.getRunningAction().isChecked();
+
+        _exaggerationAction.setEnabled(enable);
+        _exponentialDecayAction.setEnabled(enable);
+        _numTreesAction.setEnabled(enable);
+        _numChecksAction.setEnabled(enable);
+        _resetAction.setEnabled(enable && canReset());
+    };
+
 	connect(&_exaggerationAction, &IntegralAction::valueChanged, this, [this, updateExaggeration, updateReset](const std::int32_t& value) {
 		updateExaggeration();
 		updateReset();
@@ -79,10 +89,15 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 		_numChecksAction.reset();
 	});
 
+    connect(&_tsneSettingsAction.getRunningAction(), &ToggleAction::toggled, this, [this, enableControls](bool toggled) {
+        enableControls();
+    });
+
 	updateExaggeration();
 	updateExponentialDecay();
 	updateNumTrees();
 	updateNumChecks();
+    enableControls();
 	updateReset();
 }
 

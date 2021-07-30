@@ -6,7 +6,7 @@
 using namespace hdps::gui;
 
 GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
-    WidgetActionGroup(&tsneSettingsAction),
+    WidgetActionGroup(&tsneSettingsAction, true),
     _tsneSettingsAction(tsneSettingsAction),
     _knnTypeAction(this, "KNN Type", QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN"),
     _distanceMetricAction(this, "Distance metric", QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean"),
@@ -14,7 +14,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _perplexityAction(this, "Perplexity", 2, 50, 30, 30),
     _resetAction(this, "Reset all")
 {
-    setText("General");
+    setText("General TSNE");
 
     const auto updateKnnAlgorithm = [this]() -> void {
         _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
@@ -61,9 +61,6 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _numIterationsAction.setEnabled(enable);
         _perplexityAction.setEnabled(enable);
         _resetAction.setEnabled(enable && canReset());
-        //_startComputationAction.setEnabled(enable);
-        //_continueComputationAction.setEnabled(enable);
-        //_stopComputationAction.setEnabled(isRunning);
     };
 
     connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric, updateReset](const std::int32_t& currentIndex) {

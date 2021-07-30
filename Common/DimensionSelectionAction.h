@@ -34,6 +34,8 @@ public:
 
 	hdps::DimensionSelectionProxyModel* getProxyModel();
 
+    void setEnabled(const bool& enabled);
+
 public:
 	void setNameFilter(const QString& nameFilter);
 	void setShowOnlySelectedDimensions(const bool& showOnlySelectedDimensions);
