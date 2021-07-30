@@ -25,6 +25,7 @@ public:
     QIcon getIcon() const override;
 
     void startComputation(const bool& restart);
+    void continueComputation();
     void stopComputation();
 
     TsneSettingsAction& getGeneralSettingsAction() { return _tsneSettingsAction; }

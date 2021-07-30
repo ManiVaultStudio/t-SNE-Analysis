@@ -39,6 +39,11 @@ TsneWorker::TsneWorker(TsneParameters parameters, /*const*/ std::vector<float>& 
     _offscreenBuffer = new OffscreenBuffer();
 }
 
+TsneWorker::~TsneWorker()
+{
+    delete _offscreenBuffer;
+}
+
 void TsneWorker::changeThread(QThread* targetThread)
 {
     this->moveToThread(targetThread);
@@ -84,7 +89,7 @@ void TsneWorker::computeSimilarities()
     qDebug() << "--------------------------------------------------------------------------------";
 }
 
-void TsneWorker::computeGradientDescent()
+void TsneWorker::computeGradientDescent(int iterations)
 {
     if (_shouldStop)
         return;
@@ -101,12 +106,10 @@ void TsneWorker::computeGradientDescent()
     tsneParameters._exponential_decay_iter = _parameters.getExponentialDecayIter();
     tsneParameters._exaggeration_factor = 4 + _numPoints / 60000.0;
 
-    //// Create a context local to this thread that shares with the global share context
-    _offscreenBuffer->initialize();
-
     // Initialize GPGPU-SNE
     _offscreenBuffer->bindContext();
-    _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParameters);
+    if (_currentIteration == 0)
+        _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParameters);
 
     copyEmbeddingOutput();
     emit embeddingUpdate(_outEmbedding);
@@ -122,8 +125,7 @@ void TsneWorker::computeGradientDescent()
         qDebug() << "A-tSNE: Computing gradient descent..\n";
 
         const auto beginIteration   = _currentIteration;
-        const auto endIteration     = beginIteration + _parameters.getNumIterations();
-
+        const auto endIteration = beginIteration + iterations;
 
         // Performs gradient descent for every iteration
         for (_currentIteration = beginIteration; _currentIteration < endIteration; ++_currentIteration)
@@ -137,14 +139,13 @@ void TsneWorker::computeGradientDescent()
             {
                 copyEmbeddingOutput();
                 emit embeddingUpdate(_outEmbedding);
+                emitEmbeddingUpdate(_currentIteration + 1, _parameters.getNumIterations());
             }
 
             if (t > 1000)
                 qDebug() << "Time: " << t;
 
             elapsed += t;
-
-            emitEmbeddingUpdate(_currentIteration + 1, _parameters.getNumIterations());
 
             // React to requests to stop
             if (_shouldStop)
@@ -173,9 +174,21 @@ void TsneWorker::copyEmbeddingOutput()
 
 void TsneWorker::compute()
 {
+    _shouldStop = false;
+
+    // Create a context local to this thread that shares with the global share context
+    _offscreenBuffer->initialize();
+
     if (!_hasProbabilityDistribution)
         computeSimilarities();
-    computeGradientDescent();
+    computeGradientDescent(_parameters.getNumIterations());
+}
+
+void TsneWorker::continueComputation(int iterations)
+{
+    _shouldStop = false;
+
+    computeGradientDescent(iterations);
 }
 
 void TsneWorker::stop()
@@ -183,9 +196,12 @@ void TsneWorker::stop()
     _shouldStop = true;
 }
 
-TsneAnalysis::TsneAnalysis()
+TsneAnalysis::TsneAnalysis() :
+    _tsneWorker(nullptr)
 {
     qRegisterMetaType<TsneData>();
+
+    //_workerThread.start();
 }
 
 TsneAnalysis::~TsneAnalysis()
@@ -194,14 +210,31 @@ TsneAnalysis::~TsneAnalysis()
 
 void TsneAnalysis::startComputation(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions)
 {
-    TsneWorker* tsneWorker = new TsneWorker(parameters, probDist, numPoints, numDimensions);
-    startComputation(tsneWorker);
+    if (_tsneWorker)
+    {
+        _tsneWorker->changeThread(QThread::currentThread());
+        delete _tsneWorker;
+    }
+
+    _tsneWorker = new TsneWorker(parameters, probDist, numPoints, numDimensions);
+    startComputation(_tsneWorker);
 }
 
 void TsneAnalysis::startComputation(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions)
 {
-    TsneWorker* tsneWorker = new TsneWorker(parameters, data, numDimensions);
-    startComputation(tsneWorker);
+    if (_tsneWorker)
+    {
+        _tsneWorker->changeThread(QThread::currentThread());
+        delete _tsneWorker;
+    }
+
+    _tsneWorker = new TsneWorker(parameters, data, numDimensions);
+    startComputation(_tsneWorker);
+}
+
+void TsneAnalysis::continueComputation(int iterations)
+{
+    emit continueWorker(iterations);
 }
 
 void TsneAnalysis::stopComputation()
@@ -228,6 +261,7 @@ void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
 
     // To-Worker signals
     connect(this, &TsneAnalysis::startWorker, tsneWorker, &TsneWorker::compute);
+    connect(this, &TsneAnalysis::continueWorker, tsneWorker, &TsneWorker::continueComputation);
     connect(this, &TsneAnalysis::stopWorker, tsneWorker, &TsneWorker::stop);
 
     // From-Worker signals
@@ -237,7 +271,7 @@ void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
     connect(tsneWorker, &TsneWorker::finished, this, &TsneAnalysis::finished);
 
     // QThread signals
-    connect(tsneWorker, &TsneWorker::finished, tsneWorker, &QObject::deleteLater);
+    //connect(&_workerThread, &QThread::finished, tsneWorker, &QObject::deleteLater);
 
     _workerThread.start();
 

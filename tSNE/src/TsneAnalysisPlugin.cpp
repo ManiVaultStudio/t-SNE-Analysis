@@ -73,7 +73,7 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&_tsneSettingsAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
-        startComputation(false);
+        continueComputation();
     });
 
     connect(&_tsneSettingsAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
@@ -164,6 +164,11 @@ void TsneAnalysisPlugin::startComputation(const bool& restart)
     _tsneSettingsAction.getRunningAction().setChecked(true);
 
     _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), data, numEnabledDimensions);
+}
+
+void TsneAnalysisPlugin::continueComputation()
+{
+    _tsneAnalysis.continueComputation(500);
 }
 
 void TsneAnalysisPlugin::stopComputation()
