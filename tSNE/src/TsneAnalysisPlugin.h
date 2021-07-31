@@ -25,12 +25,11 @@ public:
     QIcon getIcon() const override;
 
     void startComputation(const bool& restart);
+    void continueComputation();
     void stopComputation();
 
     TsneSettingsAction& getGeneralSettingsAction() { return _tsneSettingsAction; }
     DimensionSelectionAction& getDimensionSelectionAction() { return _dimensionSelectionAction; }
-
-    hdps::DataTypes supportedDataTypes() const override;
 
 protected:
     TsneAnalysis                _tsneAnalysis;                  /** TSNE analysis */
@@ -50,4 +49,6 @@ public:
     ~TsneAnalysisPluginFactory(void) override {}
 
     AnalysisPlugin* produce() override;
+
+    hdps::DataTypes supportedDataTypes() const override;
 };

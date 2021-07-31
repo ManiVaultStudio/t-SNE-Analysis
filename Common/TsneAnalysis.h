@@ -19,10 +19,12 @@ class TsneWorker : public QObject
 public:
     TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions);
     TsneWorker(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions);
+    ~TsneWorker();
     void changeThread(QThread* targetThread);
 
 public slots:
     void compute();
+    void continueComputation(int iterations);
     void stop();
 
 signals:
@@ -33,7 +35,7 @@ signals:
 
 private:
     void computeSimilarities();
-    void computeGradientDescent();
+    void computeGradientDescent(int iterations);
     
     void copyEmbeddingOutput();
 
@@ -81,6 +83,7 @@ public:
 
     void startComputation(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions);
     void startComputation(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions);
+    void continueComputation(int iterations);
     void stopComputation();
 
 private:
@@ -89,6 +92,7 @@ private:
 signals:
     // Local signals
     void startWorker();
+    void continueWorker(int iterations);
     void stopWorker();
 
     // Outgoing signals
@@ -99,4 +103,6 @@ signals:
 
 private:
     QThread _workerThread;
+
+    TsneWorker* _tsneWorker;
 };

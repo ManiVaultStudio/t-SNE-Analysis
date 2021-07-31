@@ -74,7 +74,7 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&_tsneSettingsAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
-        startComputation(false);
+        continueComputation();
     });
 
     connect(&_tsneSettingsAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
@@ -108,13 +108,6 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 
         _dimensionSelectionAction.dataChanged(_core->requestData<Points>(dataChangedEvent->dataSetName));
     }
-}
-
-hdps::DataTypes TsneAnalysisPlugin::supportedDataTypes() const
-{
-    DataTypes supportedTypes;
-    supportedTypes.append(PointType);
-    return supportedTypes;
 }
 
 QIcon TsneAnalysisPlugin::getIcon() const
@@ -152,6 +145,11 @@ void TsneAnalysisPlugin::startComputation(const bool& restart)
     _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), data, numEnabledDimensions);
 }
 
+void TsneAnalysisPlugin::continueComputation()
+{
+    _tsneAnalysis.continueComputation(500);
+}
+
 void TsneAnalysisPlugin::stopComputation()
 {
     _tsneAnalysis.stopComputation();
@@ -161,4 +159,11 @@ void TsneAnalysisPlugin::stopComputation()
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
 {
     return new TsneAnalysisPlugin();
+}
+
+hdps::DataTypes TsneAnalysisPluginFactory::supportedDataTypes() const
+{
+    DataTypes supportedTypes;
+    supportedTypes.append(PointType);
+    return supportedTypes;
 }
