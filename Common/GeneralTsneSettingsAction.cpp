@@ -140,16 +140,15 @@ GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAc
 
     switch (state)
     {
-    case Widget::State::Standard:
-        layout->setMargin(0);
-        setLayout(layout);
-        break;
+        case Widget::State::Standard:
+            setLayout(layout);
+            break;
 
-    case Widget::State::Popup:
-        setPopupLayout(layout);
-        break;
+        case Widget::State::Popup:
+            setPopupLayout(layout);
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
 }

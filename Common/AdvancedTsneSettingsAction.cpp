@@ -1,7 +1,7 @@
 #include "AdvancedTsneSettingsAction.h"
 #include "TsneSettingsAction.h"
 
-#include <QLabel>
+#include <QTableView>
 
 using namespace hdps::gui;
 
@@ -119,11 +119,22 @@ AdvancedTsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedTsneSettings
 	addIntegralActionToLayout(advancedTsneSettingsAction->_numChecksAction);
 
 	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+	layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
+
+    layout->update();
 
     switch (state)
     {
         case Widget::State::Standard:
-            layout->setMargin(0);
             setLayout(layout);
             break;
 
