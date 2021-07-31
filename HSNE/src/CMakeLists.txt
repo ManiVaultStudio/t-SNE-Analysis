@@ -12,3 +12,12 @@ set(HSNE_PLUGIN_SOURCES
     ${DIR}/HsneSettingsWidget.cpp
     PARENT_SCOPE
 )
+
+set(HSNE_ACTIONS_SOURCES
+    ${DIR}/HsneSettingsAction.h
+    ${DIR}/HsneSettingsAction.cpp
+    ${DIR}/GeneralHsneSettingsAction.h
+    ${DIR}/GeneralHsneSettingsAction.cpp
+    ${DIR}/AdvancedHsneSettingsAction.h
+    ${DIR}/AdvancedHsneSettingsAction.cpp
+)
