@@ -67,7 +67,7 @@ set_HDILib_project_link_libraries(${TSNE_PLUGIN})
 # Target installation
 # -----------------------------------------------------------------------------
 install(TARGETS ${TSNE_PLUGIN}
-   RUNTIME DESTINATION "${INSTALL_DIR}/$<CONFIGURATION>/Plugins" COMPONENT HSNE_SHAREDLIB
+   RUNTIME DESTINATION "${INSTALL_DIR}/$<CONFIGURATION>/Plugins" COMPONENT TSNE_SHAREDLIB
 )
 
 if(USE_PREBUILT_LIBS)
