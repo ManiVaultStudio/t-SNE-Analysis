@@ -137,9 +137,11 @@ GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAc
     auto continuePushButton = dynamic_cast<TriggerAction::Widget*>(tsneSettingsAction.getContinueComputationAction().createWidget(this));
     auto stopPushButton     = dynamic_cast<TriggerAction::Widget*>(tsneSettingsAction.getStopComputationAction().createWidget(this));
 
+    /*
     startPushButton->getPushButton()->setText("");
     continuePushButton->getPushButton()->setText("");
     stopPushButton->getPushButton()->setText("");
+    */
 
     computeLayout->addWidget(startPushButton);
     computeLayout->addWidget(continuePushButton);

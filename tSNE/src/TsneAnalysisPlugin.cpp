@@ -30,14 +30,16 @@ void TsneAnalysisPlugin::init()
 {
     _outputDatasetName = _core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName);
 
-    auto& inputDataset = _core->requestData<Points>(_inputDatasetName);
+    auto& inputDataset  = _core->requestData<Points>(_inputDatasetName);
     auto& outputDataset = _core->requestData<Points>(_outputDatasetName);
 
     std::vector<float> initialData;
 
-    initialData.resize(inputDataset.getNumPoints() * inputDataset.getNumDimensions());
+    const auto numEmbeddingDimensions = 2;
 
-    outputDataset.setData(initialData, 2);
+    initialData.resize(inputDataset.getNumPoints() * numEmbeddingDimensions);
+
+    outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
     outputDataset.setParentDatasetName(_inputDatasetName);
 
     outputDataset.exposeAction(&_tsneSettingsAction);
