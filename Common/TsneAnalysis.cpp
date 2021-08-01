@@ -125,7 +125,7 @@ void TsneWorker::computeGradientDescent(int iterations)
         qDebug() << "A-tSNE: Computing gradient descent..\n";
 
         const auto beginIteration   = _currentIteration;
-        const auto endIteration = beginIteration + iterations;
+        const auto endIteration     = beginIteration + iterations;
 
         // Performs gradient descent for every iteration
         for (_currentIteration = beginIteration; _currentIteration < endIteration; ++_currentIteration)
@@ -139,7 +139,7 @@ void TsneWorker::computeGradientDescent(int iterations)
             {
                 copyEmbeddingOutput();
                 emit embeddingUpdate(_outEmbedding);
-                emitEmbeddingUpdate(_currentIteration + 1, _parameters.getNumIterations());
+                emitEmbeddingUpdate(_currentIteration - beginIteration, _parameters.getNumIterations());
             }
 
             if (t > 1000)
