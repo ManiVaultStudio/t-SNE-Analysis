@@ -540,7 +540,7 @@ DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionActi
     switch (state)
     {
         case Widget::State::Standard:
-            layout->setMargin(0);
+            //layout->setMargin(0);
             setLayout(layout);
             break;
 
