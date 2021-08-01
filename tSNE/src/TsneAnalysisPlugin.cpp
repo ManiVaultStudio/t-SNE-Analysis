@@ -147,7 +147,7 @@ void TsneAnalysisPlugin::startComputation(const bool& restart)
 
 void TsneAnalysisPlugin::continueComputation()
 {
-    _tsneAnalysis.continueComputation(500);
+    _tsneAnalysis.continueComputation(_tsneSettingsAction.getTsneParameters().getNumIterations());
 }
 
 void TsneAnalysisPlugin::stopComputation()

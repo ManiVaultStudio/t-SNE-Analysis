@@ -30,18 +30,20 @@ set(TSNE_ACTIONS_SOURCES
     ${DIR}/TsneSettingsAction.cpp
     ${DIR}/GeneralTsneSettingsAction.h
     ${DIR}/GeneralTsneSettingsAction.cpp
-	${DIR}/AdvancedTsneSettingsAction.h
+    ${DIR}/AdvancedTsneSettingsAction.h
     ${DIR}/AdvancedTsneSettingsAction.cpp
 )
 
 set(DIMENSION_SELECTION_ACTION_SOURCES
-	${DIR}/DimensionSelectionAction.h
+    ${DIR}/DimensionSelectionAction.h
     ${DIR}/DimensionSelectionAction.cpp
 )
 
 set(UI_FILES
     ${DIR}/ui/DimensionSelectionWidget.ui
 )
+
+QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
 # The following 4 macros are designed to support the use of user supplied
 # libraries or the PREBUILT libraries for flann and HDILib from the LKEB
@@ -50,82 +52,82 @@ set(UI_FILES
 # TODO complete for MacOS and Linux
 
 # Include flann includes via target_include_directories to the current project
-macro(set_flann_project_includes)
+macro(set_flann_project_includes target)
     if(USE_PREBUILT_LIBS)
-        MESSAGE( STATUS "Including PREBUILT flann ${CMAKE_SOURCE_DIR}/flann")
-        target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE "${CMAKE_SOURCE_DIR}/flann/include")
+        MESSAGE( STATUS "Including PREBUILT flann ${LIBRARY_INSTALL_DIR}/flann")
+        target_include_directories("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/flann/include")
     else()
         if(MSVC)
-            target_include_directories ("${CMAKE_PROJECT_NAME}" PRIVATE "${CMAKE_SOURCE_DIR}/tSNE/lib/Flann/Win/include")
+            target_include_directories ("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/tSNE/lib/Flann/Win/include")
         endif()
 
         if(APPLE)
-            target_include_directories ("${CMAKE_PROJECT_NAME}" PRIVATE "${CMAKE_SOURCE_DIR}/tSNE/lib/Flann/OSX/include")
+            target_include_directories ("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/tSNE/lib/Flann/OSX/include")
         endif()
 
         if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-            target_include_directories ("${CMAKE_PROJECT_NAME}" PRIVATE "${CMAKE_SOURCE_DIR}/tSNE/lib/Flann/Linux/include")
+            target_include_directories ("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/tSNE/lib/Flann/Linux/include")
         endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     endif()
 endmacro()
 
 # Include HDILib includes via target_include_directories to the current project
-macro(set_HDILib_project_includes)
+macro(set_HDILib_project_includes target)
     if(USE_PREBUILT_LIBS)
         MESSAGE( STATUS "Including PREBUILT HDILib ${HDILib_INCLUDE_DIR}")
-        target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE "${HDILib_INCLUDE_DIR}")
+        target_include_directories("${target}" PRIVATE "${HDILib_INCLUDE_DIR}")
     else()
-        target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE "${CMAKE_SOURCE_DIR}/tSNE/lib/HDI/include")
+        target_include_directories("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/tSNE/lib/HDI/include")
     endif()
 endmacro()
 
 # Link the flann libraries via target_link_library to the current project
-macro(set_flann_project_link_libraries)
+macro(set_flann_project_link_libraries target)
     if(USE_PREBUILT_LIBS)
         MESSAGE( STATUS "Linking PREBUILT flann libraries...")
         if(MSVC)
-            target_link_libraries("${CMAKE_PROJECT_NAME}" debug "${CMAKE_SOURCE_DIR}/flann/lib/Debug/flann.lib")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" optimized "${CMAKE_SOURCE_DIR}/flann/lib/Release/flann.lib")
+            target_link_libraries("${target}" debug "${LIBRARY_INSTALL_DIR}/flann/lib/Debug/flann.lib")
+            target_link_libraries("${target}" optimized "${LIBRARY_INSTALL_DIR}/flann/lib/Release/flann.lib")
         endif()
     else()
         if(MSVC)
             MESSAGE( STATUS "Linking Windows flann libraries...")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" debug "${CMAKE_SOURCE_DIR}/tSNE/lib/Flann/Win/Debug/flann_cpp_s.lib")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" optimized "${CMAKE_SOURCE_DIR}/tSNE/lib/Flann/Win/Release/flann_cpp_s.lib")
+            target_link_libraries("${target}" debug "${LIBRARY_INSTALL_DIR}/tSNE/lib/Flann/Win/Debug/flann_cpp_s.lib")
+            target_link_libraries("${target}" optimized "${LIBRARY_INSTALL_DIR}/tSNE/lib/Flann/Win/Release/flann_cpp_s.lib")
         endif()
 
         if(APPLE)
             MESSAGE( STATUS "Linking Mac OS X libraries...")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" "${CMAKE_SOURCE_DIR}/tSNE/lib/Flann/OSX/libflann_s.a")
+            target_link_libraries("${target}" "${LIBRARY_INSTALL_DIR}/tSNE/lib/Flann/OSX/libflann_s.a")
         endif()
     endif()
 endmacro()
 
 # Link the HDILib libraries via target_link_library to the current project
-macro(set_HDILib_project_link_libraries)
+macro(set_HDILib_project_link_libraries target)
     if(USE_PREBUILT_LIBS)
         MESSAGE( STATUS "Linking PREBUILT HDILib libraries...")
-        target_link_libraries("${CMAKE_PROJECT_NAME}" ${HDILib_LINK_LIBS})
+        target_link_libraries("${target}" ${HDILib_LINK_LIBS})
     else()
         if(MSVC)
             MESSAGE( STATUS "Linking Windows HDILib libraries...")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" debug "${CMAKE_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdidimensionalityreduction.lib")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" debug "${CMAKE_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdidata.lib")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" debug "${CMAKE_SOURCE_DIR}/tSNE/lib/HDI/Win/Debug/hdiutils.lib")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" optimized "${CMAKE_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdidimensionalityreduction.lib")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" optimized "${CMAKE_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdidata.lib")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" optimized "${CMAKE_SOURCE_DIR}/tSNE/lib/HDI/Win/Release/hdiutils.lib")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" debug "${CMAKE_SOURCE_DIR}/tSNE/lib/Flann/Win/Debug/flann_cpp_s.lib")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" optimized "${CMAKE_SOURCE_DIR}/tSNE/lib/Flann/Win/Release/flann_cpp_s.lib")
+            target_link_libraries("${target}" debug "${LIBRARY_INSTALL_DIR}/tSNE/lib/HDI/Win/Debug/hdidimensionalityreduction.lib")
+            target_link_libraries("${target}" debug "${LIBRARY_INSTALL_DIR}/tSNE/lib/HDI/Win/Debug/hdidata.lib")
+            target_link_libraries("${target}" debug "${LIBRARY_INSTALL_DIR}/tSNE/lib/HDI/Win/Debug/hdiutils.lib")
+            target_link_libraries("${target}" optimized "${LIBRARY_INSTALL_DIR}/tSNE/lib/HDI/Win/Release/hdidimensionalityreduction.lib")
+            target_link_libraries("${target}" optimized "${LIBRARY_INSTALL_DIR}/tSNE/lib/HDI/Win/Release/hdidata.lib")
+            target_link_libraries("${target}" optimized "${LIBRARY_INSTALL_DIR}/tSNE/lib/HDI/Win/Release/hdiutils.lib")
+            target_link_libraries("${target}" debug "${LIBRARY_INSTALL_DIR}/tSNE/lib/Flann/Win/Debug/flann_cpp_s.lib")
+            target_link_libraries("${target}" optimized "${LIBRARY_INSTALL_DIR}/tSNE/lib/Flann/Win/Release/flann_cpp_s.lib")
         endif()
         if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             MESSAGE( STATUS "Linking Linux libraries...")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" "${CMAKE_SOURCE_DIR}/tSNE/lib/AtSNE/Linux/libbh_t_sne_library.a")
+            target_link_libraries("${target}" "${LIBRARY_INSTALL_DIR}/tSNE/lib/AtSNE/Linux/libbh_t_sne_library.a")
         endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         if(APPLE)
             MESSAGE( STATUS "Linking Mac OS X HDILib libraries...")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" debug "${CMAKE_SOURCE_DIR}/tSNE/lib/AtSNE/OSX/Debug/libbh_t_sne_library.a")
-            target_link_libraries("${CMAKE_PROJECT_NAME}" optimized "${CMAKE_SOURCE_DIR}/tSNE/lib/AtSNE/OSX/Release/libbh_t_sne_library.a")
+            target_link_libraries("${target}" debug "${LIBRARY_INSTALL_DIR}/tSNE/lib/AtSNE/OSX/Debug/libbh_t_sne_library.a")
+            target_link_libraries("${target}" optimized "${LIBRARY_INSTALL_DIR}/tSNE/lib/AtSNE/OSX/Release/libbh_t_sne_library.a")
         endif()
     endif()
 endmacro()
