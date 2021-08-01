@@ -17,6 +17,10 @@ TsneSettingsAction::TsneSettingsAction(QObject* parent) :
 {
     setText("TSNE");
 
+    _startComputationAction.setToolTip("Start the tSNE computation");
+    _continueComputationAction.setToolTip("Continue with the tSNE computation");
+    _stopComputationAction.setToolTip("Stop the current tSNE computation");
+
     /*
     auto& fontAwesome = hdps::Application::getIconFont("FontAwesome");
 
