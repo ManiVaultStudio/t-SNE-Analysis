@@ -47,11 +47,6 @@ void TsneAnalysisPlugin::init()
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
         notifyProgressPercentage(percentage);
-
-        if (percentage == 1.0f) {
-            _tsneSettingsAction.getRunningAction().setChecked(false);
-            notifyFinished();
-        }
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
@@ -59,18 +54,23 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
-        auto& runningAction = _tsneSettingsAction.getRunningAction();
-
-        runningAction.setChecked(false);
-        runningAction.setText("");
-        runningAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
-
         notifyFinished();
+        notifyProgressPercentage(0.0f);
         notifyProgressSection("");
+        
+        _tsneSettingsAction.getRunningAction().setChecked(false);
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
+        notifyFinished();
+        notifyProgressPercentage(0.0f);
+        notifyProgressSection("");
+
+        _tsneSettingsAction.getRunningAction().setChecked(false);
     });
 
     connect(&_tsneSettingsAction.getStartComputationAction(), &TriggerAction::triggered, this, [this]() {
-        startComputation(true);
+        startComputation();
     });
 
     connect(&_tsneSettingsAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
@@ -91,6 +91,9 @@ void TsneAnalysisPlugin::init()
 
     connect(&_tsneSettingsAction.getRunningAction(), &ToggleAction::toggled, this, [this](bool toggled) {
         _dimensionSelectionAction.setEnabled(!toggled);
+        _tsneSettingsAction.getStartComputationAction().setEnabled(!toggled);
+        _tsneSettingsAction.getContinueComputationAction().setEnabled(!toggled && _tsneAnalysis.canContinue());
+        _tsneSettingsAction.getStopComputationAction().setEnabled(toggled);
     });
 
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
@@ -115,7 +118,7 @@ QIcon TsneAnalysisPlugin::getIcon() const
     return hdps::Application::getIconFont("FontAwesome").getIcon("table");
 }
 
-void TsneAnalysisPlugin::startComputation(const bool& restart)
+void TsneAnalysisPlugin::startComputation()
 {
     notifyStarted();
     notifyProgressPercentage(0.0f);
@@ -147,6 +150,11 @@ void TsneAnalysisPlugin::startComputation(const bool& restart)
 
 void TsneAnalysisPlugin::continueComputation()
 {
+    notifyStarted();
+    notifyProgressPercentage(0.0f);
+
+    _tsneSettingsAction.getRunningAction().setChecked(true);
+
     _tsneAnalysis.continueComputation(_tsneSettingsAction.getTsneParameters().getNumIterations());
 }
 

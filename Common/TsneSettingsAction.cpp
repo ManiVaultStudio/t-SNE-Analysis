@@ -1,4 +1,5 @@
 #include "TsneSettingsAction.h"
+#include "Application.h"
 
 #include <QTabWidget>
 
@@ -15,6 +16,14 @@ TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     _runningAction(this, "Running")
 {
     setText("TSNE");
+
+    /*
+    auto& fontAwesome = hdps::Application::getIconFont("FontAwesome");
+
+    _startComputationAction.setIcon(fontAwesome.getIcon("play"));
+    _continueComputationAction.setIcon(fontAwesome.getIcon("forward"));
+    _stopComputationAction.setIcon(fontAwesome.getIcon("stop"));
+    */
 }
 
 QMenu* TsneSettingsAction::getContextMenu()

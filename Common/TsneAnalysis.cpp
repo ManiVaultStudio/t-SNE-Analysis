@@ -51,6 +51,11 @@ void TsneWorker::changeThread(QThread* targetThread)
     _offscreenBuffer->moveToThread(targetThread);
 }
 
+int TsneWorker::getNumIterations() const
+{
+    return _currentIteration + 1;
+}
+
 void TsneWorker::computeSimilarities()
 {
     emit progressSection("Initializing tSNE");
@@ -116,7 +121,7 @@ void TsneWorker::computeGradientDescent(int iterations)
     
     const auto emitEmbeddingUpdate = [this](const std::uint32_t& numProcessed, const std::uint32_t& numTotal) -> void {
         emit progressSection(QString("Embedding (step %1 of %2)").arg(QString::number(numProcessed), QString::number(numTotal)));
-        emit progressPercentage(static_cast<float>(_currentIteration) / static_cast<float>(_parameters.getNumIterations()));
+        emit progressPercentage(static_cast<float>(numProcessed) / static_cast<float>(numTotal));
     };
 
     double elapsed = 0;
@@ -139,7 +144,7 @@ void TsneWorker::computeGradientDescent(int iterations)
             {
                 copyEmbeddingOutput();
                 emit embeddingUpdate(_outEmbedding);
-                emitEmbeddingUpdate(_currentIteration - beginIteration, _parameters.getNumIterations());
+                emitEmbeddingUpdate(_currentIteration - beginIteration, iterations);
             }
 
             if (t > 1000)
@@ -251,6 +256,16 @@ void TsneAnalysis::stopComputation()
         _workerThread.wait();
     }
     qDebug() << "tSNE computation stopped.";
+
+    emit stopped();
+}
+
+bool TsneAnalysis::canContinue() const
+{
+    if (_tsneWorker == nullptr)
+        return false;
+
+    return _tsneWorker->getNumIterations() >= 1;
 }
 
 void TsneAnalysis::startComputation(TsneWorker* tsneWorker)

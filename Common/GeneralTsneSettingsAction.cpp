@@ -2,6 +2,7 @@
 #include "TsneSettingsAction.h"
 
 #include <QLabel>
+#include <QPushButton>
 
 using namespace hdps::gui;
 
@@ -132,9 +133,17 @@ GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAc
 
     auto& tsneSettingsAction = generalTsneSettingsAction->getTsneSettingsAction();
 
-    computeLayout->addWidget(tsneSettingsAction.getStartComputationAction().createWidget(this));
-    computeLayout->addWidget(tsneSettingsAction.getContinueComputationAction().createWidget(this));
-    computeLayout->addWidget(tsneSettingsAction.getStopComputationAction().createWidget(this));
+    auto startPushButton    = dynamic_cast<TriggerAction::Widget*>(tsneSettingsAction.getStartComputationAction().createWidget(this));
+    auto continuePushButton = dynamic_cast<TriggerAction::Widget*>(tsneSettingsAction.getContinueComputationAction().createWidget(this));
+    auto stopPushButton     = dynamic_cast<TriggerAction::Widget*>(tsneSettingsAction.getStopComputationAction().createWidget(this));
+
+    startPushButton->getPushButton()->setText("");
+    continuePushButton->getPushButton()->setText("");
+    stopPushButton->getPushButton()->setText("");
+
+    computeLayout->addWidget(startPushButton);
+    computeLayout->addWidget(continuePushButton);
+    computeLayout->addWidget(stopPushButton);
 
     layout->addLayout(computeLayout, layout->rowCount(), 1, 1, 2);
 

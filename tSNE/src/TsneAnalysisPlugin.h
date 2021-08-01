@@ -24,7 +24,7 @@ public:
     /** Returns the icon of this plugin */
     QIcon getIcon() const override;
 
-    void startComputation(const bool& restart);
+    void startComputation();
     void continueComputation();
     void stopComputation();
 

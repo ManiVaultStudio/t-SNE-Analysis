@@ -22,6 +22,8 @@ public:
     ~TsneWorker();
     void changeThread(QThread* targetThread);
 
+    int getNumIterations() const;
+
 public slots:
     void compute();
     void continueComputation(int iterations);
@@ -85,6 +87,7 @@ public:
     void startComputation(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions);
     void continueComputation(int iterations);
     void stopComputation();
+    bool canContinue() const;
 
 private:
     void startComputation(TsneWorker* tsneWorker);
@@ -100,9 +103,9 @@ signals:
     void progressPercentage(const float& percentage);
     void progressSection(const QString& section);
     void finished();
+    void stopped();
 
 private:
-    QThread _workerThread;
-
-    TsneWorker* _tsneWorker;
+    QThread         _workerThread;
+    TsneWorker*     _tsneWorker;
 };
