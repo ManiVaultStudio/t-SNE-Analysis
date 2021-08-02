@@ -4,7 +4,6 @@
 
 #include "HsneHierarchy.h"
 #include "TsneAnalysis.h"
-#include "HsneSettingsWidget.h"
 #include "HsneSettingsAction.h"
 
 using namespace hdps::plugin;
@@ -31,24 +30,15 @@ public:
     void onDataEvent(hdps::DataEvent* dataEvent);
 
     void computeTopLevelEmbedding();
-    void drillIn(QString embeddingName);
 
 public slots:
-    void dataSetPicked(const QString& name);
     void startComputation();
-    void onDrillIn();
     void onNewEmbedding(const TsneData& tsneData);
 
 private:
-    HsneHierarchy _hierarchy;
-
-    TsneAnalysis _tsne;
-
-    QString _embeddingNameBase;
-    QString _embeddingName;
-
-    //std::unique_ptr<HsneSettingsWidget> _settings;
-    HsneSettingsAction      _hsneSettingsAction;        /** Hsne settings action */
+    HsneHierarchy       _hierarchy;
+    TsneAnalysis        _tsne;
+    HsneSettingsAction  _hsneSettingsAction;        /** Hsne settings action */
 };
 
 // =============================================================================

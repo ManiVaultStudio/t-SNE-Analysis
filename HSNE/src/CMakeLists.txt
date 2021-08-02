@@ -8,8 +8,6 @@ set(HSNE_PLUGIN_SOURCES
     ${DIR}/HsneHierarchy.cpp
     ${DIR}/HsneParameters.h
     ${DIR}/HsneParameters.cpp
-    ${DIR}/HsneSettingsWidget.h
-    ${DIR}/HsneSettingsWidget.cpp
     PARENT_SCOPE
 )
 
