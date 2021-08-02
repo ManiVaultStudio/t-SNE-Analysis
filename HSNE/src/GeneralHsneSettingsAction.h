@@ -3,7 +3,7 @@
 #include "actions/Actions.h"
 
 class QMenu;
-class HsneAnalysisPlugin;
+class HsneSettingsAction;
 
 class GeneralHsneSettingsAction : public hdps::gui::WidgetActionGroup
 {
@@ -19,15 +19,15 @@ protected:
     };
 
 public:
-    GeneralHsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin);
+    GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction);
 
     QMenu* getContextMenu();
 
 protected:
-    HsneAnalysisPlugin*         _hsneAnalysisPlugin;                                /** Pointer to HSNE analysis plugin */
-    hdps::gui::OptionAction     _knnTypeAction;                                     /** KNN action */
-    hdps::gui::IntegralAction   _seedAction;                                        /** Random seed action */
-    hdps::gui::ToggleAction     _useMonteCarloSamplingAction;                       /** Use Monte Carlo sampling on/off action */
+    HsneSettingsAction&         _hsneSettingsAction;                /** Reference to HSNE settings action */
+    hdps::gui::OptionAction     _knnTypeAction;                     /** KNN action */
+    hdps::gui::IntegralAction   _seedAction;                        /** Random seed action */
+    hdps::gui::ToggleAction     _useMonteCarloSamplingAction;       /** Use Monte Carlo sampling on/off action */
     
     friend class Widget;
 };

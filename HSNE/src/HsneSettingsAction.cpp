@@ -9,8 +9,8 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _hsneAnalysisPlugin(hsneAnalysisPlugin),
     _hsneParameters(),
     _tsneParameters(),
-    _generalHsneSettingsAction(hsneAnalysisPlugin),
-    _advancedHsneSettingsAction(hsneAnalysisPlugin),
+    _generalHsneSettingsAction(*this),
+    _advancedHsneSettingsAction(*this),
     _tsneSettingsAction(this),
     _dimensionSelectionAction(this)
 {

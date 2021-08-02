@@ -3,7 +3,7 @@
 #include "actions/Actions.h"
 
 class QMenu;
-class HsneAnalysisPlugin;
+class HsneSettingsAction;
 
 class AdvancedHsneSettingsAction : public hdps::gui::WidgetActionGroup
 {
@@ -19,12 +19,12 @@ protected:
     };
 
 public:
-    AdvancedHsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin);
+    AdvancedHsneSettingsAction(HsneSettingsAction& hsneSettingsAction);
 
     QMenu* getContextMenu();
 
 protected:
-    HsneAnalysisPlugin*         _hsneAnalysisPlugin;                                /** Pointer to HSNE analysis plugin */
+    HsneSettingsAction&         _hsneSettingsAction;                                /** Reference to HSNE settings action */
     hdps::gui::IntegralAction   _numWalksForLandmarkSelectionAction;                /** Number of walks for landmark selection action */
     hdps::gui::DecimalAction    _numWalksForLandmarkSelectionThresholdAction;       /** Number of walks for landmark selection threshold action */
     hdps::gui::IntegralAction   _randomWalkLengthAction;                            /** Random walk length action */

@@ -6,14 +6,41 @@
 
 using namespace hdps::gui;
 
-GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
-    WidgetActionGroup(hsneAnalysisPlugin, true),
-    _hsneAnalysisPlugin(hsneAnalysisPlugin),
+GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
+    WidgetActionGroup(&hsneSettingsAction, true),
+    _hsneSettingsAction(hsneSettingsAction),
     _knnTypeAction(this, "KNN Type", QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN"),
     _seedAction(this, "Random seed", -1, 1000, -1, -1),
     _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling")
 {
     setText("HSNE (general)");
+
+    const auto updateKnnAlgorithm = [this]() -> void {
+        _hsneSettingsAction.getHsneParameters().setKnnLibrary(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
+    };
+
+    const auto updateSeed = [this]() -> void {
+        _hsneSettingsAction.getHsneParameters().setSeed(_seedAction.getValue());
+    };
+
+    const auto updateUseMonteCarloSampling = [this]() -> void {
+    };
+
+    connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm]() {
+        updateKnnAlgorithm();
+    });
+
+    connect(&_seedAction, &IntegralAction::valueChanged, this, [this, updateSeed]() {
+        updateSeed();
+    });
+
+    connect(&_useMonteCarloSamplingAction, &ToggleAction::toggled, this, [this, updateUseMonteCarloSampling]() {
+        updateUseMonteCarloSampling();
+    });
+
+    updateKnnAlgorithm();
+    updateSeed();
+    updateUseMonteCarloSampling();
 }
 
 QMenu* GeneralHsneSettingsAction::getContextMenu()
