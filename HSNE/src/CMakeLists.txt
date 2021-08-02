@@ -20,4 +20,6 @@ set(HSNE_ACTIONS_SOURCES
     ${DIR}/GeneralHsneSettingsAction.cpp
     ${DIR}/AdvancedHsneSettingsAction.h
     ${DIR}/AdvancedHsneSettingsAction.cpp
+	${DIR}/HsneScaleAction.h
+    ${DIR}/HsneScaleAction.cpp
 )

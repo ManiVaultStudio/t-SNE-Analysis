@@ -63,12 +63,15 @@ void TsneAnalysisPlugin::init()
         _tsneSettingsAction.getRunningAction().setChecked(false);
     });
 
-    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
+    connect(&_tsneAnalysis, &TsneAnalysis::stopped, this, [this]() {
+        qDebug() << "TsneAnalysis::stopped";
+        /*
         notifyFinished();
         notifyProgressPercentage(0.0f);
         notifyProgressSection("");
 
         _tsneSettingsAction.getRunningAction().setChecked(false);
+        */
     });
 
     connect(&_tsneSettingsAction.getStartComputationAction(), &TriggerAction::triggered, this, [this]() {

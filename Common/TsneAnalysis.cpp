@@ -121,7 +121,7 @@ void TsneWorker::computeGradientDescent(int iterations)
     
     const auto emitEmbeddingUpdate = [this](const std::uint32_t& numProcessed, const std::uint32_t& numTotal) -> void {
         emit progressSection(QString("Embedding (step %1 of %2)").arg(QString::number(numProcessed), QString::number(numTotal)));
-        emit progressPercentage(static_cast<float>(numProcessed) / static_cast<float>(numTotal));
+        //emit progressPercentage(static_cast<float>(numProcessed) / static_cast<float>(numTotal));
     };
 
     double elapsed = 0;
@@ -163,7 +163,7 @@ void TsneWorker::computeGradientDescent(int iterations)
         emit embeddingUpdate(_outEmbedding);
     }
 
-    emit progressSection("Finished embedding");
+    //emit progressSection("Finished embedding");
 
     qDebug() << "--------------------------------------------------------------------------------";
     qDebug() << "A-tSNE: Finished embedding of " << "tSNE Analysis" << " in: " << elapsed / 1000 << " seconds ";
