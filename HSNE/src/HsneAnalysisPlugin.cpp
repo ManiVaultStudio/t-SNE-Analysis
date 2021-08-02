@@ -2,6 +2,7 @@
 
 #include "PointData.h"
 #include "HsneParameters.h"
+#include "HsneScaleAction.h"
 
 #include <QtCore>
 #include <QtDebug>
@@ -48,11 +49,14 @@ void HsneAnalysisPlugin::init()
     outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
     outputDataset.setParentDatasetName(_inputDatasetName);
 
+    auto& tsneSettingsAction = _hsneSettingsAction.getTsneSettingsAction();
+
     outputDataset.exposeAction(&_hsneSettingsAction.getGeneralHsneSettingsAction());
     outputDataset.exposeAction(&_hsneSettingsAction.getAdvancedHsneSettingsAction());
-    outputDataset.exposeAction(&_hsneSettingsAction.getTsneSettingsAction().getGeneralTsneSettingsAction());
-    outputDataset.exposeAction(&_hsneSettingsAction.getTsneSettingsAction().getAdvancedTsneSettingsAction());
+    outputDataset.exposeAction(&tsneSettingsAction.getGeneralTsneSettingsAction());
+    outputDataset.exposeAction(&tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset.exposeAction(&_hsneSettingsAction.getDimensionSelectionAction());
+    outputDataset.exposeAction(new HsneScaleAction(this, &tsneSettingsAction, _core, &_hierarchy, _inputDatasetName, _outputDatasetName));
 
     connect(&_hsneSettingsAction.getStartComputationAction(), &TriggerAction::triggered, this, [this]() {
         startComputation();
