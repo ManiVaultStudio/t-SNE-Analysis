@@ -5,6 +5,7 @@
 #include "HsneHierarchy.h"
 #include "TsneAnalysis.h"
 #include "HsneSettingsWidget.h"
+#include "HsneSettingsAction.h"
 
 using namespace hdps::plugin;
 using namespace hdps::gui;
@@ -59,6 +60,7 @@ private:
     QString _embeddingName;
 
     //std::unique_ptr<HsneSettingsWidget> _settings;
+    HsneSettingsAction      _hsneSettingsAction;        /** Hsne settings action */
 };
 
 // =============================================================================

@@ -22,8 +22,10 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
 using namespace hdps;
 
 HsneAnalysisPlugin::HsneAnalysisPlugin() :
-    AnalysisPlugin("H-SNE Analysis")
+    AnalysisPlugin("H-SNE Analysis"),
+    _hsneSettingsAction(this)
 {
+    _hsneSettingsAction.getTsneSettingsAction().getGeneralTsneSettingsAction().collapse();
 }
 
 HsneAnalysisPlugin::~HsneAnalysisPlugin(void)
@@ -32,6 +34,26 @@ HsneAnalysisPlugin::~HsneAnalysisPlugin(void)
 
 void HsneAnalysisPlugin::init()
 {
+    _outputDatasetName = _core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName);
+
+    auto& inputDataset = _core->requestData<Points>(_inputDatasetName);
+    auto& outputDataset = _core->requestData<Points>(_outputDatasetName);
+
+    std::vector<float> initialData;
+
+    const auto numEmbeddingDimensions = 2;
+
+    initialData.resize(inputDataset.getNumPoints() * numEmbeddingDimensions);
+
+    outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
+    outputDataset.setParentDatasetName(_inputDatasetName);
+
+    outputDataset.exposeAction(&_hsneSettingsAction.getGeneralHsneSettingsAction());
+    outputDataset.exposeAction(&_hsneSettingsAction.getAdvancedHsneSettingsAction());
+    outputDataset.exposeAction(&_hsneSettingsAction.getTsneSettingsAction().getGeneralTsneSettingsAction());
+    outputDataset.exposeAction(&_hsneSettingsAction.getTsneSettingsAction().getAdvancedTsneSettingsAction());
+    outputDataset.exposeAction(&_hsneSettingsAction.getDimensionSelectionAction());
+
     // Create a new settings widget which allows users to change the parameters given to the HSNE analysis
     //_settings = std::make_unique<HsneSettingsWidget>(*this);
 
@@ -40,11 +62,11 @@ void HsneAnalysisPlugin::init()
     // If the start computation button is pressed, run the HSNE algorithm
     //connect(_settings.get(), &HsneSettingsWidget::startComputation, this, &HsneAnalysisPlugin::startComputation);
 
-    registerDataEventByType(PointType, std::bind(&HsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
+    //registerDataEventByType(PointType, std::bind(&HsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 
     //connect(_settings.get(), &HsneSettingsWidget::stopComputation, this, &HsneAnalysisPlugin::stopComputation);
     //connect(&_tsne, &TsneAnalysis::finished, _settings.get(), &HsneSettingsWidget::onComputationStopped);
-    connect(&_tsne, &TsneAnalysis::embeddingUpdate, this, &HsneAnalysisPlugin::onNewEmbedding);
+    //connect(&_tsne, &TsneAnalysis::embeddingUpdate, this, &HsneAnalysisPlugin::onNewEmbedding);
     //connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
 }
 
@@ -65,7 +87,7 @@ void HsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
         //}
 
         // Passes changes to the current dataset to the dimension selection widget
-        Points& points = _core->requestData<Points>(dataEvent->dataSetName);
+        //Points& points = _core->requestData<Points>(dataEvent->dataSetName);
 
         //_settings->getDimensionSelectionWidget().dataChanged(points);
         break;
@@ -81,6 +103,7 @@ void HsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 // If a different input dataset is picked in the settings widget update the dimension widget
 void HsneAnalysisPlugin::dataSetPicked(const QString& name)
 {
+    /*
     Points& points = _core->requestData<Points>(name);
 
     auto analyses = points.getProperty("Analyses", QVariantList()).toList();
@@ -88,6 +111,7 @@ void HsneAnalysisPlugin::dataSetPicked(const QString& name)
     points.setProperty("Analyses", analyses);
 
     //_settings->getDimensionSelectionWidget().dataChanged(points);
+    */
 }
 
 void HsneAnalysisPlugin::startComputation()

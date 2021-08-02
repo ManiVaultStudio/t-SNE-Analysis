@@ -1,144 +1,20 @@
 #include "HsneSettingsAction.h"
-#include "Application.h"
 #include "HsneAnalysisPlugin.h"
-
-#include <QLabel>
+#include "Application.h"
 
 using namespace hdps::gui;
 
 HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     WidgetActionGroup(hsneAnalysisPlugin, true),
     _hsneAnalysisPlugin(hsneAnalysisPlugin),
-    _knnTypeAction(this, "KNN Type"),
-    _seedAction(this, "Random seed", -1, 1000, -1, -1),
-    _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling"),
-    _numWalksForLandmarkSelectionAction(this, "No. walks for landmark selection"),
-    _numWalksForLandmarkSelectionThresholdAction(this, "No. walks for landmark selection threshold"),
-    _randomWalkLengthAction(this, "Random walk length"),
-    _numWalksForAreaOfInfluenceAction(this, "No. walks for area of influence"),
-    _minWalksRequiredAction(this, "Minimum no. walks required"),
-    _numChecksAknnAction(this, "No. KNN checks", 0, 1024, 512, 512),
-    _useOutOfCoreComputationAction(this, "Use out-of-core computation")
+    _hsneParameters(),
+    _tsneParameters(),
+    _generalHsneSettingsAction(hsneAnalysisPlugin),
+    _advancedHsneSettingsAction(hsneAnalysisPlugin),
+    _tsneSettingsAction(this),
+    _dimensionSelectionAction(this)
 {
     setText("HSNE");
-
-
-
-    /*
-    _knnTypeAction.setOptions(QStringList() << "FLANN" << "HNSW" << "ANNOY");
-    _distanceMetricAction.setOptions(QStringList() << "Euclidean" << "Cosine" << "Inner Product" << "Manhattan" << "Hamming" << "Dot");
-    _numIterationsAction.setRange(1, 10000);
-    _perplexityAction.setRange(2, 50);
-
-    _knnTypeAction.setCurrentText("FLANN");
-    _distanceMetricAction.setCurrentText("Euclidean");
-    _numIterationsAction.setValue(1000);
-    _perplexityAction.setValue(30);
-
-    _knnTypeAction.setDefaultText("FLANN");
-    _distanceMetricAction.setDefaultText("Euclidean");
-    _numIterationsAction.setDefaultValue(1000);
-    _perplexityAction.setDefaultValue(30);
-
-    _resetAction.setEnabled(false);
-
-    const auto updateKnnAlgorithm = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setKnnAlgorithm(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
-    };
-
-    const auto updateDistanceMetric = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setKnnDistanceMetric(static_cast<hdi::dr::knn_distance_metric>(_distanceMetricAction.getCurrentIndex()));
-    };
-
-    const auto updateNumIterations = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setNumIterations(_numIterationsAction.getValue());
-    };
-
-    const auto updatePerplexity = [this]() -> void {
-        _tsneAnalysisPlugin->getTsneParameters().setPerplexity(_perplexityAction.getValue());
-    };
-
-    const auto canReset = [this]() -> bool {
-        if (_knnTypeAction.canReset())
-            return true;
-
-        if (_distanceMetricAction.canReset())
-            return true;
-
-        if (_numIterationsAction.canReset())
-            return true;
-
-        if (_perplexityAction.canReset())
-            return true;
-
-        return false;
-    };
-
-    const auto updateReset = [this, canReset]() -> void {
-        _resetAction.setEnabled(canReset());
-    };
-
-    const auto enableControls = [this, canReset]() -> void {
-        const auto isRunning	= _runningAction.isChecked();
-        const auto enable		= !isRunning;
-
-        _knnTypeAction.setEnabled(enable);
-        _distanceMetricAction.setEnabled(enable);
-        _numIterationsAction.setEnabled(enable);
-        _perplexityAction.setEnabled(enable);
-        _resetAction.setEnabled(enable && canReset());
-        //_startComputationAction.setEnabled(enable);
-        //_continueComputationAction.setEnabled(enable);
-        //_stopComputationAction.setEnabled(isRunning);
-    };
-
-    connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric, updateReset](const std::int32_t& currentIndex) {
-        updateDistanceMetric();
-        updateReset();
-    });
-
-    connect(&_distanceMetricAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric, updateReset](const std::int32_t& currentIndex) {
-        updateDistanceMetric();
-        updateReset();
-    });
-
-    connect(&_numIterationsAction, &IntegralAction::valueChanged, this, [this, updateNumIterations, updateReset](const std::int32_t& value) {
-        updateNumIterations();
-        updateReset();
-    });
-
-    connect(&_perplexityAction, &IntegralAction::valueChanged, this, [this, updatePerplexity, updateReset](const std::int32_t& value) {
-        updatePerplexity();
-        updateReset();
-    });
-
-    connect(&_startComputationAction, &TriggerAction::triggered, this, [this]() {
-    });
-
-    connect(&_continueComputationAction, &TriggerAction::triggered, this, [this]() {
-    });
-
-    connect(&_stopComputationAction, &TriggerAction::triggered, this, [this]() {
-    });
-
-    connect(&_runningAction, &TriggerAction::toggled, this, [this, enableControls](bool toggled) {
-        enableControls();
-    });
-
-    connect(&_resetAction, &TriggerAction::triggered, this, [this, enableControls](const std::int32_t& value) {
-        _knnTypeAction.reset();
-        _distanceMetricAction.reset();
-        _numIterationsAction.reset();
-        _perplexityAction.reset();
-    });
-
-    updateKnnAlgorithm();
-    updateDistanceMetric();
-    updateNumIterations();
-    updatePerplexity();
-    updateReset();
-    enableControls();
-    */
 }
 
 QMenu* HsneSettingsAction::getContextMenu()
@@ -167,6 +43,16 @@ QMenu* HsneSettingsAction::getContextMenu()
     */
 
     return menu;
+}
+
+HsneParameters& HsneSettingsAction::getHsneParameters()
+{
+    return _hsneParameters;
+}
+
+TsneParameters& HsneSettingsAction::getTsneParameters()
+{
+    return _tsneParameters;
 }
 
 HsneSettingsAction::Widget::Widget(QWidget* parent, HsneSettingsAction* hsneSettingsAction, const Widget::State& state) :

@@ -1,6 +1,11 @@
 #pragma once
 
-#include "actions/Actions.h"
+#include "HsneParameters.h"
+#include "TsneParameters.h"
+#include "GeneralHsneSettingsAction.h"
+#include "AdvancedHsneSettingsAction.h"
+#include "TsneSettingsAction.h"
+#include "DimensionSelectionAction.h"
 
 class QMenu;
 class HsneAnalysisPlugin;
@@ -23,18 +28,22 @@ public:
 
     QMenu* getContextMenu();
 
+    HsneParameters& getHsneParameters();
+    TsneParameters& getTsneParameters();
+
+    GeneralHsneSettingsAction& getGeneralHsneSettingsAction() { return _generalHsneSettingsAction; }
+    AdvancedHsneSettingsAction& getAdvancedHsneSettingsAction() { return _advancedHsneSettingsAction; }
+    TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
+    DimensionSelectionAction& getDimensionSelectionAction() { return _dimensionSelectionAction; }
+
 protected:
-    HsneAnalysisPlugin*         _hsneAnalysisPlugin;                                /** Pointer to HSNE analysis plugin */
-    hdps::gui::OptionAction     _knnTypeAction;                                     /** KNN action */
-    hdps::gui::IntegralAction   _seedAction;                                        /** Random seed action */
-    hdps::gui::ToggleAction     _useMonteCarloSamplingAction;                       /** Use Monte Carlo sampling on/off action */
-    hdps::gui::IntegralAction   _numWalksForLandmarkSelectionAction;                /** Number of walks for landmark selection action */
-    hdps::gui::DecimalAction    _numWalksForLandmarkSelectionThresholdAction;       /** Number of walks for landmark selection threshold action */
-    hdps::gui::IntegralAction   _randomWalkLengthAction;                            /** Random walk length action */
-    hdps::gui::IntegralAction   _numWalksForAreaOfInfluenceAction;                  /** Number of walks for area of influence action */
-    hdps::gui::IntegralAction   _minWalksRequiredAction;                            /** Minimum number of walks required action */
-    hdps::gui::IntegralAction   _numChecksAknnAction;                               /** Number of KNN checks action */
-    hdps::gui::ToggleAction     _useOutOfCoreComputationAction;                     /** Use out of core computation action */
-	
+    HsneAnalysisPlugin*             _hsneAnalysisPlugin;            /** Pointer to HSNE analysis plugin */
+    HsneParameters                  _hsneParameters;                /** HSNE parameters */
+    TsneParameters                  _tsneParameters;                /** TSNE parameters */
+    GeneralHsneSettingsAction       _generalHsneSettingsAction;     /** General HSNE settings action */
+    AdvancedHsneSettingsAction      _advancedHsneSettingsAction;    /** Advanced HSNE settings action */
+    TsneSettingsAction              _tsneSettingsAction;            /** TSNE settings action */
+    DimensionSelectionAction        _dimensionSelectionAction;      /** Dimension selection action */
+
     friend class Widget;
 };
