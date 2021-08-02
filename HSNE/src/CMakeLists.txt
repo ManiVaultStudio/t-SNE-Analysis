@@ -22,4 +22,5 @@ set(HSNE_ACTIONS_SOURCES
     ${DIR}/AdvancedHsneSettingsAction.cpp
 	${DIR}/HsneScaleAction.h
     ${DIR}/HsneScaleAction.cpp
+	PARENT_SCOPE
 )
