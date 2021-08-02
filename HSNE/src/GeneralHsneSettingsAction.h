@@ -23,6 +23,8 @@ public:
 
     QMenu* getContextMenu();
 
+    HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
+
 protected:
     HsneSettingsAction&         _hsneSettingsAction;                /** Reference to HSNE settings action */
     hdps::gui::OptionAction     _knnTypeAction;                     /** KNN action */

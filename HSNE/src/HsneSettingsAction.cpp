@@ -11,7 +11,10 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _generalHsneSettingsAction(*this),
     _advancedHsneSettingsAction(*this),
     _tsneSettingsAction(this),
-    _dimensionSelectionAction(this)
+    _dimensionSelectionAction(this),
+    _startComputationAction(this, "Start"),
+    _continueComputationAction(this, "Continue"),
+    _stopComputationAction(this, "Stop")
 {
     setText("HSNE");
 }

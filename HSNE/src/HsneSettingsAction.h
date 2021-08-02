@@ -35,6 +35,9 @@ public:
     AdvancedHsneSettingsAction& getAdvancedHsneSettingsAction() { return _advancedHsneSettingsAction; }
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
     DimensionSelectionAction& getDimensionSelectionAction() { return _dimensionSelectionAction; }
+    hdps::gui::TriggerAction& getStartComputationAction() { return _startComputationAction; }
+    hdps::gui::TriggerAction& getContinueComputationAction() { return _continueComputationAction; }
+    hdps::gui::TriggerAction& getStopComputationAction() { return _stopComputationAction; }
 
 protected:
     HsneAnalysisPlugin*             _hsneAnalysisPlugin;            /** Pointer to HSNE analysis plugin */
@@ -44,6 +47,9 @@ protected:
     AdvancedHsneSettingsAction      _advancedHsneSettingsAction;    /** Advanced HSNE settings action */
     TsneSettingsAction              _tsneSettingsAction;            /** TSNE settings action */
     DimensionSelectionAction        _dimensionSelectionAction;      /** Dimension selection action */
+    hdps::gui::TriggerAction        _startComputationAction;        /** Start computation action */
+    hdps::gui::TriggerAction        _continueComputationAction;     /** Continue computation action */
+    hdps::gui::TriggerAction        _stopComputationAction;         /** Stop computation action */
 
     friend class Widget;
 };

@@ -39,23 +39,11 @@ public slots:
     void onDrillIn();
     void onNewEmbedding(const TsneData& tsneData);
 
-public: // GUI
-    /**
-     * Generates a context menu for display in other (view) plugins
-     * @param kind Kind of plugin in which the context menu will be shown
-     * @return Context menu
-     */
-    QMenu* contextMenu(const QVariant& context) override;
-
-private:
-    QString createEmptyDerivedEmbedding(QString name, QString dataType, QString sourceName);
-
 private:
     HsneHierarchy _hierarchy;
 
     TsneAnalysis _tsne;
 
-    QString _inputDataName;
     QString _embeddingNameBase;
     QString _embeddingName;
 

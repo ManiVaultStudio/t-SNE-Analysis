@@ -129,8 +129,6 @@ GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAc
 
     layout->addWidget(generalTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 1, 1, 2);
 
-    auto computeLayout = new QHBoxLayout();
-
     auto& tsneSettingsAction = generalTsneSettingsAction->getTsneSettingsAction();
 
     auto startPushButton    = dynamic_cast<TriggerAction::Widget*>(tsneSettingsAction.getStartComputationAction().createWidget(this));
@@ -142,6 +140,8 @@ GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAc
     continuePushButton->getPushButton()->setText("");
     stopPushButton->getPushButton()->setText("");
     */
+
+    auto computeLayout = new QHBoxLayout();
 
     computeLayout->addWidget(startPushButton);
     computeLayout->addWidget(continuePushButton);

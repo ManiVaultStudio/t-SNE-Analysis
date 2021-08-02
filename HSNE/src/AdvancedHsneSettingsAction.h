@@ -23,6 +23,8 @@ public:
 
     QMenu* getContextMenu();
 
+    HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
+
 protected:
     HsneSettingsAction&         _hsneSettingsAction;                                /** Reference to HSNE settings action */
     hdps::gui::IntegralAction   _numWalksForLandmarkSelectionAction;                /** Number of walks for landmark selection action */

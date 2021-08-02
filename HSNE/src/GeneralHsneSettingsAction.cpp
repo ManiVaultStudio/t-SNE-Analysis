@@ -12,6 +12,8 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
 {
     setText("HSNE (general)");
 
+    _useMonteCarloSamplingAction.setChecked(hsneSettingsAction.getHsneParameters().useMonteCarloSampling());
+
     const auto updateKnnAlgorithm = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setKnnLibrary(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
     };
@@ -63,6 +65,20 @@ GeneralHsneSettingsAction::Widget::Widget(QWidget* parent, GeneralHsneSettingsAc
     addActionToLayout(&generalHsneSettingsAction->_seedAction);
     addActionToLayout(&generalHsneSettingsAction->_useMonteCarloSamplingAction);
     
+    auto& hsneSettingsAction = generalHsneSettingsAction->getHsneSettingsAction();
+
+    auto startPushButton    = dynamic_cast<TriggerAction::Widget*>(hsneSettingsAction.getStartComputationAction().createWidget(this));
+    auto continuePushButton = dynamic_cast<TriggerAction::Widget*>(hsneSettingsAction.getContinueComputationAction().createWidget(this));
+    auto stopPushButton     = dynamic_cast<TriggerAction::Widget*>(hsneSettingsAction.getStopComputationAction().createWidget(this));
+
+    auto computeLayout = new QHBoxLayout();
+
+    computeLayout->addWidget(startPushButton);
+    computeLayout->addWidget(continuePushButton);
+    computeLayout->addWidget(stopPushButton);
+
+    layout->addLayout(computeLayout, layout->rowCount(), 1, 1, 2);
+
     switch (state)
     {
         case Widget::State::Standard:
