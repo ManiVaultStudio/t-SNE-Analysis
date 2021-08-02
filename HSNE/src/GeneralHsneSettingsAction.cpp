@@ -1,8 +1,5 @@
 #include "GeneralHsneSettingsAction.h"
 #include "HsneAnalysisPlugin.h"
-#include "Application.h"
-
-#include <QLabel>
 
 using namespace hdps::gui;
 

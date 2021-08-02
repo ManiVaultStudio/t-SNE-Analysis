@@ -1,6 +1,5 @@
 #include "HsneSettingsAction.h"
 #include "HsneAnalysisPlugin.h"
-#include "Application.h"
 
 using namespace hdps::gui;
 
