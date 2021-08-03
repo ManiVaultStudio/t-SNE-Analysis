@@ -15,7 +15,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _perplexityAction(this, "Perplexity"),
     _resetAction(this, "Reset all")
 {
-    setText("General TSNE");
+    setText("TSNE");
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 

@@ -14,6 +14,8 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _numChecksAknnAction(this, "No. KNN checks"),
     _useOutOfCoreComputationAction(this, "Use out-of-core computation")
 {
+    setText("Advanced HSNE");
+
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
     _numWalksForLandmarkSelectionAction.initialize(1, 1000, hsneParameters.getNumWalksForLandmarkSelection(), hsneParameters.getNumWalksForLandmarkSelection());
@@ -24,8 +26,6 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _numChecksAknnAction.initialize(0, 1024, hsneParameters.getNumChecksAKNN(), hsneParameters.getNumChecksAKNN());
     _useOutOfCoreComputationAction.initialize(hsneParameters.useOutOfCoreComputation(), hsneParameters.useOutOfCoreComputation());
     
-    setText("HSNE (advanced)");
-
     const auto updateNumWalksForLandmarkSelectionAction = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setNumWalksForLandmarkSelection(_numWalksForLandmarkSelectionAction.getValue());
     };

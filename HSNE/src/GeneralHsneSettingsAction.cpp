@@ -10,7 +10,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _seedAction(this, "Random seed"),
     _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling")
 {
-    setText("HSNE (general)");
+    setText("HSNE");
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 

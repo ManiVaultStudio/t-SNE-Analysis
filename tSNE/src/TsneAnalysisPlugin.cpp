@@ -28,7 +28,7 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    _outputDatasetName = _core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName);
+    _outputDatasetName = _core->createDerivedData(QString("%1_tsne_embedding").arg(_inputDatasetName), _inputDatasetName);
 
     auto& inputDataset  = _core->requestData<Points>(_inputDatasetName);
     auto& outputDataset = _core->requestData<Points>(_outputDatasetName);

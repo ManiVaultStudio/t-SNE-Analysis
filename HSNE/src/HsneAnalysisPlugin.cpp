@@ -31,7 +31,7 @@ HsneAnalysisPlugin::~HsneAnalysisPlugin()
 
 void HsneAnalysisPlugin::init()
 {
-    _outputDatasetName = _core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName);
+    _outputDatasetName = _core->createDerivedData(QString("%1_hsne_scale_2").arg(_inputDatasetName), _inputDatasetName);
 
     auto& inputDataset = _core->requestData<Points>(_inputDatasetName);
     auto& outputDataset = _core->requestData<Points>(_outputDatasetName);
@@ -53,6 +53,20 @@ void HsneAnalysisPlugin::init()
     outputDataset.exposeAction(&tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset.exposeAction(&_hsneSettingsAction.getDimensionSelectionAction());
     outputDataset.exposeAction(new HsneScaleAction(this, &tsneSettingsAction, _core, &_hierarchy, _inputDatasetName, _outputDatasetName));
+
+    connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
+        notifyProgressPercentage(percentage);
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
+        notifyProgressSection(section);
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
+        notifyFinished();
+        notifyProgressPercentage(0.0f);
+        notifyProgressSection("");
+    });
 
     connect(&_hsneSettingsAction.getStartStopAction(), &TriggerAction::toggled, this, [this](bool toggled) {
         if (toggled) {
@@ -85,7 +99,7 @@ void HsneAnalysisPlugin::init()
     _hsneSettingsAction.getDimensionSelectionAction().dataChanged(inputDataset);
 
     //connect(&_tsne, &TsneAnalysis::finished, _settings.get(), &HsneSettingsWidget::onComputationStopped);
-    connect(&_tsne, &TsneAnalysis::embeddingUpdate, this, &HsneAnalysisPlugin::onNewEmbedding);
+    connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, &HsneAnalysisPlugin::onNewEmbedding);
 }
 
 void HsneAnalysisPlugin::startComputation()
@@ -152,8 +166,8 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     TsneParameters tsneParameters = _hsneSettingsAction.getTsneSettingsAction().getTsneParameters();
 
     // Embed data
-    _tsne.stopComputation();
-    _tsne.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
+    _tsneAnalysis.stopComputation();
+    _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
 }
 
 AnalysisPlugin* HsneAnalysisPluginFactory::produce()

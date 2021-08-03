@@ -26,7 +26,7 @@ public slots:
 
 private:
     HsneHierarchy       _hierarchy;                 /** TSNE hierarchy */
-    TsneAnalysis        _tsne;                      /** TSNE analysis */
+    TsneAnalysis        _tsneAnalysis;              /** TSNE analysis */
     HsneSettingsAction  _hsneSettingsAction;        /** Hsne settings action */
 };
 
