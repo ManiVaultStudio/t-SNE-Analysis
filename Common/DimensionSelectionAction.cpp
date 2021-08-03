@@ -475,9 +475,9 @@ DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionActi
 
 	layout->addLayout(nameMatchesLayout);
 	
-	layout->addWidget(dimensionsSettingsAction->_showOnlySelectedDimensionsAction.createWidget(this));
-	layout->addWidget(dimensionsSettingsAction->_applyExclusionListAction.createWidget(this));
-	layout->addWidget(dimensionsSettingsAction->_ignoreZeroValuesAction.createWidget(this));
+	layout->addWidget(dimensionsSettingsAction->_showOnlySelectedDimensionsAction.createCheckBoxWidget(this));
+	layout->addWidget(dimensionsSettingsAction->_applyExclusionListAction.createCheckBoxWidget(this));
+	layout->addWidget(dimensionsSettingsAction->_ignoreZeroValuesAction.createCheckBoxWidget(this));
 
 	auto selectionThresholdLayout = new QHBoxLayout();
 

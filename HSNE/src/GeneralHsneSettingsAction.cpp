@@ -54,11 +54,15 @@ GeneralHsneSettingsAction::Widget::Widget(QWidget* parent, GeneralHsneSettingsAc
 
     const auto addActionToLayout = [this, layout](WidgetAction* widgetAction) -> void {
         const auto numRows = layout->rowCount();
+        auto toggleAction = dynamic_cast<ToggleAction*>(widgetAction);
 
-        if (dynamic_cast<ToggleAction*>(widgetAction) == nullptr)
+        if (toggleAction) {
+            layout->addWidget(toggleAction->createCheckBoxWidget(this), numRows, 1);
+        }
+        else {
             layout->addWidget(widgetAction->createLabelWidget(this), numRows, 0);
-
-        layout->addWidget(widgetAction->createWidget(this), numRows, 1);
+            layout->addWidget(widgetAction->createWidget(this), numRows, 1);
+        }
     };
 
     addActionToLayout(&generalHsneSettingsAction->_knnTypeAction);
