@@ -1,6 +1,7 @@
 #pragma once
 
 #include "actions/Actions.h"
+#include "event/EventListener.h"
 
 #include "TsneAnalysis.h"
 
@@ -13,7 +14,7 @@ namespace hdps {
     class CoreInterface;
 }
 
-class HsneScaleAction : public hdps::gui::WidgetActionGroup
+class HsneScaleAction : public hdps::gui::WidgetActionGroup, public hdps::EventListener
 {
 protected:
 

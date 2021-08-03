@@ -9,6 +9,7 @@ using namespace hdps::gui;
 
 HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction* tsneSettingsAction, hdps::CoreInterface* core, HsneHierarchy* hsneHierarchy, const QString& inputDataSetName, const QString& inputEmbeddingName) :
     WidgetActionGroup(parent, true),
+    hdps::EventListener(),
     _tsneSettingsAction(tsneSettingsAction),
     _core(core),
     _tsne(),
@@ -22,6 +23,26 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction* tsneSettin
 
     connect(&_refineAction, &TriggerAction::triggered, this, [this]() {
         refine();
+    });
+
+    setEventCore(_core);
+
+    registerDataEventByType(PointType, [this](hdps::DataEvent* dataEvent) {
+        if (dataEvent->dataSetName != _inputEmbeddingName)
+            return;
+
+        switch (dataEvent->getType())
+        {
+            case hdps::EventType::SelectionChanged:
+            {
+                auto& embedding = dynamic_cast<Points&>(_core->requestData(_inputEmbeddingName).getSelection());
+                _refineAction.setEnabled(!embedding.indices.empty());
+                break;
+            }
+
+            default:
+                break;
+        }
     });
 }
 
