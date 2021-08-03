@@ -21,7 +21,13 @@ protected:
 public:
     AdvancedHsneSettingsAction(HsneSettingsAction& hsneSettingsAction);
 
-    QMenu* getContextMenu();
+    QMenu* getContextMenu() { return nullptr; }
+
+    /**
+     * Sets the group read-only
+     * @param readOnly Whether the group is read-only
+     */
+    void setReadOnly(const bool& readOnly) override;
 
     HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
 

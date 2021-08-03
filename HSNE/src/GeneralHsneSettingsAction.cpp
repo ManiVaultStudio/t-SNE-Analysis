@@ -6,13 +6,17 @@ using namespace hdps::gui;
 GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
     WidgetActionGroup(&hsneSettingsAction, true),
     _hsneSettingsAction(hsneSettingsAction),
-    _knnTypeAction(this, "KNN Type", QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN"),
-    _seedAction(this, "Random seed", -1, 1000, -1, -1),
+    _knnTypeAction(this, "KNN Type"),
+    _seedAction(this, "Random seed"),
     _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling")
 {
     setText("HSNE (general)");
 
-    _useMonteCarloSamplingAction.setChecked(hsneSettingsAction.getHsneParameters().useMonteCarloSampling());
+    const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
+
+    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
+    _seedAction.initialize(-1000, 1000, -1, -1);
+    _useMonteCarloSamplingAction.initialize(hsneParameters.useMonteCarloSampling(), hsneParameters.useMonteCarloSampling());
 
     const auto updateKnnAlgorithm = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setKnnLibrary(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
@@ -23,6 +27,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     };
 
     const auto updateUseMonteCarloSampling = [this]() -> void {
+        _hsneSettingsAction.getHsneParameters().useMonteCarloSampling(_useMonteCarloSamplingAction.isChecked());
     };
 
     connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm]() {
@@ -42,9 +47,13 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     updateUseMonteCarloSampling();
 }
 
-QMenu* GeneralHsneSettingsAction::getContextMenu()
+void GeneralHsneSettingsAction::setReadOnly(const bool& readOnly)
 {
-    return nullptr;
+    const auto enabled = !readOnly;
+
+    _knnTypeAction.setEnabled(enabled);
+    _seedAction.setEnabled(enabled);
+    _useMonteCarloSamplingAction.setEnabled(enabled);
 }
 
 GeneralHsneSettingsAction::Widget::Widget(QWidget* parent, GeneralHsneSettingsAction* generalHsneSettingsAction, const Widget::State& state) :
@@ -69,19 +78,7 @@ GeneralHsneSettingsAction::Widget::Widget(QWidget* parent, GeneralHsneSettingsAc
     addActionToLayout(&generalHsneSettingsAction->_seedAction);
     addActionToLayout(&generalHsneSettingsAction->_useMonteCarloSamplingAction);
     
-    auto& hsneSettingsAction = generalHsneSettingsAction->getHsneSettingsAction();
-
-    auto startPushButton    = dynamic_cast<TriggerAction::Widget*>(hsneSettingsAction.getStartComputationAction().createWidget(this));
-    auto continuePushButton = dynamic_cast<TriggerAction::Widget*>(hsneSettingsAction.getContinueComputationAction().createWidget(this));
-    auto stopPushButton     = dynamic_cast<TriggerAction::Widget*>(hsneSettingsAction.getStopComputationAction().createWidget(this));
-
-    auto computeLayout = new QHBoxLayout();
-
-    computeLayout->addWidget(startPushButton);
-    computeLayout->addWidget(continuePushButton);
-    computeLayout->addWidget(stopPushButton);
-
-    layout->addLayout(computeLayout, layout->rowCount(), 1, 1, 2);
+    layout->addWidget(generalHsneSettingsAction->getHsneSettingsAction().getStartStopAction().createWidget(this), layout->rowCount(), 1, 1, 2);
 
     switch (state)
     {

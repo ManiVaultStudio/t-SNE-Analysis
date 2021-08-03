@@ -8,43 +8,25 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _hsneAnalysisPlugin(hsneAnalysisPlugin),
     _hsneParameters(),
     _tsneParameters(),
+    _startStopAction(this, "Start"),
     _generalHsneSettingsAction(*this),
     _advancedHsneSettingsAction(*this),
     _tsneSettingsAction(this),
-    _dimensionSelectionAction(this),
-    _startComputationAction(this, "Start"),
-    _continueComputationAction(this, "Continue"),
-    _stopComputationAction(this, "Stop")
+    _dimensionSelectionAction(this)
 {
     setText("HSNE");
+
+    connect(&_startStopAction, &ToggleAction::toggled, this, [this]() {
+        const auto prefix = "Start";// _startStopAction.isChecked() ? "Stop" : "Start";
+
+        _startStopAction.setText(prefix);
+        _startStopAction.setToolTip(QString("%1 the HSNE computation").arg(prefix));
+    });
 }
 
 QMenu* HsneSettingsAction::getContextMenu()
 {
-    auto menu = new QMenu(text());
-
-    /*
-    menu->addAction(&_startComputationAction);
-    menu->addAction(&_stopComputationAction);
-
-    menu->addSeparator();
-
-    const auto addSetting = [this, menu](WidgetAction& widgetAction) -> void {
-        auto settingMenu = new QMenu(widgetAction.text());
-        settingMenu->addAction(&widgetAction);
-        menu->addMenu(settingMenu);
-    };
-
-    addSetting(_knnTypeAction);
-    addSetting(_distanceMetricAction);
-    addSetting(_numIterationsAction);
-
-    menu->addSeparator();
-
-    menu->addAction(&_resetAction);
-    */
-
-    return menu;
+    return nullptr;
 }
 
 HsneParameters& HsneSettingsAction::getHsneParameters()
@@ -62,36 +44,6 @@ HsneSettingsAction::Widget::Widget(QWidget* parent, HsneSettingsAction* hsneSett
 {
     auto layout = new QGridLayout();
 
-    /*
-    const auto addOptionActionToLayout = [this, layout](OptionAction& optionAction) -> void {
-        const auto numRows = layout->rowCount();
-
-        layout->addWidget(optionAction.createLabelWidget(this), numRows, 0);
-        layout->addWidget(optionAction.createWidget(this), numRows, 1);
-    };
-
-    const auto addIntegralActionToLayout = [this, layout](IntegralAction& integralAction) -> void {
-        const auto numRows = layout->rowCount();
-
-        layout->addWidget(integralAction.createLabelWidget(this), numRows, 0);
-        layout->addWidget(integralAction.createWidget(this), numRows, 1);
-    };
-
-    addOptionActionToLayout(hsneSettingsAction->_knnTypeAction);
-    addOptionActionToLayout(hsneSettingsAction->_distanceMetricAction);
-    addIntegralActionToLayout(hsneSettingsAction->_numIterationsAction);
-    addIntegralActionToLayout(hsneSettingsAction->_perplexityAction);
-
-    layout->addWidget(hsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 1, 1, 2);
-
-    auto computeLayout = new QHBoxLayout();
-
-    computeLayout->addWidget(hsneSettingsAction->_startComputationAction.createWidget(this));
-    computeLayout->addWidget(hsneSettingsAction->_continueComputationAction.createWidget(this));
-    computeLayout->addWidget(hsneSettingsAction->_stopComputationAction.createWidget(this));
-
-    layout->addLayout(computeLayout, layout->rowCount(), 1, 1, 2);
-
     switch (state)
     {
         case Widget::State::Standard:
@@ -106,5 +58,4 @@ HsneSettingsAction::Widget::Widget(QWidget* parent, HsneSettingsAction* hsneSett
         default:
             break;
     }
-    */
 }

@@ -9,13 +9,20 @@ using namespace hdps::gui;
 GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
     WidgetActionGroup(&tsneSettingsAction, true),
     _tsneSettingsAction(tsneSettingsAction),
-    _knnTypeAction(this, "KNN Type", QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN"),
-    _distanceMetricAction(this, "Distance metric", QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean"),
-    _numIterationsAction(this, "Number of iterations", 1, 10000, 1000, 1000),
-    _perplexityAction(this, "Perplexity", 2, 50, 30, 30),
+    _knnTypeAction(this, "KNN Type"),
+    _distanceMetricAction(this, "Distance metric"),
+    _numIterationsAction(this, "Number of iterations"),
+    _perplexityAction(this, "Perplexity"),
     _resetAction(this, "Reset all")
 {
     setText("General TSNE");
+
+    const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
+
+    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
+    _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean");
+    _numIterationsAction.initialize(1, 10000, 1000, 1000);
+    _perplexityAction.initialize(2, 50, 30, 30);
 
     const auto updateKnnAlgorithm = [this]() -> void {
         _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
@@ -53,17 +60,6 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _resetAction.setEnabled(canReset());
     };
 
-    const auto enableControls = [this, canReset]() -> void {
-        const auto isRunning = _tsneSettingsAction.getRunningAction().isChecked();
-        const auto enable = !isRunning;
-
-        _knnTypeAction.setEnabled(enable);
-        _distanceMetricAction.setEnabled(enable);
-        _numIterationsAction.setEnabled(enable);
-        _perplexityAction.setEnabled(enable);
-        _resetAction.setEnabled(enable && canReset());
-    };
-
     connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric, updateReset](const std::int32_t& currentIndex) {
         updateDistanceMetric();
         updateReset();
@@ -84,11 +80,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         updateReset();
     });
 
-    connect(&_tsneSettingsAction.getRunningAction(), &TriggerAction::toggled, this, [this, enableControls](bool toggled) {
-        enableControls();
-    });
-
-    connect(&_resetAction, &TriggerAction::triggered, this, [this, enableControls](const std::int32_t& value) {
+    connect(&_resetAction, &TriggerAction::triggered, this, [this](const std::int32_t& value) {
         _knnTypeAction.reset();
         _distanceMetricAction.reset();
         _numIterationsAction.reset();
@@ -100,7 +92,17 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     updateNumIterations();
     updatePerplexity();
     updateReset();
-    enableControls();
+}
+
+void GeneralTsneSettingsAction::setReadOnly(const bool& readOnly)
+{
+    const auto enable = !readOnly;
+
+    _knnTypeAction.setEnabled(enable);
+    _distanceMetricAction.setEnabled(enable);
+    _numIterationsAction.setEnabled(enable);
+    _perplexityAction.setEnabled(enable);
+    _resetAction.setEnabled(enable);
 }
 
 GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAction* generalTsneSettingsAction, const Widget::State& state) :
@@ -127,7 +129,7 @@ GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAc
     addIntegralActionToLayout(generalTsneSettingsAction->_numIterationsAction);
     addIntegralActionToLayout(generalTsneSettingsAction->_perplexityAction);
 
-    layout->addWidget(generalTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 1, 1, 2);
+    //layout->addWidget(generalTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 1, 1, 2);
 
     auto& tsneSettingsAction = generalTsneSettingsAction->getTsneSettingsAction();
 

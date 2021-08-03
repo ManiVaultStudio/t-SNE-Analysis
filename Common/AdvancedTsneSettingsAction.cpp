@@ -8,13 +8,20 @@ using namespace hdps::gui;
 AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
     WidgetActionGroup(&tsneSettingsAction),
     _tsneSettingsAction(tsneSettingsAction),
-	_exaggerationAction(this, "Exaggeration", 1, 10000, 250, 250),
-	_exponentialDecayAction(this, "Exponential decay", 1, 10000, 70, 70),
-	_numTreesAction(this, "Number of trees", 1, 10000, 4, 4),
-	_numChecksAction(this, "Number of checks", 1, 10000, 1024, 1024),
+	_exaggerationAction(this, "Exaggeration"),
+	_exponentialDecayAction(this, "Exponential decay"),
+	_numTreesAction(this, "Number of trees"),
+	_numChecksAction(this, "Number of checks"),
 	_resetAction(this, "Reset all")
 {
 	setText("Advanced TSNE");
+
+    const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
+
+    _exaggerationAction.initialize(1, 10000, 250, 250);
+    _exponentialDecayAction.initialize(1, 10000, 70, 70);
+    _numTreesAction.initialize(1, 10000, 4, 4);
+    _numChecksAction.initialize(1, 10000, 1024, 1024);
 
 	const auto updateExaggeration = [this]() -> void {
         _tsneSettingsAction.getTsneParameters().setExaggerationIter(_exaggerationAction.getValue());
@@ -52,16 +59,6 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 		_resetAction.setEnabled(canReset());
 	};
 
-    const auto enableControls = [this, canReset]() -> void {
-        const auto enable = !_tsneSettingsAction.getRunningAction().isChecked();
-
-        _exaggerationAction.setEnabled(enable);
-        _exponentialDecayAction.setEnabled(enable);
-        _numTreesAction.setEnabled(enable);
-        _numChecksAction.setEnabled(enable);
-        _resetAction.setEnabled(enable && canReset());
-    };
-
 	connect(&_exaggerationAction, &IntegralAction::valueChanged, this, [this, updateExaggeration, updateReset](const std::int32_t& value) {
 		updateExaggeration();
 		updateReset();
@@ -89,16 +86,22 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 		_numChecksAction.reset();
 	});
 
-    connect(&_tsneSettingsAction.getRunningAction(), &ToggleAction::toggled, this, [this, enableControls](bool toggled) {
-        enableControls();
-    });
-
 	updateExaggeration();
 	updateExponentialDecay();
 	updateNumTrees();
 	updateNumChecks();
-    enableControls();
 	updateReset();
+}
+
+void AdvancedTsneSettingsAction::setReadOnly(const bool& readOnly)
+{
+    const auto enable = !readOnly;
+
+    _exaggerationAction.setEnabled(enable);
+    _exponentialDecayAction.setEnabled(enable);
+    _numTreesAction.setEnabled(enable);
+    _numChecksAction.setEnabled(enable);
+    _resetAction.setEnabled(enable);
 }
 
 AdvancedTsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedTsneSettingsAction* advancedTsneSettingsAction, const Widget::State& state) :

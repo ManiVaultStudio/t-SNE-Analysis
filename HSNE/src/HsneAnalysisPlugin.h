@@ -9,25 +9,14 @@
 using namespace hdps::plugin;
 using namespace hdps::gui;
 
-// =============================================================================
-// View
-// =============================================================================
-
 class HsneAnalysisPlugin : public QObject, public AnalysisPlugin
 {
     Q_OBJECT
 public:
     HsneAnalysisPlugin();
-    ~HsneAnalysisPlugin(void) override;
+    ~HsneAnalysisPlugin() override;
 
     void init() override;
-
-    /**
-     * This function is called from the core system whenever data is added.
-     *
-     * @param name The name of the added dataset
-     */
-    void onDataEvent(hdps::DataEvent* dataEvent);
 
     void computeTopLevelEmbedding();
 
@@ -36,14 +25,10 @@ public slots:
     void onNewEmbedding(const TsneData& tsneData);
 
 private:
-    HsneHierarchy       _hierarchy;
-    TsneAnalysis        _tsne;
+    HsneHierarchy       _hierarchy;                 /** TSNE hierarchy */
+    TsneAnalysis        _tsne;                      /** TSNE analysis */
     HsneSettingsAction  _hsneSettingsAction;        /** Hsne settings action */
 };
-
-// =============================================================================
-// Factory
-// =============================================================================
 
 class HsneAnalysisPluginFactory : public AnalysisPluginFactory
 {

@@ -11,18 +11,18 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _randomWalkLengthAction(this, "Random walk length"),
     _numWalksForAreaOfInfluenceAction(this, "No. walks for area of influence"),
     _minWalksRequiredAction(this, "Minimum no. walks required"),
-    _numChecksAknnAction(this, "No. KNN checks", 0, 1024, 512, 512),
+    _numChecksAknnAction(this, "No. KNN checks"),
     _useOutOfCoreComputationAction(this, "Use out-of-core computation")
 {
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
-    _numWalksForLandmarkSelectionAction.setValue(hsneParameters.getNumWalksForLandmarkSelection());
-    _numWalksForLandmarkSelectionThresholdAction.setValue(hsneParameters.getNumWalksForLandmarkSelectionThreshold());
-    _randomWalkLengthAction.setValue(hsneParameters.getRandomWalkLength());
-    _numWalksForAreaOfInfluenceAction.setValue(hsneParameters.getNumWalksForAreaOfInfluence());
-    _minWalksRequiredAction.setValue(hsneParameters.getMinWalksRequired());
-    _numChecksAknnAction.setValue(hsneParameters.getNumChecksAKNN());
-    _useOutOfCoreComputationAction.setChecked(hsneParameters.useOutOfCoreComputation());
+    _numWalksForLandmarkSelectionAction.initialize(1, 1000, hsneParameters.getNumWalksForLandmarkSelection(), hsneParameters.getNumWalksForLandmarkSelection());
+    _numWalksForLandmarkSelectionThresholdAction.initialize(1, 1000, hsneParameters.getNumWalksForLandmarkSelectionThreshold(), hsneParameters.getNumWalksForLandmarkSelectionThreshold());
+    _randomWalkLengthAction.initialize(1, 100, hsneParameters.getRandomWalkLength(), hsneParameters.getRandomWalkLength());
+    _numWalksForAreaOfInfluenceAction.initialize(1, 100, hsneParameters.getNumWalksForAreaOfInfluence(), hsneParameters.getNumWalksForAreaOfInfluence());
+    _minWalksRequiredAction.initialize(1, 100, hsneParameters.getMinWalksRequired(), hsneParameters.getMinWalksRequired());
+    _numChecksAknnAction.initialize(0, 1024, hsneParameters.getNumChecksAKNN(), hsneParameters.getNumChecksAKNN());
+    _useOutOfCoreComputationAction.initialize(hsneParameters.useOutOfCoreComputation(), hsneParameters.useOutOfCoreComputation());
     
     setText("HSNE (advanced)");
 
@@ -51,6 +51,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     };
 
     const auto updateUseOutOfCoreComputation = [this]() -> void {
+        _hsneSettingsAction.getHsneParameters().useOutOfCoreComputation(_useOutOfCoreComputationAction.isChecked());
     };
 
     connect(&_numWalksForLandmarkSelectionAction, &IntegralAction::valueChanged, this, [this, updateNumWalksForLandmarkSelectionAction]() {
@@ -90,9 +91,17 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     updateUseOutOfCoreComputation();
 }
 
-QMenu* AdvancedHsneSettingsAction::getContextMenu()
+void AdvancedHsneSettingsAction::setReadOnly(const bool& readOnly)
 {
-    return nullptr;
+    const auto enabled = !readOnly;
+
+    _numWalksForLandmarkSelectionAction.setEnabled(enabled);
+    _numWalksForLandmarkSelectionThresholdAction.setEnabled(enabled);
+    _randomWalkLengthAction.setEnabled(enabled);
+    _numWalksForAreaOfInfluenceAction.setEnabled(enabled);
+    _minWalksRequiredAction.setEnabled(enabled);
+    _numChecksAknnAction.setEnabled(enabled);
+    _useOutOfCoreComputationAction.setEnabled(enabled);
 }
 
 AdvancedHsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedHsneSettingsAction* advancedHsneSettingsAction, const Widget::State& state) :

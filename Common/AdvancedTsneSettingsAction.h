@@ -23,6 +23,12 @@ public:
 
     QMenu* getContextMenu() { return nullptr; }
 
+    /**
+     * Sets the group read-only
+     * @param readOnly Whether the group is read-only
+     */
+    void setReadOnly(const bool& readOnly) override;
+
 protected:
     TsneSettingsAction&         _tsneSettingsAction;        /** Pointer to parent tSNE settings action */
     hdps::gui::IntegralAction   _exaggerationAction;        /** Exaggeration action */
