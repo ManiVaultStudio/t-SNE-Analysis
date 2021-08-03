@@ -98,7 +98,10 @@ void HsneAnalysisPlugin::init()
 
     _hsneSettingsAction.getDimensionSelectionAction().dataChanged(inputDataset);
 
-    //connect(&_tsne, &TsneAnalysis::finished, _settings.get(), &HsneSettingsWidget::onComputationStopped);
+    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
+        _hsneSettingsAction.getStartStopAction().setChecked(false);
+    });
+
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, &HsneAnalysisPlugin::onNewEmbedding);
 }
 
