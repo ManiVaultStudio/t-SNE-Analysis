@@ -127,6 +127,7 @@ void HsneScaleAction::refine()
     drillEmbedding.setData(nullptr, 0, 2);
     drillEmbedding.setParentDatasetName(_inputEmbeddingName);
     drillEmbedding.exposeAction(new HsneScaleAction(this, _tsneSettingsAction, _core, _hsneHierarchy, _inputDatasetName, _refineEmbeddingName));
+    drillEmbedding.exposeAction(&_tsneSettingsAction->getGeneralTsneSettingsAction());
 
     _core->notifyDataAdded(_refineEmbeddingName);
 
