@@ -133,10 +133,10 @@ void HsneScaleAction::refine()
             selection.indices.push_back(dScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
         }
 
-        QString subsetName = inputData.createSubset();
+        QString subsetName = inputData.createSubset("", false);
         Points& subset = _core->requestData<Points>(subsetName);
 
-        _refineEmbeddingName = _core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName);
+        _refineEmbeddingName = _core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName, _inputEmbeddingName);
 
         Points& embedding = _core->requestData<Points>(_refineEmbeddingName);
         
@@ -146,7 +146,6 @@ void HsneScaleAction::refine()
     Points& drillEmbedding = _core->requestData<Points>(_refineEmbeddingName);
 
     drillEmbedding.setData(nullptr, 0, 2);
-    drillEmbedding.setParentDatasetName(_inputEmbeddingName);
     drillEmbedding.exposeAction(new HsneScaleAction(this, _tsneSettingsAction, _core, _hsneHierarchy, _inputDatasetName, _refineEmbeddingName));
     drillEmbedding.exposeAction(&_tsneSettingsAction->getGeneralTsneSettingsAction());
 

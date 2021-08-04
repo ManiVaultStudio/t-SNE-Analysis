@@ -31,7 +31,7 @@ HsneAnalysisPlugin::~HsneAnalysisPlugin()
 
 void HsneAnalysisPlugin::init()
 {
-    _outputDatasetName = _core->createDerivedData(QString("%1_hsne_scale_2").arg(_inputDatasetName), _inputDatasetName);
+    _outputDatasetName = _core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName);
 
     auto& inputDataset = _core->requestData<Points>(_inputDatasetName);
     auto& outputDataset = _core->requestData<Points>(_outputDatasetName);
@@ -43,7 +43,6 @@ void HsneAnalysisPlugin::init()
     initialData.resize(inputDataset.getNumPoints() * numEmbeddingDimensions);
 
     outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
-    outputDataset.setParentDatasetName(_inputDatasetName);
 
     auto& tsneSettingsAction = _hsneSettingsAction.getTsneSettingsAction();
 
@@ -152,7 +151,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         selection.indices[i] = topScale._landmark_to_original_data_idx[i];
 
     // Create the subset and clear the selection
-    QString subsetName = inputData.createSubset();
+    QString subsetName = inputData.createSubset("", false);
     selection.indices.clear();
     
     Points& embedding = _core->requestData<Points>(_outputDatasetName);
