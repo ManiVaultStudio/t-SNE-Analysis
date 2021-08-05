@@ -18,7 +18,7 @@ class HsneScaleAction : public hdps::gui::WidgetActionGroup, public hdps::EventL
 {
 protected:
 
-    class Widget : public hdps::gui::WidgetActionGroup::Widget {
+    class Widget : public hdps::gui::WidgetActionGroup::GroupWidget {
     public:
         Widget(QWidget* parent, HsneScaleAction* HsneScaleAction, const Widget::State& state);
     };

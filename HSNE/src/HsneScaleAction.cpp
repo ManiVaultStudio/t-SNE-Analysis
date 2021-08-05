@@ -175,6 +175,6 @@ void HsneScaleAction::refine()
 }
 
 HsneScaleAction::Widget::Widget(QWidget* parent, HsneScaleAction* HsneScaleAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, HsneScaleAction, state)
+    WidgetActionGroup::GroupWidget(parent, HsneScaleAction)
 {
 }
