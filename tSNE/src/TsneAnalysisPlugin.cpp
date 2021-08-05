@@ -46,6 +46,8 @@ void TsneAnalysisPlugin::init()
     outputDataset.exposeAction(&_tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset.exposeAction(&_dimensionSelectionAction);
 
+    _core->getDataHierarchyItem(outputDataset.getName()).select();
+
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
         notifyProgressPercentage(percentage);
     });

@@ -157,6 +157,8 @@ void HsneScaleAction::refine()
     drillEmbedding.setProperty("scale", drillScale);
     drillEmbedding.setProperty("landmarkMap", qVariantFromValue(_hsneHierarchy->getInfluenceHierarchy().getMap()[drillScale]));
     
+    _core->getDataHierarchyItem(drillEmbedding.getName()).select();
+
     connect(&_tsne, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
         Points& embedding = _core->requestData<Points>(_refineEmbeddingName);
 

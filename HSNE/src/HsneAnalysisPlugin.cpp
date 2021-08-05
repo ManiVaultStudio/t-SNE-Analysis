@@ -53,6 +53,8 @@ void HsneAnalysisPlugin::init()
     outputDataset.exposeAction(&_hsneSettingsAction.getDimensionSelectionAction());
     outputDataset.exposeAction(new HsneScaleAction(this, &tsneSettingsAction, _core, &_hierarchy, _inputDatasetName, _outputDatasetName));
 
+    _core->getDataHierarchyItem(outputDataset.getName()).select();
+
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
         notifyProgressPercentage(percentage);
     });
