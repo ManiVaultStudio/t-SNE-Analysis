@@ -57,40 +57,10 @@ void GeneralHsneSettingsAction::setReadOnly(const bool& readOnly)
 }
 
 GeneralHsneSettingsAction::Widget::Widget(QWidget* parent, GeneralHsneSettingsAction* generalHsneSettingsAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, generalHsneSettingsAction, state)
+    WidgetActionGroup::GroupWidget(parent, generalHsneSettingsAction)
 {
-    auto layout = new QGridLayout();
-
-    const auto addActionToLayout = [this, layout](WidgetAction* widgetAction) -> void {
-        const auto numRows = layout->rowCount();
-        auto toggleAction = dynamic_cast<ToggleAction*>(widgetAction);
-
-        if (toggleAction) {
-            layout->addWidget(toggleAction->createCheckBoxWidget(this), numRows, 1);
-        }
-        else {
-            layout->addWidget(widgetAction->createLabelWidget(this), numRows, 0);
-            layout->addWidget(widgetAction->createWidget(this), numRows, 1);
-        }
-    };
-
-    addActionToLayout(&generalHsneSettingsAction->_knnTypeAction);
-    addActionToLayout(&generalHsneSettingsAction->_seedAction);
-    addActionToLayout(&generalHsneSettingsAction->_useMonteCarloSamplingAction);
-    
-    layout->addWidget(generalHsneSettingsAction->getHsneSettingsAction().getStartStopAction().createWidget(this), layout->rowCount(), 1, 1, 2);
-
-    switch (state)
-    {
-        case Widget::State::Standard:
-            setLayout(layout);
-            break;
-
-        case Widget::State::Popup:
-            setPopupLayout(layout);
-            break;
-
-        default:
-            break;
-    }
+    addWidgetAction(generalHsneSettingsAction->_knnTypeAction);
+    addWidgetAction(generalHsneSettingsAction->_seedAction);
+    addWidgetAction(generalHsneSettingsAction->_useMonteCarloSamplingAction);
+    addWidgetAction(generalHsneSettingsAction->getHsneSettingsAction().getStartStopAction());
 }
