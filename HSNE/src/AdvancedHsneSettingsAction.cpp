@@ -6,15 +6,24 @@ using namespace hdps::gui;
 AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
     WidgetActionGroup(&hsneSettingsAction),
     _hsneSettingsAction(hsneSettingsAction),
-    _numWalksForLandmarkSelectionAction(this, "No. walks for landmark selection"),
-    _numWalksForLandmarkSelectionThresholdAction(this, "No. walks for landmark selection threshold"),
+    _numWalksForLandmarkSelectionAction(this, "No. walks for landmark sel."),
+    _numWalksForLandmarkSelectionThresholdAction(this, "No. walks for landmark sel. thres."),
     _randomWalkLengthAction(this, "Random walk length"),
-    _numWalksForAreaOfInfluenceAction(this, "No. walks for area of influence"),
+    _numWalksForAreaOfInfluenceAction(this, "No. walks for aoi"),
     _minWalksRequiredAction(this, "Minimum no. walks required"),
     _numChecksAknnAction(this, "No. KNN checks"),
-    _useOutOfCoreComputationAction(this, "Use out-of-core computation")
+    _useOutOfCoreComputationAction(this, "Out-of-core computation")
 {
     setText("Advanced HSNE");
+
+    _numWalksForLandmarkSelectionAction.setToolTip("Number of walks for landmark selection");
+    _numWalksForLandmarkSelectionThresholdAction.setToolTip("Number of walks for landmark selection");
+    _randomWalkLengthAction.setToolTip("Number of walks for landmark selection threshold");
+    _numWalksForAreaOfInfluenceAction.setToolTip("Number of walks for area of influence");
+    _minWalksRequiredAction.setToolTip("Minimum number of walks required");
+    _numChecksAknnAction.setToolTip("Number of KNN checks");
+    _useOutOfCoreComputationAction.setToolTip("Use out-of-core computation");
+
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
@@ -105,42 +114,13 @@ void AdvancedHsneSettingsAction::setReadOnly(const bool& readOnly)
 }
 
 AdvancedHsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedHsneSettingsAction* advancedHsneSettingsAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, advancedHsneSettingsAction, state)
+    WidgetActionGroup::GroupWidget(parent, advancedHsneSettingsAction)
 {
-    auto layout = new QGridLayout();
-
-    const auto addActionToLayout = [this, layout](WidgetAction* widgetAction) -> void {
-        const auto numRows = layout->rowCount();
-        auto toggleAction = dynamic_cast<ToggleAction*>(widgetAction);
-
-        if (toggleAction) {
-            layout->addWidget(toggleAction->createCheckBoxWidget(this), numRows, 1);
-        }
-        else {
-            layout->addWidget(widgetAction->createLabelWidget(this), numRows, 0);
-            layout->addWidget(widgetAction->createWidget(this), numRows, 1);
-        }
-    };
-
-    addActionToLayout(&advancedHsneSettingsAction->_numWalksForLandmarkSelectionAction);
-    addActionToLayout(&advancedHsneSettingsAction->_numWalksForLandmarkSelectionThresholdAction);
-    addActionToLayout(&advancedHsneSettingsAction->_randomWalkLengthAction);
-    addActionToLayout(&advancedHsneSettingsAction->_numWalksForAreaOfInfluenceAction);
-    addActionToLayout(&advancedHsneSettingsAction->_minWalksRequiredAction);
-    addActionToLayout(&advancedHsneSettingsAction->_numChecksAknnAction);
-    addActionToLayout(&advancedHsneSettingsAction->_useOutOfCoreComputationAction);
-
-    switch (state)
-    {
-        case Widget::State::Standard:
-            setLayout(layout);
-            break;
-
-        case Widget::State::Popup:
-            setPopupLayout(layout);
-            break;
-
-        default:
-            break;
-    }
+    addWidgetAction(advancedHsneSettingsAction->_numWalksForLandmarkSelectionAction);
+    addWidgetAction(advancedHsneSettingsAction->_numWalksForLandmarkSelectionThresholdAction);
+    addWidgetAction(advancedHsneSettingsAction->_randomWalkLengthAction);
+    addWidgetAction(advancedHsneSettingsAction->_numWalksForAreaOfInfluenceAction);
+    addWidgetAction(advancedHsneSettingsAction->_minWalksRequiredAction);
+    addWidgetAction(advancedHsneSettingsAction->_numChecksAknnAction);
+    addWidgetAction(advancedHsneSettingsAction->_useOutOfCoreComputationAction);
 }
