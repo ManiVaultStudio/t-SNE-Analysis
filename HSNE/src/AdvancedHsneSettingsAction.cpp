@@ -24,7 +24,6 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _numChecksAknnAction.setToolTip("Number of KNN checks");
     _useOutOfCoreComputationAction.setToolTip("Use out-of-core computation");
 
-
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
     _numWalksForLandmarkSelectionAction.initialize(1, 1000, hsneParameters.getNumWalksForLandmarkSelection(), hsneParameters.getNumWalksForLandmarkSelection());
