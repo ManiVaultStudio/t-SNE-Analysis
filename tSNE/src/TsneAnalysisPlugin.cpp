@@ -68,14 +68,14 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::stopped, this, [this]() {
-        qDebug() << "TsneAnalysis::stopped";
-        /*
         notifyFinished();
         notifyProgressPercentage(0.0f);
         notifyProgressSection("");
 
         _tsneSettingsAction.getRunningAction().setChecked(false);
-        */
+
+        _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(false);
+        _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(false);
     });
 
     connect(&_tsneSettingsAction.getStartComputationAction(), &TriggerAction::triggered, this, [this]() {
@@ -86,6 +86,9 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&_tsneSettingsAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
+        _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(true);
+        _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(true);
+
         continueComputation();
     });
 
