@@ -105,37 +105,10 @@ void AdvancedTsneSettingsAction::setReadOnly(const bool& readOnly)
 }
 
 AdvancedTsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedTsneSettingsAction* advancedTsneSettingsAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, advancedTsneSettingsAction, state)
+    WidgetActionGroup::GroupWidget(parent, advancedTsneSettingsAction)
 {
-    auto layout = new QGridLayout();
-
-	const auto addIntegralActionToLayout = [this, layout](IntegralAction& integralAction) -> void {
-		const auto numRows = layout->rowCount();
-
-		layout->addWidget(integralAction.createLabelWidget(this), numRows, 0);
-		layout->addWidget(integralAction.createWidget(this), numRows, 1);
-	};
-
-	addIntegralActionToLayout(advancedTsneSettingsAction->_exaggerationAction);
-	addIntegralActionToLayout(advancedTsneSettingsAction->_exponentialDecayAction);
-	addIntegralActionToLayout(advancedTsneSettingsAction->_numTreesAction);
-	addIntegralActionToLayout(advancedTsneSettingsAction->_numChecksAction);
-
-	//layout->addWidget(advancedTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 0, 1, 2);
-
-    layout->update();
-
-    switch (state)
-    {
-        case Widget::State::Standard:
-            setLayout(layout);
-            break;
-
-        case Widget::State::Popup:
-            setPopupLayout(layout);
-            break;
-
-        default:
-            break;
-    }
+    addWidgetAction(advancedTsneSettingsAction->_exaggerationAction);
+    addWidgetAction(advancedTsneSettingsAction->_exponentialDecayAction);
+    addWidgetAction(advancedTsneSettingsAction->_numTreesAction);
+    addWidgetAction(advancedTsneSettingsAction->_numChecksAction);
 }

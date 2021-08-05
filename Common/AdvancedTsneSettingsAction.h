@@ -9,7 +9,7 @@ class AdvancedTsneSettingsAction : public hdps::gui::WidgetActionGroup
 {
 protected:
 
-    class Widget : public hdps::gui::WidgetActionGroup::Widget {
+    class Widget : public hdps::gui::WidgetActionGroup::GroupWidget {
     public:
         Widget(QWidget* parent, AdvancedTsneSettingsAction* advancedSettingsAction, const Widget::State& state);
     };
