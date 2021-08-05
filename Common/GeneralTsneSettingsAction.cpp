@@ -106,62 +106,20 @@ void GeneralTsneSettingsAction::setReadOnly(const bool& readOnly)
 }
 
 GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAction* generalTsneSettingsAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, generalTsneSettingsAction, state)
+    WidgetActionGroup::GroupWidget(parent, generalTsneSettingsAction)
 {
-    auto layout = new QGridLayout();
-
-    const auto addOptionActionToLayout = [this, layout](OptionAction& optionAction) -> void {
-        const auto numRows = layout->rowCount();
-
-        layout->addWidget(optionAction.createLabelWidget(this), numRows, 0);
-        layout->addWidget(optionAction.createWidget(this), numRows, 1);
-    };
-
-    const auto addIntegralActionToLayout = [this, layout](IntegralAction& integralAction) -> void {
-        const auto numRows = layout->rowCount();
-
-        layout->addWidget(integralAction.createLabelWidget(this), numRows, 0);
-        layout->addWidget(integralAction.createWidget(this), numRows, 1);
-    };
-
-    addOptionActionToLayout(generalTsneSettingsAction->_knnTypeAction);
-    addOptionActionToLayout(generalTsneSettingsAction->_distanceMetricAction);
-    addIntegralActionToLayout(generalTsneSettingsAction->_numIterationsAction);
-    addIntegralActionToLayout(generalTsneSettingsAction->_perplexityAction);
-
-    //layout->addWidget(generalTsneSettingsAction->_resetAction.createWidget(this), layout->rowCount(), 1, 1, 2);
+    addWidgetAction(generalTsneSettingsAction->_knnTypeAction);
+    addWidgetAction(generalTsneSettingsAction->_distanceMetricAction);
+    addWidgetAction(generalTsneSettingsAction->_numIterationsAction);
+    addWidgetAction(generalTsneSettingsAction->_perplexityAction);
 
     auto& tsneSettingsAction = generalTsneSettingsAction->getTsneSettingsAction();
 
-    auto startPushButton    = dynamic_cast<TriggerAction::Widget*>(tsneSettingsAction.getStartComputationAction().createWidget(this));
-    auto continuePushButton = dynamic_cast<TriggerAction::Widget*>(tsneSettingsAction.getContinueComputationAction().createWidget(this));
-    auto stopPushButton     = dynamic_cast<TriggerAction::Widget*>(tsneSettingsAction.getStopComputationAction().createWidget(this));
-
-    /*
-    startPushButton->getPushButton()->setText("");
-    continuePushButton->getPushButton()->setText("");
-    stopPushButton->getPushButton()->setText("");
-    */
-
     auto computeLayout = new QHBoxLayout();
 
-    computeLayout->addWidget(startPushButton);
-    computeLayout->addWidget(continuePushButton);
-    computeLayout->addWidget(stopPushButton);
+    computeLayout->addWidget(tsneSettingsAction.getStartComputationAction().createWidget(this));
+    computeLayout->addWidget(tsneSettingsAction.getContinueComputationAction().createWidget(this));
+    computeLayout->addWidget(tsneSettingsAction.getStopComputationAction().createWidget(this));
 
-    layout->addLayout(computeLayout, layout->rowCount(), 1, 1, 2);
-
-    switch (state)
-    {
-        case Widget::State::Standard:
-            setLayout(layout);
-            break;
-
-        case Widget::State::Popup:
-            setPopupLayout(layout);
-            break;
-
-        default:
-            break;
-    }
+    layout()->addLayout(computeLayout, layout()->rowCount(), 1, 1, 2);
 }
