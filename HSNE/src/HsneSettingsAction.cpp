@@ -40,22 +40,6 @@ TsneParameters& HsneSettingsAction::getTsneParameters()
 }
 
 HsneSettingsAction::Widget::Widget(QWidget* parent, HsneSettingsAction* hsneSettingsAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, hsneSettingsAction, state)
+    WidgetActionGroup::GroupWidget(parent, hsneSettingsAction)
 {
-    auto layout = new QGridLayout();
-
-    switch (state)
-    {
-        case Widget::State::Standard:
-            layout->setMargin(0);
-            setLayout(layout);
-            break;
-
-        case Widget::State::Popup:
-            setPopupLayout(layout);
-            break;
-
-        default:
-            break;
-    }
 }
