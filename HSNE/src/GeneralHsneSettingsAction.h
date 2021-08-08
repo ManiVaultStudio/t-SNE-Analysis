@@ -23,19 +23,16 @@ public:
 
     QMenu* getContextMenu() { return nullptr; }
 
-    /**
-     * Sets the group read-only
-     * @param readOnly Whether the group is read-only
-     */
-    void setReadOnly(const bool& readOnly) override;
-
     HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
+    hdps::gui::OptionAction& getKnnTypeAction() { return _knnTypeAction; }
+    hdps::gui::IntegralAction& getSeedAction() { return _seedAction; }
+    hdps::gui::ToggleAction& getUseMonteCarloSamplingAction() { return _useMonteCarloSamplingAction; }
 
 protected:
     HsneSettingsAction&         _hsneSettingsAction;                /** Reference to HSNE settings action */
     hdps::gui::OptionAction     _knnTypeAction;                     /** KNN action */
     hdps::gui::IntegralAction   _seedAction;                        /** Random seed action */
     hdps::gui::ToggleAction     _useMonteCarloSamplingAction;       /** Use Monte Carlo sampling on/off action */
-    
+
     friend class Widget;
 };

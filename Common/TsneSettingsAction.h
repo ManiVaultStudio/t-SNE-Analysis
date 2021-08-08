@@ -7,19 +7,8 @@
 
 class QMenu;
 
-class TsneSettingsAction : public hdps::gui::WidgetAction
+class TsneSettingsAction : public hdps::gui::WidgetActionGroup
 {
-protected:
-
-    class Widget : public hdps::gui::WidgetAction::Widget {
-    public:
-        Widget(QWidget* parent, TsneSettingsAction* tsneSettingsAction, const Widget::State& state);
-    };
-
-    QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
-        return new Widget(parent, this, state);
-    };
-
 public:
     TsneSettingsAction(QObject* parent);
 

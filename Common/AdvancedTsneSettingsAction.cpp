@@ -59,6 +59,16 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 		_resetAction.setEnabled(canReset());
 	};
 
+    const auto updateReadOnly = [this, canReset]() -> void {
+        const auto enable = !isReadOnly();
+
+        _exaggerationAction.setEnabled(enable);
+        _exponentialDecayAction.setEnabled(enable);
+        _numTreesAction.setEnabled(enable);
+        _numChecksAction.setEnabled(enable);
+        _resetAction.setEnabled(enable);
+    };
+
 	connect(&_exaggerationAction, &IntegralAction::valueChanged, this, [this, updateExaggeration, updateReset](const std::int32_t& value) {
 		updateExaggeration();
 		updateReset();
@@ -86,22 +96,16 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 		_numChecksAction.reset();
 	});
 
+    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+        updateReadOnly();
+    });
+
 	updateExaggeration();
 	updateExponentialDecay();
 	updateNumTrees();
 	updateNumChecks();
 	updateReset();
-}
-
-void AdvancedTsneSettingsAction::setReadOnly(const bool& readOnly)
-{
-    const auto enable = !readOnly;
-
-    _exaggerationAction.setEnabled(enable);
-    _exponentialDecayAction.setEnabled(enable);
-    _numTreesAction.setEnabled(enable);
-    _numChecksAction.setEnabled(enable);
-    _resetAction.setEnabled(enable);
+    updateReadOnly();
 }
 
 AdvancedTsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedTsneSettingsAction* advancedTsneSettingsAction, const Widget::State& state) :

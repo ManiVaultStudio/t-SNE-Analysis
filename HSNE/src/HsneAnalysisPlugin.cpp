@@ -70,26 +70,31 @@ void HsneAnalysisPlugin::init()
         _hsneSettingsAction.getStartAction().setEnabled(false);
     });
 
-    connect(&_hsneSettingsAction.getStartAction(), &TriggerAction::triggered, this, [this]() {
-        _hsneSettingsAction.getStartAction().setEnabled(false);
+    connect(&_hsneSettingsAction.getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
+        if (!toggled)
+            return;
 
-        notifyStarted();
-        notifyProgressPercentage(0.0f);
-        notifyProgressSection("Preparing HSNE data");
+        _hsneSettingsAction.setReadOnly(true);
+        {
+            notifyStarted();
+            notifyProgressPercentage(0.0f);
+            notifyProgressSection("Preparing HSNE data");
 
-        // Obtain a reference to the the input dataset
-        const Points& inputData = _core->requestData<Points>(_inputDatasetName);
+            // Obtain a reference to the the input dataset
+            const Points& inputData = _core->requestData<Points>(_inputDatasetName);
 
-        std::vector<bool> enabledDimensions = _hsneSettingsAction.getDimensionSelectionAction().getEnabledDimensions();
+            std::vector<bool> enabledDimensions = _hsneSettingsAction.getDimensionSelectionAction().getEnabledDimensions();
 
-        notifyProgressSection("Initializing HSNE hierarchy");
+            notifyProgressSection("Initializing HSNE hierarchy");
 
-        // Initialize the HSNE algorithm with the given parameters
-        _hierarchy.initialize(_core, inputData, enabledDimensions, _hsneSettingsAction.getHsneParameters());
+            // Initialize the HSNE algorithm with the given parameters
+            _hierarchy.initialize(_core, inputData, enabledDimensions, _hsneSettingsAction.getHsneParameters());
 
-        notifyProgressSection("Computing top-level embedding");
+            notifyProgressSection("Computing top-level embedding");
 
-        computeTopLevelEmbedding();
+            computeTopLevelEmbedding();
+        }
+        _hsneSettingsAction.setReadOnly(false);
     });
 
     registerDataEventByType(PointType, [this](hdps::DataEvent* dataEvent)

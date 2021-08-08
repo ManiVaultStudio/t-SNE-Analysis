@@ -23,13 +23,14 @@ public:
 
     QMenu* getContextMenu() { return nullptr; }
 
-    /**
-     * Sets the group read-only
-     * @param readOnly Whether the group is read-only
-     */
-    void setReadOnly(const bool& readOnly) override;
-
     HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
+    hdps::gui::IntegralAction& getNumWalksForLandmarkSelectionAction() { return _numWalksForLandmarkSelectionAction; }
+    hdps::gui::DecimalAction& getNumWalksForLandmarkSelectionThresholdAction() { return _numWalksForLandmarkSelectionThresholdAction; }
+    hdps::gui::IntegralAction& getRandomWalkLengthAction() { return _randomWalkLengthAction; }
+    hdps::gui::IntegralAction& getNumWalksForAreaOfInfluenceAction() { return _numWalksForAreaOfInfluenceAction; }
+    hdps::gui::IntegralAction& getMinWalksRequiredAction() { return _minWalksRequiredAction; }
+    hdps::gui::IntegralAction& getNumChecksAknnAction() { return _numChecksAknnAction; }
+    hdps::gui::ToggleAction& getUseOutOfCoreComputationAction() { return _useOutOfCoreComputationAction; }
 
 protected:
     HsneSettingsAction&         _hsneSettingsAction;                                /** Reference to HSNE settings action */

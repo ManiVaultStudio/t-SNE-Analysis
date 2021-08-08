@@ -12,22 +12,12 @@ class HsneAnalysisPlugin;
 
 class HsneSettingsAction : public hdps::gui::WidgetActionGroup
 {
-protected:
-
-    class Widget : public hdps::gui::WidgetActionGroup::GroupWidget {
-    public:
-        Widget(QWidget* parent, HsneSettingsAction* hsneSettingsAction, const Widget::State& state);
-    };
-
-    QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
-        return new Widget(parent, this, state);
-    };
-
 public:
     HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin);
 
     QMenu* getContextMenu();
 
+    /** Get HSNE/TSNE parameters */
     HsneParameters& getHsneParameters();
     TsneParameters& getTsneParameters();
 
@@ -42,7 +32,7 @@ protected:
     HsneAnalysisPlugin*             _hsneAnalysisPlugin;            /** Pointer to HSNE analysis plugin */
     HsneParameters                  _hsneParameters;                /** HSNE parameters */
     TsneParameters                  _tsneParameters;                /** TSNE parameters */
-    hdps::gui::TriggerAction        _startAction;               /** Start/stop action */
+    hdps::gui::TriggerAction        _startAction;                   /** Start action */
     GeneralHsneSettingsAction       _generalHsneSettingsAction;     /** General HSNE settings action */
     AdvancedHsneSettingsAction      _advancedHsneSettingsAction;    /** Advanced HSNE settings action */
     TsneSettingsAction              _tsneSettingsAction;            /** TSNE settings action */

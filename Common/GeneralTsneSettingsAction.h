@@ -23,12 +23,6 @@ public:
 
     QMenu* getContextMenu() { return nullptr; }
 
-    /**
-     * Sets the group read-only
-     * @param readOnly Whether the group is read-only
-     */
-    void setReadOnly(const bool& readOnly) override;
-
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; };
     hdps::gui::OptionAction& getKnnTypeAction() { return _knnTypeAction; };
     hdps::gui::OptionAction& getDistanceMetricAction() { return _distanceMetricAction; };

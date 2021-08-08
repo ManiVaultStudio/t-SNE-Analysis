@@ -60,6 +60,16 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _resetAction.setEnabled(canReset());
     };
 
+    const auto updateReadOnly = [this]() -> void {
+        const auto enable = !isReadOnly();
+
+        _knnTypeAction.setEnabled(enable);
+        _distanceMetricAction.setEnabled(enable);
+        _numIterationsAction.setEnabled(enable);
+        _perplexityAction.setEnabled(enable);
+        _resetAction.setEnabled(enable);
+    };
+
     connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric, updateReset](const std::int32_t& currentIndex) {
         updateDistanceMetric();
         updateReset();
@@ -87,22 +97,16 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _perplexityAction.reset();
     });
 
+    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+        updateReadOnly();
+    });
+
     updateKnnAlgorithm();
     updateDistanceMetric();
     updateNumIterations();
     updatePerplexity();
     updateReset();
-}
-
-void GeneralTsneSettingsAction::setReadOnly(const bool& readOnly)
-{
-    const auto enable = !readOnly;
-
-    _knnTypeAction.setEnabled(enable);
-    _distanceMetricAction.setEnabled(enable);
-    _numIterationsAction.setEnabled(enable);
-    _perplexityAction.setEnabled(enable);
-    _resetAction.setEnabled(enable);
+    updateReadOnly();
 }
 
 GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAction* generalTsneSettingsAction, const Widget::State& state) :

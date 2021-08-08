@@ -62,6 +62,18 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
         _hsneSettingsAction.getHsneParameters().useOutOfCoreComputation(_useOutOfCoreComputationAction.isChecked());
     };
 
+    const auto updateReadOnly = [this]() -> void {
+        const auto enabled = !isReadOnly();
+
+        _numWalksForLandmarkSelectionAction.setEnabled(enabled);
+        _numWalksForLandmarkSelectionThresholdAction.setEnabled(enabled);
+        _randomWalkLengthAction.setEnabled(enabled);
+        _numWalksForAreaOfInfluenceAction.setEnabled(enabled);
+        _minWalksRequiredAction.setEnabled(enabled);
+        _numChecksAknnAction.setEnabled(enabled);
+        _useOutOfCoreComputationAction.setEnabled(enabled);
+    };
+
     connect(&_numWalksForLandmarkSelectionAction, &IntegralAction::valueChanged, this, [this, updateNumWalksForLandmarkSelectionAction]() {
         updateNumWalksForLandmarkSelectionAction();
     });
@@ -90,6 +102,10 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
         updateUseOutOfCoreComputation();
     });
 
+    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+        updateReadOnly();
+    });
+
     updateNumWalksForLandmarkSelectionAction();
     updateNumWalksForLandmarkSelectionThreshold();
     updateRandomWalkLength();
@@ -97,19 +113,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     updateMinWalksRequired();
     updateNumChecksAknn();
     updateUseOutOfCoreComputation();
-}
-
-void AdvancedHsneSettingsAction::setReadOnly(const bool& readOnly)
-{
-    const auto enabled = !readOnly;
-
-    _numWalksForLandmarkSelectionAction.setEnabled(enabled);
-    _numWalksForLandmarkSelectionThresholdAction.setEnabled(enabled);
-    _randomWalkLengthAction.setEnabled(enabled);
-    _numWalksForAreaOfInfluenceAction.setEnabled(enabled);
-    _minWalksRequiredAction.setEnabled(enabled);
-    _numChecksAknnAction.setEnabled(enabled);
-    _useOutOfCoreComputationAction.setEnabled(enabled);
+    updateReadOnly();
 }
 
 AdvancedHsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedHsneSettingsAction* advancedHsneSettingsAction, const Widget::State& state) :

@@ -16,12 +16,22 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
 {
     setText("HSNE");
 
-    connect(&_startAction, &ToggleAction::toggled, this, [this]() {
-        const auto prefix = "Start";// _startStopAction.isChecked() ? "Stop" : "Start";
+    _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 
-        _startAction.setText(prefix);
-        _startAction.setToolTip(QString("%1 the HSNE computation").arg(prefix));
+    const auto updateReadOnly = [this]() -> void {
+        _startAction.setEnabled(isReadOnly());
+
+        _generalHsneSettingsAction.setReadOnly(isReadOnly());
+        _advancedHsneSettingsAction.setReadOnly(isReadOnly());
+        _tsneSettingsAction.setReadOnly(isReadOnly());
+        _dimensionSelectionAction.setReadOnly(isReadOnly());
+    };
+
+    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+        updateReadOnly();
     });
+
+    updateReadOnly();
 }
 
 QMenu* HsneSettingsAction::getContextMenu()
@@ -37,9 +47,4 @@ HsneParameters& HsneSettingsAction::getHsneParameters()
 TsneParameters& HsneSettingsAction::getTsneParameters()
 {
     return _tsneParameters;
-}
-
-HsneSettingsAction::Widget::Widget(QWidget* parent, HsneSettingsAction* hsneSettingsAction, const Widget::State& state) :
-    WidgetActionGroup::GroupWidget(parent, hsneSettingsAction)
-{
 }
