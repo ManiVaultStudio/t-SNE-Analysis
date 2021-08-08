@@ -123,8 +123,8 @@ DimensionSelectionAction::DimensionSelectionAction(QObject* parent) :
         _showOnlySelectedDimensionsAction.setEnabled(enable);
         _applyExclusionListAction.setEnabled(enable);
         _ignoreZeroValuesAction.setEnabled(enable);
-        _selectionThresholdAction.setEnabled(enable);
-        _summaryAction.setEnabled(enable);
+        _selectionThresholdAction.setEnabled(enable && !_selectionHolder._statistics.empty());
+        _summaryAction.setEnabled(false);
         _computeStatisticsAction.setEnabled(enable);
         _selectVisibleAction.setEnabled(enable);
         _selectNonVisibleAction.setEnabled(enable);
@@ -457,7 +457,7 @@ void DimensionSelectionAction::updateSlider()
 		_selectionThresholdAction.setMaximum(1);
 	}
 
-	_selectionThresholdAction.setEnabled(!_selectionHolder._statistics.empty());
+	_selectionThresholdAction.setEnabled(!isReadOnly() && !_selectionHolder._statistics.empty());
 }
 
 void DimensionSelectionAction::updateSummary()
@@ -495,12 +495,18 @@ DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionActi
 	selectionThresholdLayout->addWidget(dimensionsSettingsAction->_selectionThresholdAction.createSliderWidget(this));
 	selectionThresholdLayout->addWidget(lessLabel);
 
-	connect(&dimensionsSettingsAction->_selectionThresholdAction, &IntegralAction::changed, this, [this, dimensionsSettingsAction, moreLabel, lessLabel]() {
-		const auto isEnabled = dimensionsSettingsAction->_selectionThresholdAction.isEnabled();
+    const auto updateSelectionThresholdLabels = [this, dimensionsSettingsAction, moreLabel, lessLabel]() -> void {
+        const auto isEnabled = dimensionsSettingsAction->_selectionThresholdAction.isEnabled();
 
-		moreLabel->setEnabled(isEnabled);
-		lessLabel->setEnabled(isEnabled);
+        moreLabel->setEnabled(isEnabled);
+        lessLabel->setEnabled(isEnabled);
+    };
+
+	connect(&dimensionsSettingsAction->_selectionThresholdAction, &IntegralAction::changed, this, [this, updateSelectionThresholdLabels]() {
+        updateSelectionThresholdLabels();
 	});
+
+    updateSelectionThresholdLabels();
 
 	layout->addLayout(selectionThresholdLayout);
 	

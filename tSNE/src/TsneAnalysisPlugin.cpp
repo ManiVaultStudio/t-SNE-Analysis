@@ -42,7 +42,6 @@ void TsneAnalysisPlugin::init()
 
     outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
 
-    outputDataset.exposeAction(&_tsneSettingsAction);
     outputDataset.exposeAction(&_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset.exposeAction(&_tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset.exposeAction(&_dimensionSelectionAction);

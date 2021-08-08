@@ -19,9 +19,9 @@ HsneAnalysisPlugin::HsneAnalysisPlugin() :
     AnalysisPlugin("H-SNE Analysis"),
     _hierarchy(),
     _tsneAnalysis(),
-    _hsneSettingsAction(this)
+    _hsneSettingsAction(nullptr)
 {
-    _hsneSettingsAction.getTsneSettingsAction().getGeneralTsneSettingsAction().collapse();
+    
 }
 
 HsneAnalysisPlugin::~HsneAnalysisPlugin()
@@ -30,9 +30,19 @@ HsneAnalysisPlugin::~HsneAnalysisPlugin()
 
 void HsneAnalysisPlugin::init()
 {
+    HsneScaleAction::core = _core;
+
+    // Created derived dataset for embedding
     _outputDatasetName = _core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName);
 
-    auto& inputDataset = _core->requestData<Points>(_inputDatasetName);
+    // Create new HSNE settings actions
+    _hsneSettingsAction = new HsneSettingsAction(this);
+
+    // Collapse the TSNE settings by default
+    _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().collapse();
+
+    // Get input/output datasets
+    auto& inputDataset  = _core->requestData<Points>(_inputDatasetName);
     auto& outputDataset = _core->requestData<Points>(_outputDatasetName);
 
     std::vector<float> initialData;
@@ -43,14 +53,14 @@ void HsneAnalysisPlugin::init()
 
     outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
 
-    auto& tsneSettingsAction = _hsneSettingsAction.getTsneSettingsAction();
+    auto& tsneSettingsAction = _hsneSettingsAction->getTsneSettingsAction();
 
-    outputDataset.exposeAction(&_hsneSettingsAction.getGeneralHsneSettingsAction());
-    outputDataset.exposeAction(&_hsneSettingsAction.getAdvancedHsneSettingsAction());
-    outputDataset.exposeAction(new HsneScaleAction(this, &_hsneSettingsAction.getTsneSettingsAction(), _core, &_hierarchy, _inputDatasetName, _outputDatasetName));
+    outputDataset.exposeAction(&_hsneSettingsAction->getGeneralHsneSettingsAction());
+    outputDataset.exposeAction(&_hsneSettingsAction->getAdvancedHsneSettingsAction());
+    outputDataset.exposeAction(&_hsneSettingsAction->getTopLevelScaleAction());
     outputDataset.exposeAction(&tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset.exposeAction(&tsneSettingsAction.getAdvancedTsneSettingsAction());
-    outputDataset.exposeAction(&_hsneSettingsAction.getDimensionSelectionAction());
+    outputDataset.exposeAction(&_hsneSettingsAction->getDimensionSelectionAction());
 
     _core->getDataHierarchyItem(outputDataset.getName()).select();
 
@@ -67,34 +77,29 @@ void HsneAnalysisPlugin::init()
         notifyProgressPercentage(0.0f);
         notifyProgressSection("");
 
-        _hsneSettingsAction.getStartAction().setEnabled(false);
+        _hsneSettingsAction->getStartAction().setEnabled(false);
     });
 
-    connect(&_hsneSettingsAction.getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
-        if (!toggled)
-            return;
+    connect(&_hsneSettingsAction->getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
+        _hsneSettingsAction->setReadOnly(true);
+        
+        notifyStarted();
+        notifyProgressPercentage(0.0f);
+        notifyProgressSection("Preparing HSNE data");
 
-        _hsneSettingsAction.setReadOnly(true);
-        {
-            notifyStarted();
-            notifyProgressPercentage(0.0f);
-            notifyProgressSection("Preparing HSNE data");
+        // Obtain a reference to the the input dataset
+        const Points& inputData = _core->requestData<Points>(_inputDatasetName);
 
-            // Obtain a reference to the the input dataset
-            const Points& inputData = _core->requestData<Points>(_inputDatasetName);
+        std::vector<bool> enabledDimensions = _hsneSettingsAction->getDimensionSelectionAction().getEnabledDimensions();
 
-            std::vector<bool> enabledDimensions = _hsneSettingsAction.getDimensionSelectionAction().getEnabledDimensions();
+        notifyProgressSection("Initializing HSNE hierarchy");
 
-            notifyProgressSection("Initializing HSNE hierarchy");
+        // Initialize the HSNE algorithm with the given parameters
+        _hierarchy.initialize(_core, inputData, enabledDimensions, _hsneSettingsAction->getHsneParameters());
 
-            // Initialize the HSNE algorithm with the given parameters
-            _hierarchy.initialize(_core, inputData, enabledDimensions, _hsneSettingsAction.getHsneParameters());
+        notifyProgressSection("Computing top-level embedding");
 
-            notifyProgressSection("Computing top-level embedding");
-
-            computeTopLevelEmbedding();
-        }
-        _hsneSettingsAction.setReadOnly(false);
+        computeTopLevelEmbedding();
     });
 
     registerDataEventByType(PointType, [this](hdps::DataEvent* dataEvent)
@@ -110,16 +115,17 @@ void HsneAnalysisPlugin::init()
                 // Passes changes to the current dataset to the dimension selection widget
                 Points& points = _core->requestData<Points>(dataEvent->dataSetName);
 
-                _hsneSettingsAction.getDimensionSelectionAction().dataChanged(points);
+                _hsneSettingsAction->getDimensionSelectionAction().dataChanged(points);
                 break;
             }
         }
     });
 
-    _hsneSettingsAction.getDimensionSelectionAction().dataChanged(inputDataset);
+    _hsneSettingsAction->getDimensionSelectionAction().dataChanged(inputDataset);
 
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
-        _hsneSettingsAction.getStartAction().setChecked(false);
+        _hsneSettingsAction->getStartAction().setChecked(false);
+        _hsneSettingsAction->setReadOnly(false);
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
@@ -162,8 +168,8 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     _hierarchy.printScaleInfo();
 
     // Set t-SNE parameters
-    HsneParameters hsneParameters = _hsneSettingsAction.getHsneParameters();
-    TsneParameters tsneParameters = _hsneSettingsAction.getTsneSettingsAction().getTsneParameters();
+    HsneParameters hsneParameters = _hsneSettingsAction->getHsneParameters();
+    TsneParameters tsneParameters = _hsneSettingsAction->getTsneSettingsAction().getTsneParameters();
 
     // Embed data
     _tsneAnalysis.stopComputation();

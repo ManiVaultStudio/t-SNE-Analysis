@@ -34,7 +34,7 @@
      inkscape:window-x="1281"
      inkscape:window-y="16"
      inkscape:window-maximized="0"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer1"
      width="16px">
     <inkscape:grid
        type="xygrid"
@@ -44,25 +44,20 @@
   <defs
      id="defs2" />
   <g
-     inkscape:groupmode="layer"
-     id="layer3"
-     inkscape:label="scale_1"
-     style="display:inline">
-    <rect
-       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.26458333;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect2247"
-       width="2.6458333"
-       height="2.6458333"
-       x="0.26458332"
-       y="0.26458332" />
-  </g>
-  <g
-     inkscape:label="shadow"
+     inkscape:label="text"
      inkscape:groupmode="layer"
      id="layer1"
-     style="display:inline" />
-  <g
-     inkscape:groupmode="layer"
-     id="layer2"
-     inkscape:label="scale_2" />
+     style="display:inline">
+    <text
+       xml:space="preserve"
+       style="font-weight:bold;font-size:5.12037px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';display:inline;stroke-width:0.320023"
+       x="-0.020858984"
+       y="3.9770184"
+       id="text3393"><tspan
+         sodipodi:role="line"
+         id="tspan3391"
+         style="stroke-width:0.320023"
+         x="-0.020858984"
+         y="3.9770184">H</tspan></text>
+  </g>
 </svg>

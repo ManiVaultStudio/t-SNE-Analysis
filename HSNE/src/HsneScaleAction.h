@@ -28,25 +28,28 @@ protected:
     };
 
 public:
-    HsneScaleAction(QObject* parent, TsneSettingsAction* tsneSettingsAction, hdps::CoreInterface* core, HsneHierarchy* hsneHierarchy, const QString& inputDataSetName, const QString& inputEmbeddingName);
+    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, const QString& inputDataSetName, const QString& inputEmbeddingName);
 
     QMenu* getContextMenu();
 
-    TsneSettingsAction& getTsneSettingsAction() { return *_tsneSettingsAction; }
+    TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
     hdps::gui::TriggerAction& getRefineAction() { return _refineAction; }
 
 protected:
     void refine();
 
 protected:
-    TsneSettingsAction*         _tsneSettingsAction;            /** Pointer to TSNE settings action from the HSNE analysis */
-    hdps::CoreInterface*        _core;                          /** Pointer to the core */
+    TsneSettingsAction&         _tsneSettingsAction;            /** Reference to TSNE settings action from the HSNE analysis */
     TsneAnalysis                _tsne;                          /** TSNE analysis */
-    HsneHierarchy*              _hsneHierarchy;                 /** Pointer to HSNE hierarchy */
+    HsneHierarchy&              _hsneHierarchy;                 /** Reference to HSNE hierarchy */
     QString                     _inputDatasetName;              /** Name of the input dataset */
     QString                     _inputEmbeddingName;            /** Name of the input embedding dataset */
     QString                     _refineEmbeddingName;           /** Name of the output embedding dataset */
     hdps::gui::TriggerAction    _refineAction;                  /** Refine action */
 
+protected:
+    static hdps::CoreInterface* core;      /** Pointer to the core */
+
+    friend class HsneAnalysisPlugin;
     friend class Widget;
 };

@@ -11,6 +11,7 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _startAction(this, "Start"),
     _generalHsneSettingsAction(*this),
     _advancedHsneSettingsAction(*this),
+    _topLevelScaleAction(this, _tsneSettingsAction, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDatasetName(), hsneAnalysisPlugin->getOutputDatasetName()),
     _tsneSettingsAction(this),
     _dimensionSelectionAction(this)
 {
@@ -19,10 +20,11 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 
     const auto updateReadOnly = [this]() -> void {
-        _startAction.setEnabled(isReadOnly());
+        _startAction.setEnabled(!isReadOnly());
 
         _generalHsneSettingsAction.setReadOnly(isReadOnly());
         _advancedHsneSettingsAction.setReadOnly(isReadOnly());
+        _topLevelScaleAction.setReadOnly(isReadOnly());
         _tsneSettingsAction.setReadOnly(isReadOnly());
         _dimensionSelectionAction.setReadOnly(isReadOnly());
     };

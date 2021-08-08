@@ -9,6 +9,8 @@
 using namespace hdps::plugin;
 using namespace hdps::gui;
 
+class HsneScaleAction;
+
 class HsneAnalysisPlugin : public QObject, public AnalysisPlugin
 {
     Q_OBJECT
@@ -23,10 +25,15 @@ public:
     /** Returns the icon of this plugin */
     QIcon getIcon() const override;
 
+    HsneHierarchy& getHierarchy() { return _hierarchy; }
+    TsneAnalysis& getTsneAnalysis() { return _tsneAnalysis; }
+
+    HsneSettingsAction& getHsneSettingsAction() { return *_hsneSettingsAction; }
+
 private:
-    HsneHierarchy       _hierarchy;                 /** HSNE hierarchy */
-    TsneAnalysis        _tsneAnalysis;              /** TSNE analysis */
-    HsneSettingsAction  _hsneSettingsAction;        /** HSNE settings action */
+    HsneHierarchy           _hierarchy;                 /** HSNE hierarchy */
+    TsneAnalysis            _tsneAnalysis;              /** TSNE analysis */
+    HsneSettingsAction*     _hsneSettingsAction;        /** Pointer to HSNE settings action */
 };
 
 class HsneAnalysisPluginFactory : public AnalysisPluginFactory

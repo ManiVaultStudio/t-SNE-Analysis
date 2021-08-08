@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="120"
-   height="120"
-   viewBox="0 0 31.75 31.75"
+   width="16"
+   height="16"
+   viewBox="0 0 4.2333333 4.2333333"
    version="1.1"
    id="svg5"
    inkscape:version="1.1 (c68e22c387, 2021-05-23)"
@@ -25,85 +25,39 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:document-units="px"
-     showgrid="false"
-     inkscape:zoom="2.5721009"
-     inkscape:cx="121.10722"
-     inkscape:cy="59.873234"
+     showgrid="true"
+     inkscape:zoom="32"
+     inkscape:cx="12.859375"
+     inkscape:cy="4.78125"
      inkscape:window-width="2542"
      inkscape:window-height="1336"
      inkscape:window-x="1281"
      inkscape:window-y="16"
      inkscape:window-maximized="0"
-     inkscape:current-layer="layer3" />
+     inkscape:current-layer="layer1"
+     width="16px">
+    <inkscape:grid
+       type="xygrid"
+       id="grid1023"
+       empspacing="1" />
+  </sodipodi:namedview>
   <defs
      id="defs2" />
   <g
-     inkscape:groupmode="layer"
-     id="layer3"
-     inkscape:label="scale_1"
-     style="display:inline">
-    <circle
-       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.374606;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path10502"
-       cx="5.2204809"
-       cy="5.6833811"
-       r="2.4395044" />
-    <circle
-       style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.374606;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path10502-4"
-       cx="6.480597"
-       cy="13.269794"
-       r="2.4395044" />
-    <circle
-       style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.374606;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path10502-2"
-       cx="25.510923"
-       cy="18.515993"
-       r="2.4395044" />
-    <circle
-       style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.374606;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path10502-0"
-       cx="18.927458"
-       cy="24.070791"
-       r="2.4395044" />
-    <circle
-       style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.374606;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path10502-24"
-       cx="13.784126"
-       cy="12.446862"
-       r="2.4395044" />
-    <circle
-       style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.374606;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path10502-6"
-       cx="26.539589"
-       cy="26.848188"
-       r="2.4395044" />
-    <circle
-       style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.374606;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path10502-64"
-       cx="13.475528"
-       cy="4.6289983"
-       r="2.4395044" />
-    <circle
-       style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.374606;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path10502-8"
-       cx="19.338926"
-       cy="8.229331"
-       r="2.4395044" />
-    <circle
-       style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.374606;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path10502-00"
-       cx="11.109597"
-       cy="26.539589"
-       r="2.4395044" />
-  </g>
-  <g
-     inkscape:label="shadow"
+     inkscape:label="text"
      inkscape:groupmode="layer"
      id="layer1"
-     style="display:inline" />
-  <g
-     inkscape:groupmode="layer"
-     id="layer2"
-     inkscape:label="scale_2" />
+     style="display:inline">
+    <text
+       xml:space="preserve"
+       style="font-weight:bold;font-size:5.12037px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';display:inline;stroke-width:0.320023"
+       x="-0.020858984"
+       y="3.9770184"
+       id="text3393"><tspan
+         sodipodi:role="line"
+         id="tspan3391"
+         style="stroke-width:0.320023"
+         x="-0.020858984"
+         y="3.9770184">H</tspan></text>
+  </g>
 </svg>
