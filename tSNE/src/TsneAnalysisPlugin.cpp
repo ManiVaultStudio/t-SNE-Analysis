@@ -5,6 +5,7 @@
 #include <QtCore>
 #include <QtDebug>
 #include <QMenu>
+#include <QPainter>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 
@@ -23,7 +24,7 @@ TsneAnalysisPlugin::TsneAnalysisPlugin() :
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 {
-    _tsneSettingsAction.getStopComputationAction().trigger();
+    _tsneSettingsAction.getComputationAction().getStopComputationAction().trigger();
 }
 
 void TsneAnalysisPlugin::init()
@@ -48,6 +49,8 @@ void TsneAnalysisPlugin::init()
 
     _core->getDataHierarchyItem(outputDataset.getName()).select();
 
+    auto& computationAction = _tsneSettingsAction.getComputationAction();
+
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
         notifyProgressPercentage(percentage);
     });
@@ -56,43 +59,43 @@ void TsneAnalysisPlugin::init()
         notifyProgressSection(section);
     });
 
-    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
+    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this, &computationAction]() {
         notifyFinished();
         notifyProgressPercentage(0.0f);
         notifyProgressSection("");
         
-        _tsneSettingsAction.getRunningAction().setChecked(false);
+        computationAction.getRunningAction().setChecked(false);
 
         _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(false);
         _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(false);
     });
 
-    connect(&_tsneAnalysis, &TsneAnalysis::stopped, this, [this]() {
+    connect(&_tsneAnalysis, &TsneAnalysis::stopped, this, [this, &computationAction]() {
         notifyFinished();
         notifyProgressPercentage(0.0f);
         notifyProgressSection("");
 
-        _tsneSettingsAction.getRunningAction().setChecked(false);
+        computationAction.getRunningAction().setChecked(false);
 
         _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(false);
         _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(false);
     });
 
-    connect(&_tsneSettingsAction.getStartComputationAction(), &TriggerAction::triggered, this, [this]() {
+    connect(&computationAction.getStartComputationAction(), &TriggerAction::triggered, this, [this, &computationAction]() {
         _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(true);
         _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(true);
 
         startComputation();
     });
 
-    connect(&_tsneSettingsAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
+    connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
         _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(true);
         _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(true);
 
         continueComputation();
     });
 
-    connect(&_tsneSettingsAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
+    connect(&computationAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
         stopComputation();
     });
 
@@ -104,11 +107,12 @@ void TsneAnalysisPlugin::init()
 
     _dimensionSelectionAction.dataChanged(inputDataset);
 
-    connect(&_tsneSettingsAction.getRunningAction(), &ToggleAction::toggled, this, [this](bool toggled) {
+    connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction](bool toggled) {
         _dimensionSelectionAction.setEnabled(!toggled);
-        _tsneSettingsAction.getStartComputationAction().setEnabled(!toggled);
-        _tsneSettingsAction.getContinueComputationAction().setEnabled(!toggled && _tsneAnalysis.canContinue());
-        _tsneSettingsAction.getStopComputationAction().setEnabled(toggled);
+
+        computationAction.getStartComputationAction().setEnabled(!toggled);
+        computationAction.getContinueComputationAction().setEnabled(!toggled && _tsneAnalysis.canContinue());
+        computationAction.getStopComputationAction().setEnabled(toggled);
     });
 
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
@@ -130,7 +134,7 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 
 QIcon TsneAnalysisPlugin::getIcon() const
 {
-    return hdps::Application::getIconFont("FontAwesome").getIcon("table");
+    return QIcon(":/images/icon.png");
 }
 
 void TsneAnalysisPlugin::startComputation()
@@ -158,7 +162,7 @@ void TsneAnalysisPlugin::startComputation()
 
     inputPoints.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
-    _tsneSettingsAction.getRunningAction().setChecked(true);
+    _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
 
     _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), data, numEnabledDimensions);
 }
@@ -168,7 +172,7 @@ void TsneAnalysisPlugin::continueComputation()
     notifyStarted();
     notifyProgressPercentage(0.0f);
 
-    _tsneSettingsAction.getRunningAction().setChecked(true);
+    _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
 
     _tsneAnalysis.continueComputation(_tsneSettingsAction.getTsneParameters().getNumIterations());
 }

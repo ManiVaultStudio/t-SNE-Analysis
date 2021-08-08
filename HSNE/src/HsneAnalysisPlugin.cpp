@@ -1,25 +1,24 @@
 #include "HsneAnalysisPlugin.h"
-
-#include "PointData.h"
 #include "HsneParameters.h"
 #include "HsneScaleAction.h"
+
+#include "PointData.h"
 
 #include <QtCore>
 #include <QtDebug>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
+
 #ifdef _WIN32
-#include <windows.h>
+    #include <windows.h>
 #endif
-
-#include <set>
-
-#include <QMenu>
 
 using namespace hdps;
 
 HsneAnalysisPlugin::HsneAnalysisPlugin() :
     AnalysisPlugin("H-SNE Analysis"),
+    _hierarchy(),
+    _tsneAnalysis(),
     _hsneSettingsAction(this)
 {
     _hsneSettingsAction.getTsneSettingsAction().getGeneralTsneSettingsAction().collapse();
@@ -48,10 +47,10 @@ void HsneAnalysisPlugin::init()
 
     outputDataset.exposeAction(&_hsneSettingsAction.getGeneralHsneSettingsAction());
     outputDataset.exposeAction(&_hsneSettingsAction.getAdvancedHsneSettingsAction());
+    outputDataset.exposeAction(new HsneScaleAction(this, &_hsneSettingsAction.getTsneSettingsAction(), _core, &_hierarchy, _inputDatasetName, _outputDatasetName));
     outputDataset.exposeAction(&tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset.exposeAction(&tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset.exposeAction(&_hsneSettingsAction.getDimensionSelectionAction());
-    outputDataset.exposeAction(new HsneScaleAction(this, &tsneSettingsAction, _core, &_hierarchy, _inputDatasetName, _outputDatasetName));
 
     _core->getDataHierarchyItem(outputDataset.getName()).select();
 
@@ -67,15 +66,30 @@ void HsneAnalysisPlugin::init()
         notifyFinished();
         notifyProgressPercentage(0.0f);
         notifyProgressSection("");
+
+        _hsneSettingsAction.getStartAction().setEnabled(false);
     });
 
-    connect(&_hsneSettingsAction.getStartStopAction(), &TriggerAction::toggled, this, [this](bool toggled) {
-        if (toggled) {
-            //_hsneSettingsAction.getGeneralHsneSettingsAction().setReadOnly(true);
-            startComputation();
-            //_hsneSettingsAction.getGeneralHsneSettingsAction().setReadOnly(false);
-        }
-            
+    connect(&_hsneSettingsAction.getStartAction(), &TriggerAction::triggered, this, [this]() {
+        _hsneSettingsAction.getStartAction().setEnabled(false);
+
+        notifyStarted();
+        notifyProgressPercentage(0.0f);
+        notifyProgressSection("Preparing HSNE data");
+
+        // Obtain a reference to the the input dataset
+        const Points& inputData = _core->requestData<Points>(_inputDatasetName);
+
+        std::vector<bool> enabledDimensions = _hsneSettingsAction.getDimensionSelectionAction().getEnabledDimensions();
+
+        notifyProgressSection("Initializing HSNE hierarchy");
+
+        // Initialize the HSNE algorithm with the given parameters
+        _hierarchy.initialize(_core, inputData, enabledDimensions, _hsneSettingsAction.getHsneParameters());
+
+        notifyProgressSection("Computing top-level embedding");
+
+        computeTopLevelEmbedding();
     });
 
     registerDataEventByType(PointType, [this](hdps::DataEvent* dataEvent)
@@ -100,39 +114,16 @@ void HsneAnalysisPlugin::init()
     _hsneSettingsAction.getDimensionSelectionAction().dataChanged(inputDataset);
 
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
-        _hsneSettingsAction.getStartStopAction().setChecked(false);
+        _hsneSettingsAction.getStartAction().setChecked(false);
     });
 
-    connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, &HsneAnalysisPlugin::onNewEmbedding);
-}
+    connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
+        Points& embedding = _core->requestData<Points>(_outputDatasetName);
 
-void HsneAnalysisPlugin::startComputation()
-{
-    notifyStarted();
-    notifyProgressPercentage(0.0f);
-    notifyProgressSection("Preparing data");
-    
-    // Obtain a reference to the the input dataset
-    const Points& inputData = _core->requestData<Points>(_inputDatasetName);
+        embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
-    std::vector<bool> enabledDimensions = _hsneSettingsAction.getDimensionSelectionAction().getEnabledDimensions();
-
-    notifyProgressSection("Initializing hierarchy");
-
-    // Initialize the HSNE algorithm with the given parameters
-    _hierarchy.initialize(_core, inputData, enabledDimensions, _hsneSettingsAction.getHsneParameters());
-
-    notifyProgressSection("Computing top-level embedding");
-
-    computeTopLevelEmbedding();
-}
-
-void HsneAnalysisPlugin::onNewEmbedding(const TsneData& tsneData) {
-    Points& embedding = _core->requestData<Points>(_outputDatasetName);
-
-    embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
-
-    _core->notifyDataChanged(_outputDatasetName);
+        _core->notifyDataChanged(_outputDatasetName);
+    });
 }
 
 void HsneAnalysisPlugin::computeTopLevelEmbedding()
@@ -172,6 +163,11 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     // Embed data
     _tsneAnalysis.stopComputation();
     _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
+}
+
+QIcon HsneAnalysisPlugin::getIcon() const
+{
+    return QIcon(":/images/icon.png");
 }
 
 AnalysisPlugin* HsneAnalysisPluginFactory::produce()

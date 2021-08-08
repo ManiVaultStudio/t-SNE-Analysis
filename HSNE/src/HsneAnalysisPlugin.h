@@ -20,14 +20,13 @@ public:
 
     void computeTopLevelEmbedding();
 
-public slots:
-    void startComputation();
-    void onNewEmbedding(const TsneData& tsneData);
+    /** Returns the icon of this plugin */
+    QIcon getIcon() const override;
 
 private:
-    HsneHierarchy       _hierarchy;                 /** TSNE hierarchy */
+    HsneHierarchy       _hierarchy;                 /** HSNE hierarchy */
     TsneAnalysis        _tsneAnalysis;              /** TSNE analysis */
-    HsneSettingsAction  _hsneSettingsAction;        /** Hsne settings action */
+    HsneSettingsAction  _hsneSettingsAction;        /** HSNE settings action */
 };
 
 class HsneAnalysisPluginFactory : public AnalysisPluginFactory

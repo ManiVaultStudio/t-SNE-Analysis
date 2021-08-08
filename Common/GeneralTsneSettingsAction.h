@@ -37,7 +37,7 @@ public:
     hdps::gui::TriggerAction& getResetAction() { return _resetAction; };
 
 protected:
-    TsneSettingsAction&         _tsneSettingsAction;            /** Pointer to parent tSNE settings action */
+    TsneSettingsAction&         _tsneSettingsAction;            /** Reference to parent tSNE settings action */
     hdps::gui::OptionAction		_knnTypeAction;					/** KNN action */
     hdps::gui::OptionAction		_distanceMetricAction;			/** Distance metric action */
     hdps::gui::IntegralAction	_numIterationsAction;			/** Number of iterations action */

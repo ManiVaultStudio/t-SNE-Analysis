@@ -19,13 +19,11 @@ set(DIMENSION_SELECTION_SOURCES
     ${DIR}/DimensionSelectionItemModel.cpp
     ${DIR}/DimensionSelectionProxyModel.h
     ${DIR}/DimensionSelectionProxyModel.cpp
-    ${DIR}/DimensionSelectionWidget.h
-    ${DIR}/DimensionSelectionWidget.cpp
-    #${DIR}/GeneralSettingsWidget.h
-    #${DIR}/GeneralSettingsWidget.cpp
 )
 
 set(TSNE_ACTIONS_SOURCES
+	${DIR}/TsneComputationAction.h
+    ${DIR}/TsneComputationAction.cpp
     ${DIR}/TsneSettingsAction.h
     ${DIR}/TsneSettingsAction.cpp
     ${DIR}/GeneralTsneSettingsAction.h
@@ -38,12 +36,6 @@ set(DIMENSION_SELECTION_ACTION_SOURCES
     ${DIR}/DimensionSelectionAction.h
     ${DIR}/DimensionSelectionAction.cpp
 )
-
-set(UI_FILES
-    ${DIR}/ui/DimensionSelectionWidget.ui
-)
-
-QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
 
 # The following 4 macros are designed to support the use of user supplied
 # libraries or the PREBUILT libraries for flann and HDILib from the LKEB

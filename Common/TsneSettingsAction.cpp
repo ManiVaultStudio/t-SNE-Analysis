@@ -8,35 +8,23 @@ using namespace hdps::gui;
 TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     WidgetAction(parent),
     _tsneParameters(),
+    _computationAction(*this),
     _generalTsneSettingsAction(*this),
-    _advancedTsneSettingsAction(*this),
-    _startComputationAction(this, "Start"),
-    _continueComputationAction(this, "Continue"),
-    _stopComputationAction(this, "Stop"),
-    _runningAction(this, "Running")
+    _advancedTsneSettingsAction(*this)
 {
     setText("TSNE");
-
-    _startComputationAction.setToolTip("Start the tSNE computation");
-    _continueComputationAction.setToolTip("Continue with the tSNE computation");
-    _stopComputationAction.setToolTip("Stop the current tSNE computation");
-
-    /*
-    auto& fontAwesome = hdps::Application::getIconFont("FontAwesome");
-
-    _startComputationAction.setIcon(fontAwesome.getIcon("play"));
-    _continueComputationAction.setIcon(fontAwesome.getIcon("forward"));
-    _stopComputationAction.setIcon(fontAwesome.getIcon("stop"));
-    */
 }
 
 QMenu* TsneSettingsAction::getContextMenu()
 {
     auto menu = new QMenu(text());
 
-    menu->addAction(&_startComputationAction);
-    menu->addAction(&_continueComputationAction);
-    menu->addAction(&_runningAction);
+    menu->addAction(&_computationAction.getStartComputationAction());
+    menu->addAction(&_computationAction.getContinueComputationAction());
+
+    menu->addSeparator();
+
+    menu->addAction(&_computationAction.getStopComputationAction());
 
     return menu;
 }
@@ -44,40 +32,4 @@ QMenu* TsneSettingsAction::getContextMenu()
 TsneSettingsAction::Widget::Widget(QWidget* parent, TsneSettingsAction* tsneSettingsAction, const Widget::State& state) :
     WidgetAction::Widget(parent, tsneSettingsAction, state)
 {
-    auto layout = new QVBoxLayout();
-
-    /*
-    auto tabs = new QTabWidget();
-
-    const auto getTabWidget = [](QWidget* widget) -> QWidget* {
-        auto containerWidget    = new QWidget();
-        auto containerLayout    = new QVBoxLayout();
-
-        containerLayout->addWidget(widget);
-        containerWidget->setLayout(containerLayout);
-
-        return containerWidget;
-    };
-
-    tabs->addTab(getTabWidget(tsneSettingsAction->getGeneralTsneSettingsAction().createWidget(this)), "General");
-    tabs->addTab(getTabWidget(tsneSettingsAction->getAdvancedTsneSettingsAction().createWidget(this)), "Advanced");
-
-    layout->setMargin(2);
-    layout->addWidget(tabs);
-    */
-
-    switch (state)
-    {
-        case Widget::State::Standard:
-            layout->setMargin(0);
-            setLayout(layout);
-            break;
-
-        case Widget::State::Popup:
-            setPopupLayout(layout);
-            break;
-
-        default:
-            break;
-    }
 }

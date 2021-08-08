@@ -21,29 +21,28 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction* tsneSettin
 {
     setText("HSNE scale");
 
+    _refineAction.setToolTip("Refine the selected landmarks");
+
     connect(&_refineAction, &TriggerAction::triggered, this, [this]() {
         refine();
     });
 
     setEventCore(_core);
 
-    registerDataEventByType(PointType, [this](hdps::DataEvent* dataEvent) {
+    const auto updateRefineAction = [this]() -> void {
+        auto& embedding = dynamic_cast<Points&>(_core->requestData(_inputEmbeddingName).getSelection());
+        _refineAction.setEnabled(!embedding.indices.empty());
+    };
+
+    registerDataEventByType(PointType, [this, updateRefineAction](hdps::DataEvent* dataEvent) {
         if (dataEvent->dataSetName != _inputEmbeddingName)
             return;
 
-        switch (dataEvent->getType())
-        {
-            case hdps::EventType::SelectionChanged:
-            {
-                auto& embedding = dynamic_cast<Points&>(_core->requestData(_inputEmbeddingName).getSelection());
-                _refineAction.setEnabled(!embedding.indices.empty());
-                break;
-            }
-
-            default:
-                break;
-        }
+        if (dataEvent->getType() == hdps::EventType::SelectionChanged)
+            updateRefineAction();
     });
+
+    updateRefineAction();
 }
 
 QMenu* HsneScaleAction::getContextMenu()
@@ -147,7 +146,6 @@ void HsneScaleAction::refine()
 
     drillEmbedding.setData(nullptr, 0, 2);
     drillEmbedding.exposeAction(new HsneScaleAction(this, _tsneSettingsAction, _core, _hsneHierarchy, _inputDatasetName, _refineEmbeddingName));
-    drillEmbedding.exposeAction(&_tsneSettingsAction->getGeneralTsneSettingsAction());
 
     _core->notifyDataAdded(_refineEmbeddingName);
 
@@ -174,7 +172,11 @@ void HsneScaleAction::refine()
     _tsne.startComputation(tsneParameters, transitionMatrix, nextLevelIdxs.size(), _hsneHierarchy->getNumDimensions());
 }
 
-HsneScaleAction::Widget::Widget(QWidget* parent, HsneScaleAction* HsneScaleAction, const Widget::State& state) :
-    WidgetActionGroup::GroupWidget(parent, HsneScaleAction)
+HsneScaleAction::Widget::Widget(QWidget* parent, HsneScaleAction* hsneScaleAction, const Widget::State& state) :
+    WidgetActionGroup::GroupWidget(parent, hsneScaleAction)
 {
+    layout()->setColumnStretch(0, 0);
+    layout()->setColumnStretch(1, 0);
+
+    layout()->addWidget(hsneScaleAction->getRefineAction().createWidget(this), 0, 0);
 }

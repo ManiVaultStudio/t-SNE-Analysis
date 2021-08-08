@@ -186,6 +186,7 @@ void TsneWorker::compute()
 
     if (!_hasProbabilityDistribution)
         computeSimilarities();
+
     computeGradientDescent(_parameters.getNumIterations());
 }
 

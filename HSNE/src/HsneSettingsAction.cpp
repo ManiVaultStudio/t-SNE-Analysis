@@ -8,7 +8,7 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _hsneAnalysisPlugin(hsneAnalysisPlugin),
     _hsneParameters(),
     _tsneParameters(),
-    _startStopAction(this, "Start"),
+    _startAction(this, "Start"),
     _generalHsneSettingsAction(*this),
     _advancedHsneSettingsAction(*this),
     _tsneSettingsAction(this),
@@ -16,11 +16,11 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
 {
     setText("HSNE");
 
-    connect(&_startStopAction, &ToggleAction::toggled, this, [this]() {
+    connect(&_startAction, &ToggleAction::toggled, this, [this]() {
         const auto prefix = "Start";// _startStopAction.isChecked() ? "Stop" : "Start";
 
-        _startStopAction.setText(prefix);
-        _startStopAction.setToolTip(QString("%1 the HSNE computation").arg(prefix));
+        _startAction.setText(prefix);
+        _startAction.setToolTip(QString("%1 the HSNE computation").arg(prefix));
     });
 }
 

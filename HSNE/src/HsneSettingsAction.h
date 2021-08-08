@@ -31,7 +31,7 @@ public:
     HsneParameters& getHsneParameters();
     TsneParameters& getTsneParameters();
 
-    hdps::gui::ToggleAction& getStartStopAction() { return _startStopAction; }
+    hdps::gui::TriggerAction& getStartAction() { return _startAction; }
     GeneralHsneSettingsAction& getGeneralHsneSettingsAction() { return _generalHsneSettingsAction; }
     AdvancedHsneSettingsAction& getAdvancedHsneSettingsAction() { return _advancedHsneSettingsAction; }
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
@@ -42,7 +42,7 @@ protected:
     HsneAnalysisPlugin*             _hsneAnalysisPlugin;            /** Pointer to HSNE analysis plugin */
     HsneParameters                  _hsneParameters;                /** HSNE parameters */
     TsneParameters                  _tsneParameters;                /** TSNE parameters */
-    hdps::gui::ToggleAction         _startStopAction;               /** Start/stop action */
+    hdps::gui::TriggerAction        _startAction;               /** Start/stop action */
     GeneralHsneSettingsAction       _generalHsneSettingsAction;     /** General HSNE settings action */
     AdvancedHsneSettingsAction      _advancedHsneSettingsAction;    /** Advanced HSNE settings action */
     TsneSettingsAction              _tsneSettingsAction;            /** TSNE settings action */

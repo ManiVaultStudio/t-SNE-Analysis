@@ -22,3 +22,8 @@ set(HSNE_ACTIONS_SOURCES
     ${DIR}/HsneScaleAction.cpp
 	PARENT_SCOPE
 )
+
+set(HSNE_RESOURCES
+    ${DIR}/../res/resources.qrc
+    PARENT_SCOPE
+)

@@ -112,14 +112,5 @@ GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAc
     addWidgetAction(generalTsneSettingsAction->_distanceMetricAction);
     addWidgetAction(generalTsneSettingsAction->_numIterationsAction);
     addWidgetAction(generalTsneSettingsAction->_perplexityAction);
-
-    auto& tsneSettingsAction = generalTsneSettingsAction->getTsneSettingsAction();
-
-    auto computeLayout = new QHBoxLayout();
-
-    computeLayout->addWidget(tsneSettingsAction.getStartComputationAction().createWidget(this));
-    computeLayout->addWidget(tsneSettingsAction.getContinueComputationAction().createWidget(this));
-    computeLayout->addWidget(tsneSettingsAction.getStopComputationAction().createWidget(this));
-
-    layout()->addLayout(computeLayout, layout()->rowCount(), 1, 1, 2);
+    addWidgetAction(generalTsneSettingsAction->getTsneSettingsAction().getComputationAction());
 }

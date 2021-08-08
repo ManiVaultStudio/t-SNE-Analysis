@@ -12,6 +12,11 @@ source_group(Common//DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
 source_group(Common//Actions FILES ${DIMENSION_SELECTION_ACTION_SOURCES} ${TSNE_ACTIONS_SOURCES})
 source_group(Actions FILES ${HSNE_ACTIONS_SOURCES})
 source_group(Hsne FILES ${HSNE_PLUGIN_SOURCES})
+source_group(Resources FILES ${HSNE_RESOURCES})
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
 # -----------------------------------------------------------------------------
 # CMake Target
@@ -23,7 +28,7 @@ add_library(${HSNE_PLUGIN} SHARED
     ${DIMENSION_SELECTION_ACTION_SOURCES}
     ${TSNE_COMMON_SOURCES}
     ${HSNE_PLUGIN_SOURCES}
-    ${UI_FILES}
+	${HSNE_RESOURCES}
 )
 
 # -----------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TsneParameters.h"
+#include "TsneComputationAction.h"
 #include "GeneralTsneSettingsAction.h"
 #include "AdvancedTsneSettingsAction.h"
 
@@ -25,19 +26,13 @@ public:
     QMenu* getContextMenu();
 
     TsneParameters& getTsneParameters() { return _tsneParameters; }
-    hdps::gui::TriggerAction& getStartComputationAction() { return _startComputationAction; }
-    hdps::gui::TriggerAction& getContinueComputationAction() { return _continueComputationAction; }
-    hdps::gui::TriggerAction& getStopComputationAction() { return _stopComputationAction; }
-    hdps::gui::ToggleAction& getRunningAction() { return _runningAction; }
+    TsneComputationAction& getComputationAction() { return _computationAction; }
     GeneralTsneSettingsAction& getGeneralTsneSettingsAction() { return _generalTsneSettingsAction; }
     AdvancedTsneSettingsAction& getAdvancedTsneSettingsAction() { return _advancedTsneSettingsAction; }
 
 protected:
     TsneParameters                  _tsneParameters;                /** TSNE parameters */
-    hdps::gui::TriggerAction        _startComputationAction;        /** Start computation action */
-    hdps::gui::TriggerAction        _continueComputationAction;     /** Start computation action */
-    hdps::gui::TriggerAction        _stopComputationAction;         /** Stop computation action */
-    hdps::gui::ToggleAction         _runningAction;                 /** Running action */
+    TsneComputationAction           _computationAction;             /** Computation action */
     GeneralTsneSettingsAction       _generalTsneSettingsAction;     /** General tSNE settings action */
     AdvancedTsneSettingsAction      _advancedTsneSettingsAction;    /** Advanced tSNE settings action */
 

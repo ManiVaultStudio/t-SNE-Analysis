@@ -62,5 +62,5 @@ GeneralHsneSettingsAction::Widget::Widget(QWidget* parent, GeneralHsneSettingsAc
     addWidgetAction(generalHsneSettingsAction->_knnTypeAction);
     addWidgetAction(generalHsneSettingsAction->_seedAction);
     addWidgetAction(generalHsneSettingsAction->_useMonteCarloSamplingAction);
-    addWidgetAction(generalHsneSettingsAction->getHsneSettingsAction().getStartStopAction(), true);
+    addWidgetAction(generalHsneSettingsAction->getHsneSettingsAction().getStartAction(), true);
 }

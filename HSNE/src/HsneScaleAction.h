@@ -32,6 +32,9 @@ public:
 
     QMenu* getContextMenu();
 
+    TsneSettingsAction& getTsneSettingsAction() { return *_tsneSettingsAction; }
+    hdps::gui::TriggerAction& getRefineAction() { return _refineAction; }
+
 protected:
     void refine();
 
@@ -44,9 +47,6 @@ protected:
     QString                     _inputEmbeddingName;            /** Name of the input embedding dataset */
     QString                     _refineEmbeddingName;           /** Name of the output embedding dataset */
     hdps::gui::TriggerAction    _refineAction;                  /** Refine action */
-    //hdps::gui::TriggerAction    _startComputationAction;        /** Start computation action */
-    //hdps::gui::TriggerAction    _continueComputationAction;     /** Start computation action */
-    //hdps::gui::TriggerAction    _startComputationAction;        /** Start computation action */
 
     friend class Widget;
 };
