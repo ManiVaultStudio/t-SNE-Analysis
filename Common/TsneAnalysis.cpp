@@ -161,6 +161,7 @@ void TsneWorker::computeGradientDescent(int iterations)
 
         copyEmbeddingOutput();
         emit embeddingUpdate(_outEmbedding);
+        emitEmbeddingUpdate(_currentIteration - beginIteration, iterations);
     }
 
     //emit progressSection("Finished embedding");
