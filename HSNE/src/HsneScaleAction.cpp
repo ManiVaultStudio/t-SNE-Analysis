@@ -50,9 +50,9 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     updateReadOnly();
 }
 
-QMenu* HsneScaleAction::getContextMenu()
+QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
 {
-    auto menu = new QMenu(text());
+    auto menu = new QMenu(text(), parent);
 
     menu->addAction(&_refineAction);
 
@@ -151,7 +151,7 @@ void HsneScaleAction::refine()
     auto& drillEmbedding = core->requestData<Points>(_refineEmbeddingName);
 
     drillEmbedding.setData(nullptr, 0, 2);
-    drillEmbedding.exposeAction(new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, inputDatasetName, _refineEmbeddingName));
+    drillEmbedding.exposeAction(new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, core->getDataHierarchyItem(inputDatasetName), core->getDataHierarchyItem(_refineEmbeddingName)));
     drillEmbedding.exposeAction(&_tsneSettingsAction);
 
     core->notifyDataAdded(_refineEmbeddingName);

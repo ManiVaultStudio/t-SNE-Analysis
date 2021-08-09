@@ -15,29 +15,67 @@ namespace hdps {
     class CoreInterface;
 }
 
+/**
+ * HSNE scale action class
+ *
+ * Action class for HSNE scale
+ *
+ * @author Thomas Kroes
+ */
 class HsneScaleAction : public hdps::gui::WidgetActionGroup, public hdps::EventListener
 {
 protected:
 
+    /** Widget class for HSNE scale action */
     class Widget : public hdps::gui::WidgetActionGroup::GroupWidget {
     public:
-        Widget(QWidget* parent, HsneScaleAction* HsneScaleAction, const Widget::State& state);
+
+        /**
+         * Constructor
+         * @param parent Pointer to parent widget
+         * @param hsneScaleAction Pointer to HSNE scale action
+         * @param state State of the widget
+         */
+        Widget(QWidget* parent, HsneScaleAction* hsneScaleAction, const Widget::State& state);
     };
 
+    /**
+     * Get widget representation of the HSNE scale action
+     * @param parent Pointer to parent widget
+     * @param state Widget state
+     */
     QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
         return new Widget(parent, this, state);
     };
 
 public:
+
+    /**
+     * Constructor
+     * @param parent Pointer to parent object
+     * @param tsneSettingsAction Reference to TSNE settings action
+     * @param hsneHierarchy Reference to HSNE hierarchy
+     * @param inputDataHierarchyItem Pointer to input data hierarchy item
+     * @param embeddingDataHierarchyItem Pointer to embedding data hierarchy item
+     */
     HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, hdps::DataHierarchyItem* inputDataHierarchyItem, hdps::DataHierarchyItem* embeddingDataHierarchyItem);
 
-    QMenu* getContextMenu();
+    /**
+     * Get the context menu for the action
+     * @param parent Parent widget
+     * @return Context menu
+     */
+    QMenu* getContextMenu(QWidget* parent = nullptr) override;
+
+protected:
+
+    /** Refine the landmarks based on the current selection */
+    void refine();
+
+public: // Action getters
 
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
     hdps::gui::TriggerAction& getRefineAction() { return _refineAction; }
-
-protected:
-    void refine();
 
 protected:
     TsneSettingsAction&         _tsneSettingsAction;            /** Reference to TSNE settings action from the HSNE analysis */

@@ -5,23 +5,48 @@
 class QMenu;
 class HsneSettingsAction;
 
+/**
+ * General HSNE setting action class
+ *
+ * Actions class for general HSNE settings
+ *
+ * @author Thomas Kroes
+ */
 class GeneralHsneSettingsAction : public hdps::gui::WidgetActionGroup
 {
 protected:
 
+    /** Widget class for general HSNE settings action */
     class Widget : public hdps::gui::WidgetActionGroup::GroupWidget {
     public:
+
+        /**
+         * Constructor
+         * @param parent Pointer to parent widget
+         * @param generalHsneSettingsAction Pointer to general HSNE settings action
+         * @param state State of the widget
+         */
         Widget(QWidget* parent, GeneralHsneSettingsAction* generalHsneSettingsAction, const Widget::State& state);
     };
 
+    /**
+     * Get widget representation of the general HSNE settings action
+     * @param parent Pointer to parent widget
+     * @param state Widget state
+     */
     QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
         return new Widget(parent, this, state);
     };
 
 public:
+
+    /**
+     * Constructor
+     * @param hsneSettingsAction Reference to HSNE settings action
+     */
     GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction);
 
-    QMenu* getContextMenu() { return nullptr; }
+public: // Action getters
 
     HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
     hdps::gui::OptionAction& getKnnTypeAction() { return _knnTypeAction; }

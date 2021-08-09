@@ -36,11 +36,6 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     updateReadOnly();
 }
 
-QMenu* HsneSettingsAction::getContextMenu()
-{
-    return nullptr;
-}
-
 HsneParameters& HsneSettingsAction::getHsneParameters()
 {
     return _hsneParameters;

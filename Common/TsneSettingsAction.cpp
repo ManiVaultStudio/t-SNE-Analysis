@@ -1,7 +1,4 @@
 #include "TsneSettingsAction.h"
-#include "Application.h"
-
-#include <QTabWidget>
 
 using namespace hdps::gui;
 
@@ -26,15 +23,12 @@ TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     updateReadOnly();
 }
 
-QMenu* TsneSettingsAction::getContextMenu()
+QMenu* TsneSettingsAction::getContextMenu(QWidget* parent /*= nullptr*/)
 {
-    auto menu = new QMenu(text());
+    auto menu = new QMenu(text(), parent);
 
     menu->addAction(&_computationAction.getStartComputationAction());
     menu->addAction(&_computationAction.getContinueComputationAction());
-
-    menu->addSeparator();
-
     menu->addAction(&_computationAction.getStopComputationAction());
 
     return menu;

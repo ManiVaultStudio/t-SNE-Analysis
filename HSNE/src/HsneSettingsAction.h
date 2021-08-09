@@ -11,19 +11,30 @@
 class QMenu;
 class HsneAnalysisPlugin;
 
+/**
+ * HSNE setting action class
+ *
+ * Action class for HSNE settings
+ *
+ * @author Thomas Kroes
+ */
 class HsneSettingsAction : public hdps::gui::WidgetActionGroup
 {
 public:
-    HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin);
 
-    QMenu* getContextMenu();
+    /**
+     * Constructor
+     * @param hsneAnalysisPlugin Pointer to HSNE analysis plugin
+     */
+    HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin);
 
     /** Get HSNE/TSNE parameters */
     HsneParameters& getHsneParameters();
     TsneParameters& getTsneParameters();
 
-    hdps::gui::TriggerAction& getStartAction() { return _startAction; }
+public: // Action getters
 
+    hdps::gui::TriggerAction& getStartAction() { return _startAction; }
     GeneralHsneSettingsAction& getGeneralHsneSettingsAction() { return _generalHsneSettingsAction; }
     AdvancedHsneSettingsAction& getAdvancedHsneSettingsAction() { return _advancedHsneSettingsAction; }
     HsneScaleAction& getTopLevelScaleAction() { return _topLevelScaleAction; }

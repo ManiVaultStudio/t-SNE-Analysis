@@ -7,12 +7,31 @@
 
 class QMenu;
 
+/**
+ * TSNE settings class
+ *
+ * Settings actions class for general/advanced HSNE/TSNE settings
+ *
+ * @author Thomas Kroes
+ */
 class TsneSettingsAction : public hdps::gui::WidgetActionGroup
 {
 public:
+
+    /**
+     * Constructor
+     * @param parent Pointer to parent object
+     */
     TsneSettingsAction(QObject* parent);
 
-    QMenu* getContextMenu();
+    /**
+     * Get the context menu for the action
+     * @param parent Parent widget
+     * @return Context menu
+     */
+    QMenu* getContextMenu(QWidget* parent = nullptr) override;
+
+public: // Action getters
 
     TsneParameters& getTsneParameters() { return _tsneParameters; }
     TsneComputationAction& getComputationAction() { return _computationAction; }

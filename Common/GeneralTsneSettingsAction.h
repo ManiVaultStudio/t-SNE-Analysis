@@ -5,23 +5,48 @@
 class QMenu;
 class TsneSettingsAction;
 
+/**
+ * General TSNE setting action class
+ *
+ * Actions class for general TSNE settings
+ *
+ * @author Thomas Kroes
+ */
 class GeneralTsneSettingsAction : public hdps::gui::WidgetActionGroup
 {
 protected:
 
+    /** Widget class for general TSNE settings action */
     class Widget : public hdps::gui::WidgetActionGroup::GroupWidget {
     public:
+
+        /**
+         * Constructor
+         * @param parent Pointer to parent widget
+         * @param generalSettingsAction Pointer to general TSNE settings action
+         * @param state State of the widget
+         */
         Widget(QWidget* parent, GeneralTsneSettingsAction* generalSettingsAction, const Widget::State& state);
     };
 
+    /**
+     * Get widget representation of the general TSNE settings action
+     * @param parent Pointer to parent widget
+     * @param state Widget state
+     */
     QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
         return new Widget(parent, this, state);
     };
 
 public:
+
+    /**
+     * Constructor
+     * @param tsneSettingsAction Reference to TSNE settings action
+     */
     GeneralTsneSettingsAction(TsneSettingsAction& tsneSettingsAction);
 
-    QMenu* getContextMenu() { return nullptr; }
+public: // Action getters
 
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; };
     hdps::gui::OptionAction& getKnnTypeAction() { return _knnTypeAction; };
@@ -32,11 +57,11 @@ public:
 
 protected:
     TsneSettingsAction&         _tsneSettingsAction;            /** Reference to parent tSNE settings action */
-    hdps::gui::OptionAction		_knnTypeAction;					/** KNN action */
-    hdps::gui::OptionAction		_distanceMetricAction;			/** Distance metric action */
-    hdps::gui::IntegralAction	_numIterationsAction;			/** Number of iterations action */
-    hdps::gui::IntegralAction	_perplexityAction;				/** Perplexity action */
-    hdps::gui::TriggerAction	_resetAction;					/** Reset all input to defaults */
+    hdps::gui::OptionAction     _knnTypeAction;                 /** KNN action */
+    hdps::gui::OptionAction     _distanceMetricAction;          /** Distance metric action */
+    hdps::gui::IntegralAction   _numIterationsAction;           /** Number of iterations action */
+    hdps::gui::IntegralAction   _perplexityAction;              /** Perplexity action */
+    hdps::gui::TriggerAction    _resetAction;                   /** Reset all input to defaults */
 
     friend class Widget;
 };

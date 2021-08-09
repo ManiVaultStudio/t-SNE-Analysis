@@ -18,9 +18,9 @@ TsneComputationAction::TsneComputationAction(TsneSettingsAction& tsneSettingsAct
     _stopComputationAction.setToolTip("Stop the current tSNE computation");
 }
 
-QMenu* TsneComputationAction::getContextMenu()
+QMenu* TsneComputationAction::getContextMenu(QWidget* parent /*= nullptr*/)
 {
-    auto menu = new QMenu(text());
+    auto menu = new QMenu(text(), parent);
 
     menu->addAction(&_startComputationAction);
     menu->addAction(&_continueComputationAction);

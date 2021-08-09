@@ -8,13 +8,13 @@ using namespace hdps::gui;
 AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
     WidgetActionGroup(&tsneSettingsAction),
     _tsneSettingsAction(tsneSettingsAction),
-	_exaggerationAction(this, "Exaggeration"),
-	_exponentialDecayAction(this, "Exponential decay"),
-	_numTreesAction(this, "Number of trees"),
-	_numChecksAction(this, "Number of checks"),
-	_resetAction(this, "Reset all")
+    _exaggerationAction(this, "Exaggeration"),
+    _exponentialDecayAction(this, "Exponential decay"),
+    _numTreesAction(this, "Number of trees"),
+    _numChecksAction(this, "Number of checks"),
+    _resetAction(this, "Reset all")
 {
-	setText("Advanced TSNE");
+    setText("Advanced TSNE");
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
@@ -23,41 +23,41 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
     _numTreesAction.initialize(1, 10000, 4, 4);
     _numChecksAction.initialize(1, 10000, 1024, 1024);
 
-	const auto updateExaggeration = [this]() -> void {
+    const auto updateExaggeration = [this]() -> void {
         _tsneSettingsAction.getTsneParameters().setExaggerationIter(_exaggerationAction.getValue());
-	};
+    };
 
-	const auto updateExponentialDecay = [this]() -> void {
+    const auto updateExponentialDecay = [this]() -> void {
         _tsneSettingsAction.getTsneParameters().setExponentialDecayIter(_exponentialDecayAction.getValue());
-	};
+    };
 
-	const auto updateNumTrees = [this]() -> void {
+    const auto updateNumTrees = [this]() -> void {
         _tsneSettingsAction.getTsneParameters().setNumTrees(_numTreesAction.getValue());
-	};
+    };
 
-	const auto updateNumChecks = [this]() -> void {
+    const auto updateNumChecks = [this]() -> void {
         _tsneSettingsAction.getTsneParameters().setNumChecks(_numChecksAction.getValue());
-	};
+    };
 
-	const auto canReset = [this]() -> bool {
-		if (_exaggerationAction.canReset())
-			return true;
+    const auto canReset = [this]() -> bool {
+        if (_exaggerationAction.canReset())
+            return true;
 
-		if (_exponentialDecayAction.canReset())
-			return true;
+        if (_exponentialDecayAction.canReset())
+            return true;
 
-		if (_numTreesAction.canReset())
-			return true;
+        if (_numTreesAction.canReset())
+            return true;
 
-		if (_numChecksAction.canReset())
-			return true;
+        if (_numChecksAction.canReset())
+            return true;
 
-		return false;
-	};
+        return false;
+    };
 
-	const auto updateReset = [this, canReset]() -> void {
-		_resetAction.setEnabled(canReset());
-	};
+    const auto updateReset = [this, canReset]() -> void {
+        _resetAction.setEnabled(canReset());
+    };
 
     const auto updateReadOnly = [this, canReset]() -> void {
         const auto enable = !isReadOnly();
@@ -69,42 +69,42 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
         _resetAction.setEnabled(enable);
     };
 
-	connect(&_exaggerationAction, &IntegralAction::valueChanged, this, [this, updateExaggeration, updateReset](const std::int32_t& value) {
-		updateExaggeration();
-		updateReset();
-	});
+    connect(&_exaggerationAction, &IntegralAction::valueChanged, this, [this, updateExaggeration, updateReset](const std::int32_t& value) {
+        updateExaggeration();
+        updateReset();
+    });
 
-	connect(&_exponentialDecayAction, &IntegralAction::valueChanged, this, [this, updateExponentialDecay, updateReset](const std::int32_t& value) {
-		updateExponentialDecay();
-		updateReset();
-	});
+    connect(&_exponentialDecayAction, &IntegralAction::valueChanged, this, [this, updateExponentialDecay, updateReset](const std::int32_t& value) {
+        updateExponentialDecay();
+        updateReset();
+    });
 
-	connect(&_numTreesAction, &IntegralAction::valueChanged, this, [this, updateNumTrees, updateReset](const std::int32_t& value) {
-		updateNumTrees();
-		updateReset();
-	});
+    connect(&_numTreesAction, &IntegralAction::valueChanged, this, [this, updateNumTrees, updateReset](const std::int32_t& value) {
+        updateNumTrees();
+        updateReset();
+    });
 
-	connect(&_numChecksAction, &IntegralAction::valueChanged, this, [this, updateNumChecks, updateReset](const std::int32_t& value) {
-		updateNumChecks();
-		updateReset();
-	});
+    connect(&_numChecksAction, &IntegralAction::valueChanged, this, [this, updateNumChecks, updateReset](const std::int32_t& value) {
+        updateNumChecks();
+        updateReset();
+    });
 
-	connect(&_resetAction, &TriggerAction::triggered, this, [this](const std::int32_t& value) {
-		_exaggerationAction.reset();
-		_exponentialDecayAction.reset();
-		_numTreesAction.reset();
-		_numChecksAction.reset();
-	});
+    connect(&_resetAction, &TriggerAction::triggered, this, [this](const std::int32_t& value) {
+        _exaggerationAction.reset();
+        _exponentialDecayAction.reset();
+        _numTreesAction.reset();
+        _numChecksAction.reset();
+    });
 
     connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
 
-	updateExaggeration();
-	updateExponentialDecay();
-	updateNumTrees();
-	updateNumChecks();
-	updateReset();
+    updateExaggeration();
+    updateExponentialDecay();
+    updateNumTrees();
+    updateNumChecks();
+    updateReset();
     updateReadOnly();
 }
 

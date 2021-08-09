@@ -5,23 +5,48 @@
 class QMenu;
 class HsneSettingsAction;
 
+/**
+ * Advanced HSNE setting action class
+ *
+ * Action class for advanced HSNE settings
+ *
+ * @author Thomas Kroes
+ */
 class AdvancedHsneSettingsAction : public hdps::gui::WidgetActionGroup
 {
 protected:
 
+    /** Widget class for advanced HSNE settings action */
     class Widget : public hdps::gui::WidgetActionGroup::GroupWidget {
     public:
+
+        /**
+         * Constructor
+         * @param parent Pointer to parent widget
+         * @param advancedHsneSettingsAction Pointer to advanced HSNE settings action
+         * @param state State of the widget
+         */
         Widget(QWidget* parent, AdvancedHsneSettingsAction* advancedHsneSettingsAction, const Widget::State& state);
     };
 
+    /**
+     * Get widget representation of the advanced HSNE action
+     * @param parent Pointer to parent widget
+     * @param state Widget state
+     */
     QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
         return new Widget(parent, this, state);
     };
 
 public:
+
+    /**
+     * Constructor
+     * @param hsneSettingsAction Reference to HSNE settings action
+     */
     AdvancedHsneSettingsAction(HsneSettingsAction& hsneSettingsAction);
 
-    QMenu* getContextMenu() { return nullptr; }
+public: // Action getters
 
     HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
     hdps::gui::IntegralAction& getNumWalksForLandmarkSelectionAction() { return _numWalksForLandmarkSelectionAction; }
