@@ -9,6 +9,7 @@ class QMenu;
 class HsneAnalysisPlugin;
 class HsneHierarchy;
 class TsneSettingsAction;
+class DataHierarchyItem;
 
 namespace hdps {
     class CoreInterface;
@@ -28,7 +29,7 @@ protected:
     };
 
 public:
-    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, const QString& inputDataSetName, const QString& inputEmbeddingName);
+    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, hdps::DataHierarchyItem* inputDataHierarchyItem, hdps::DataHierarchyItem* embeddingDataHierarchyItem);
 
     QMenu* getContextMenu();
 
@@ -42,8 +43,8 @@ protected:
     TsneSettingsAction&         _tsneSettingsAction;            /** Reference to TSNE settings action from the HSNE analysis */
     TsneAnalysis                _tsne;                          /** TSNE analysis */
     HsneHierarchy&              _hsneHierarchy;                 /** Reference to HSNE hierarchy */
-    QString                     _inputDatasetName;              /** Name of the input dataset */
-    QString                     _inputEmbeddingName;            /** Name of the input embedding dataset */
+    hdps::DataHierarchyItem*    _inputDataHierarchyItem;        /** Input data hierarchy item */
+    hdps::DataHierarchyItem*    _embeddingDataHierarchyItem;    /** Embedding data hierarchy item */
     QString                     _refineEmbeddingName;           /** Name of the output embedding dataset */
     hdps::gui::TriggerAction    _refineAction;                  /** Refine action */
 

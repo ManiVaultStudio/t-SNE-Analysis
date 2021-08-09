@@ -1,22 +1,22 @@
 #include "HsneScaleAction.h"
 #include "HsneHierarchy.h"
 #include "TsneSettingsAction.h"
-
-#include "CoreInterface.h"
+#include "DataHierarchyItem.h"
 #include "PointData.h"
 
+using namespace hdps;
 using namespace hdps::gui;
 
 hdps::CoreInterface* HsneScaleAction::core = nullptr;
 
-HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, const QString& inputDataSetName, const QString& inputEmbeddingName) :
+HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, hdps::DataHierarchyItem* inputDataHierarchyItem, hdps::DataHierarchyItem* embeddingDataHierarchyItem) :
     WidgetActionGroup(parent, true),
     hdps::EventListener(),
     _tsneSettingsAction(tsneSettingsAction),
     _tsne(),
     _hsneHierarchy(hsneHierarchy),
-    _inputDatasetName(inputDataSetName),
-    _inputEmbeddingName(inputEmbeddingName),
+    _inputDataHierarchyItem(inputDataHierarchyItem),
+    _embeddingDataHierarchyItem(embeddingDataHierarchyItem),
     _refineEmbeddingName(),
     _refineAction(this, "Refine...")
 {
@@ -31,8 +31,8 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     setEventCore(core);
 
     const auto updateReadOnly = [this]() -> void {
-        auto& embedding = dynamic_cast<Points&>(core->requestData(_inputEmbeddingName).getSelection());
-        _refineAction.setEnabled(!isReadOnly() && !embedding.indices.empty());
+        //auto& embedding = _embeddingDataHierarchyItem->getDataset<Points>().getSelection();
+        //_refineAction.setEnabled(!isReadOnly() && !embedding.indices.empty());
     };
 
     connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
@@ -40,7 +40,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     });
 
     registerDataEventByType(PointType, [this, updateReadOnly](hdps::DataEvent* dataEvent) {
-        if (dataEvent->dataSetName != _inputEmbeddingName)
+        if (dataEvent->dataSetName != _embeddingDataHierarchyItem->getDatasetName())
             return;
 
         if (dataEvent->getType() == hdps::EventType::SelectionChanged)
@@ -62,7 +62,7 @@ QMenu* HsneScaleAction::getContextMenu()
 void HsneScaleAction::refine()
 {
     // Request the embedding from the core and find out the source data from which it derives
-    auto& embedding = core->requestData<Points>(_inputEmbeddingName);
+    auto& embedding = _embeddingDataHierarchyItem->getDataset<Points>();
     auto& source = hdps::DataSet::getSourceData<Points>(embedding);
 
     // Get associated selection with embedding
@@ -124,9 +124,11 @@ void HsneScaleAction::refine()
     HsneMatrix transitionMatrix;
     _hsneHierarchy.getTransitionMatrixForSelection(currentScale, transitionMatrix, nextLevelIdxs);
 
+    const auto inputDatasetName = _inputDataHierarchyItem->getDatasetName();
+
     // Create a new data set for the embedding
     {
-        auto& inputData = core->requestData<Points>(_inputDatasetName);
+        auto& inputData = _inputDataHierarchyItem->getDataset<Points>();
         auto& selection = static_cast<Points&>(inputData.getSelection());
         Hsne::scale_type& dScale = _hsneHierarchy.getScale(drillScale);
 
@@ -140,7 +142,7 @@ void HsneScaleAction::refine()
         const auto subsetName = inputData.createSubset("", false);
         auto& subset = core->requestData<Points>(subsetName);
 
-        _refineEmbeddingName = core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName, _inputEmbeddingName);
+        _refineEmbeddingName = core->createDerivedData(QString("%1_embedding").arg(inputDatasetName), inputDatasetName, _embeddingDataHierarchyItem->getDatasetName());
 
         auto& embedding = core->requestData<Points>(_refineEmbeddingName);
     }
@@ -149,7 +151,8 @@ void HsneScaleAction::refine()
     auto& drillEmbedding = core->requestData<Points>(_refineEmbeddingName);
 
     drillEmbedding.setData(nullptr, 0, 2);
-    drillEmbedding.exposeAction(new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, _inputDatasetName, _refineEmbeddingName));
+    drillEmbedding.exposeAction(new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, inputDatasetName, _refineEmbeddingName));
+    drillEmbedding.exposeAction(&_tsneSettingsAction);
 
     core->notifyDataAdded(_refineEmbeddingName);
 
