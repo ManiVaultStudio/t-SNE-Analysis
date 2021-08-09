@@ -29,10 +29,11 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    _outputDatasetName = _core->createDerivedData(QString("%1_tsne_embedding").arg(_inputDatasetName), _inputDatasetName);
+    setOutputDatasetName(_core->createDerivedData(QString("%1_tsne_embedding").arg(getInputDatasetName()), getInputDatasetName()));
 
-    auto& inputDataset  = _core->requestData<Points>(_inputDatasetName);
-    auto& outputDataset = _core->requestData<Points>(_outputDatasetName);
+    // Get input/output datasets
+    auto& inputDataset = getInputDataset<Points>();
+    auto& outputDataset = getOutputDataset<Points>();
 
     std::vector<float> initialData;
 
@@ -46,7 +47,7 @@ void TsneAnalysisPlugin::init()
     outputDataset.exposeAction(&_tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset.exposeAction(&_dimensionSelectionAction);
 
-    _core->getDataHierarchyItem(outputDataset.getName()).select();
+    _core->getDataHierarchyItem(outputDataset.getName())->select();
 
     auto& computationAction = _tsneSettingsAction.getComputationAction();
 
@@ -99,9 +100,9 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData tsneData) {
-        auto& embedding = _core->requestData<Points>(_outputDatasetName);
+        auto& embedding = getOutputDataset<Points>();
         embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
-        _core->notifyDataChanged(_outputDatasetName);
+        _core->notifyDataChanged(getOutputDatasetName());
     });
 
     _dimensionSelectionAction.dataChanged(inputDataset);
@@ -124,7 +125,7 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
         auto dataChangedEvent = static_cast<DataChangedEvent*>(dataEvent);
 
         // If we are not looking at the changed dataset, ignore it
-        if (dataChangedEvent->dataSetName != _inputDatasetName)
+        if (dataChangedEvent->dataSetName != getInputDatasetName())
             return;
 
         _dimensionSelectionAction.dataChanged(_core->requestData<Points>(dataChangedEvent->dataSetName));
@@ -142,7 +143,7 @@ void TsneAnalysisPlugin::startComputation()
     notifyProgressPercentage(0.0f);
     notifyProgressSection("Preparing data");
 
-    const auto& inputPoints = _core->requestData<Points>(_inputDatasetName);
+    const auto& inputPoints = getInputDataset<Points>();
 
     // Create list of data from the enabled dimensions
     std::vector<float> data;

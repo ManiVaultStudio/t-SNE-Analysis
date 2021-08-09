@@ -33,7 +33,7 @@ void HsneAnalysisPlugin::init()
     HsneScaleAction::core = _core;
 
     // Created derived dataset for embedding
-    _outputDatasetName = _core->createDerivedData(QString("%1_embedding").arg(_inputDatasetName), _inputDatasetName);
+    setOutputDatasetName(_core->createDerivedData(QString("%1_embedding").arg(getInputDatasetName()), getInputDatasetName()));
 
     // Create new HSNE settings actions
     _hsneSettingsAction = new HsneSettingsAction(this);
@@ -42,8 +42,8 @@ void HsneAnalysisPlugin::init()
     _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().collapse();
 
     // Get input/output datasets
-    auto& inputDataset  = _core->requestData<Points>(_inputDatasetName);
-    auto& outputDataset = _core->requestData<Points>(_outputDatasetName);
+    auto& inputDataset  = getInputDataset<Points>();
+    auto& outputDataset = getOutputDataset<Points>();
 
     std::vector<float> initialData;
 
@@ -62,7 +62,7 @@ void HsneAnalysisPlugin::init()
     outputDataset.exposeAction(&tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset.exposeAction(&_hsneSettingsAction->getDimensionSelectionAction());
 
-    _core->getDataHierarchyItem(outputDataset.getName()).select();
+    _core->getDataHierarchyItem(outputDataset.getName())->select();
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
         notifyProgressPercentage(percentage);
@@ -88,7 +88,7 @@ void HsneAnalysisPlugin::init()
         notifyProgressSection("Preparing HSNE data");
 
         // Obtain a reference to the the input dataset
-        const Points& inputData = _core->requestData<Points>(_inputDatasetName);
+        const auto& inputData = getInputDataset<Points>();
 
         std::vector<bool> enabledDimensions = _hsneSettingsAction->getDimensionSelectionAction().getEnabledDimensions();
 
@@ -109,7 +109,7 @@ void HsneAnalysisPlugin::init()
             case EventType::DataChanged:
             {
                 // If we are not looking at the changed dataset, ignore it
-                if (dataEvent->dataSetName != _inputDatasetName)
+                if (dataEvent->dataSetName != getInputDatasetName())
                     break;
 
                 // Passes changes to the current dataset to the dimension selection widget
@@ -129,11 +129,11 @@ void HsneAnalysisPlugin::init()
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
-        Points& embedding = _core->requestData<Points>(_outputDatasetName);
+        auto& embedding = getOutputDataset<Points>();
 
         embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
-        _core->notifyDataChanged(_outputDatasetName);
+        _core->notifyDataChanged(getOutputDatasetName());
     });
 }
 
@@ -146,7 +146,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
     // Create a subset of the points corresponding to the top level HSNE landmarks,
     // Then create an empty embedding derived from this subset
-    Points& inputData = _core->requestData<Points>(_inputDatasetName);
+    Points& inputData = getInputDataset<Points>();
     Points& selection = static_cast<Points&>(inputData.getSelection());
 
     // Select the appropriate points to create a subset from
@@ -158,7 +158,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     QString subsetName = inputData.createSubset("", false);
     selection.indices.clear();
     
-    Points& embedding = _core->requestData<Points>(_outputDatasetName);
+    Points& embedding = getOutputDataset<Points>();
 
     embedding.setSourceData(subsetName);
 
