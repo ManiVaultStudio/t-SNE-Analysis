@@ -31,8 +31,10 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     setEventCore(core);
 
     const auto updateReadOnly = [this]() -> void {
-        //auto& embedding = _embeddingDataHierarchyItem->getDataset<Points>().getSelection();
-        //_refineAction.setEnabled(!isReadOnly() && !embedding.indices.empty());
+        auto& dataset   = _embeddingDataHierarchyItem->getDataset<Points>();
+        auto& selection = dynamic_cast<Points&>(dataset.getSelection());
+
+        _refineAction.setEnabled(!isReadOnly() && !selection.indices.empty());
     };
 
     connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
@@ -152,7 +154,8 @@ void HsneScaleAction::refine()
 
     drillEmbedding.setData(nullptr, 0, 2);
     drillEmbedding.exposeAction(new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, core->getDataHierarchyItem(inputDatasetName), core->getDataHierarchyItem(_refineEmbeddingName)));
-    drillEmbedding.exposeAction(&_tsneSettingsAction);
+    //drillEmbedding.exposeAction(&_tsneSettingsAction.getGeneralTsneSettingsAction());
+    //drillEmbedding.exposeAction(&_tsneSettingsAction.getAdvancedTsneSettingsAction());
 
     core->notifyDataAdded(_refineEmbeddingName);
 

@@ -160,6 +160,7 @@ void TsneWorker::computeGradientDescent(int iterations)
         _offscreenBuffer->releaseContext();
 
         copyEmbeddingOutput();
+
         emit embeddingUpdate(_outEmbedding);
         emitEmbeddingUpdate(_currentIteration - beginIteration, iterations);
     }
@@ -248,6 +249,7 @@ void TsneAnalysis::stopComputation()
 {
     emit stopWorker();
 
+    /*
     _workerThread.exit();
 
     // Wait until the thread has terminated (max. 3 seconds)
@@ -258,15 +260,16 @@ void TsneAnalysis::stopComputation()
         _workerThread.wait();
     }
     qDebug() << "tSNE computation stopped.";
+    */
 
-    emit stopped();
+    emit aborted();
 }
 
 bool TsneAnalysis::canContinue() const
 {
     if (_tsneWorker == nullptr)
         return false;
-
+    
     return _tsneWorker->getNumIterations() >= 1;
 }
 
@@ -279,16 +282,13 @@ void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
     // To-Worker signals
     connect(this, &TsneAnalysis::startWorker, tsneWorker, &TsneWorker::compute);
     connect(this, &TsneAnalysis::continueWorker, tsneWorker, &TsneWorker::continueComputation);
-    connect(this, &TsneAnalysis::stopWorker, tsneWorker, &TsneWorker::stop);
+    connect(this, &TsneAnalysis::stopWorker, tsneWorker, &TsneWorker::stop, Qt::DirectConnection);
 
     // From-Worker signals
     connect(tsneWorker, &TsneWorker::embeddingUpdate, this, &TsneAnalysis::embeddingUpdate);
     connect(tsneWorker, &TsneWorker::progressPercentage, this, &TsneAnalysis::progressPercentage);
     connect(tsneWorker, &TsneWorker::progressSection, this, &TsneAnalysis::progressSection);
     connect(tsneWorker, &TsneWorker::finished, this, &TsneAnalysis::finished);
-
-    // QThread signals
-    //connect(&_workerThread, &QThread::finished, tsneWorker, &QObject::deleteLater);
 
     _workerThread.start();
 

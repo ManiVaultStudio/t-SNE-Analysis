@@ -103,7 +103,7 @@ signals:
     void progressPercentage(const float& percentage);
     void progressSection(const QString& section);
     void finished();
-    void stopped();
+    void aborted();
 
 private:
     QThread         _workerThread;

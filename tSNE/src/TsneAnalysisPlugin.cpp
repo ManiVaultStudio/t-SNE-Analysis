@@ -51,18 +51,30 @@ void TsneAnalysisPlugin::init()
 
     auto& computationAction = _tsneSettingsAction.getComputationAction();
 
+    const auto updateComputationAction = [this, &computationAction]() {
+        const auto isRunning = computationAction.getRunningAction().isChecked();
+        
+        computationAction.getStartComputationAction().setEnabled(!isRunning);
+        computationAction.getContinueComputationAction().setEnabled(!isRunning && _tsneAnalysis.canContinue());
+        computationAction.getStopComputationAction().setEnabled(isRunning);
+    };
+
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
-        notifyProgressPercentage(percentage);
+        if (getTaskStatus() == DataHierarchyItem::TaskStatus::Aborted)
+            return;
+
+        setTaskProgress(percentage);
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
-        notifyProgressSection(section);
+        if (getTaskStatus() == DataHierarchyItem::TaskStatus::Aborted)
+            return;
+
+        setTaskDescription(section);
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this, &computationAction]() {
-        notifyFinished();
-        notifyProgressPercentage(0.0f);
-        notifyProgressSection("");
+        setTaskFinished();
         
         computationAction.getRunningAction().setChecked(false);
 
@@ -70,10 +82,10 @@ void TsneAnalysisPlugin::init()
         _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(false);
     });
 
-    connect(&_tsneAnalysis, &TsneAnalysis::stopped, this, [this, &computationAction]() {
-        notifyFinished();
-        notifyProgressPercentage(0.0f);
-        notifyProgressSection("");
+    connect(&_tsneAnalysis, &TsneAnalysis::aborted, this, [this, &computationAction, updateComputationAction]() {
+        setTaskAborted();
+
+        updateComputationAction();
 
         computationAction.getRunningAction().setChecked(false);
 
@@ -96,6 +108,10 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&computationAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
+        setTaskDescription("Aborting TSNE");
+
+        qApp->processEvents();
+
         stopComputation();
     });
 
@@ -107,15 +123,17 @@ void TsneAnalysisPlugin::init()
 
     _dimensionSelectionAction.dataChanged(inputDataset);
 
-    connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction](bool toggled) {
+    connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction, updateComputationAction](bool toggled) {
         _dimensionSelectionAction.setEnabled(!toggled);
 
-        computationAction.getStartComputationAction().setEnabled(!toggled);
-        computationAction.getContinueComputationAction().setEnabled(!toggled && _tsneAnalysis.canContinue());
-        computationAction.getStopComputationAction().setEnabled(toggled);
+        updateComputationAction();
     });
 
+    updateComputationAction();
+
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
+
+    setTaskName("TSNE");
 }
 
 void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
@@ -139,9 +157,9 @@ QIcon TsneAnalysisPlugin::getIcon() const
 
 void TsneAnalysisPlugin::startComputation()
 {
-    notifyStarted();
-    notifyProgressPercentage(0.0f);
-    notifyProgressSection("Preparing data");
+    setTaskRunning();
+    setTaskProgress(0.0f);
+    setTaskDescription("Preparing data");
 
     const auto& inputPoints = getInputDataset<Points>();
 
@@ -169,8 +187,8 @@ void TsneAnalysisPlugin::startComputation()
 
 void TsneAnalysisPlugin::continueComputation()
 {
-    notifyStarted();
-    notifyProgressPercentage(0.0f);
+    setTaskRunning();
+    setTaskProgress(0.0f);
 
     _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
 
@@ -180,7 +198,6 @@ void TsneAnalysisPlugin::continueComputation()
 void TsneAnalysisPlugin::stopComputation()
 {
     _tsneAnalysis.stopComputation();
-    emit notifyAborted("Interrupted by user");
 }
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
