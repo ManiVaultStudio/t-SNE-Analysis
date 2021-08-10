@@ -13,7 +13,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     WidgetActionGroup(parent, true),
     hdps::EventListener(),
     _tsneSettingsAction(tsneSettingsAction),
-    _tsne(),
+    _tsneAnalysis(),
     _hsneHierarchy(hsneHierarchy),
     _inputDataHierarchyItem(inputDataHierarchyItem),
     _embeddingDataHierarchyItem(embeddingDataHierarchyItem),
@@ -50,6 +50,18 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     });
 
     updateReadOnly();
+
+    connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
+        core->getDataHierarchyItem(_refineEmbeddingName)->setTaskProgress(percentage);
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
+        core->getDataHierarchyItem(_refineEmbeddingName)->setTaskDescription(section);
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
+        core->getDataHierarchyItem(_refineEmbeddingName)->setTaskFinished();
+    });
 }
 
 QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
@@ -165,9 +177,12 @@ void HsneScaleAction::refine()
     drillEmbedding.setProperty("scale", drillScale);
     drillEmbedding.setProperty("landmarkMap", qVariantFromValue(_hsneHierarchy.getInfluenceHierarchy().getMap()[drillScale]));
     
-    core->getDataHierarchyItem(drillEmbedding.getName())->select();
+    auto refineEmbeddingDataHierarchyItem = core->getDataHierarchyItem(_refineEmbeddingName);
 
-    connect(&_tsne, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
+    refineEmbeddingDataHierarchyItem->setTaskName("HSNE scale");
+    refineEmbeddingDataHierarchyItem->select();
+
+    connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
         auto& embedding = core->requestData<Points>(_refineEmbeddingName);
 
         embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
@@ -176,7 +191,7 @@ void HsneScaleAction::refine()
     });
 
     // Start the embedding process
-    _tsne.startComputation(_tsneSettingsAction.getTsneParameters(), transitionMatrix, nextLevelIdxs.size(), _hsneHierarchy.getNumDimensions());
+    _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), transitionMatrix, nextLevelIdxs.size(), _hsneHierarchy.getNumDimensions());
 }
 
 HsneScaleAction::Widget::Widget(QWidget* parent, HsneScaleAction* hsneScaleAction, const Widget::State& state) :

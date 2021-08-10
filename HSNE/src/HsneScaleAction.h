@@ -79,7 +79,7 @@ public: // Action getters
 
 protected:
     TsneSettingsAction&         _tsneSettingsAction;            /** Reference to TSNE settings action from the HSNE analysis */
-    TsneAnalysis                _tsne;                          /** TSNE analysis */
+    TsneAnalysis                _tsneAnalysis;                          /** TSNE analysis */
     HsneHierarchy&              _hsneHierarchy;                 /** Reference to HSNE hierarchy */
     hdps::DataHierarchyItem*    _inputDataHierarchyItem;        /** Input data hierarchy item */
     hdps::DataHierarchyItem*    _embeddingDataHierarchyItem;    /** Embedding data hierarchy item */
