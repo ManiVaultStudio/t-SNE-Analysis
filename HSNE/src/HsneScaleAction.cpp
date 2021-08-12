@@ -167,7 +167,11 @@ void HsneScaleAction::refine()
     auto& drillEmbedding = core->requestData<Points>(_refineEmbeddingName);
 
     drillEmbedding.setData(nullptr, 0, 2);
-    drillEmbedding.addAction(new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, core->getDataHierarchyItem(inputDatasetName), core->getDataHierarchyItem(_refineEmbeddingName)));
+
+    auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, core->getDataHierarchyItem(inputDatasetName), core->getDataHierarchyItem(_refineEmbeddingName));
+
+    hsneScaleAction->setContext(drillEmbedding.getName());
+    
     //drillEmbedding.exposeAction(&_tsneSettingsAction.getGeneralTsneSettingsAction());
     //drillEmbedding.exposeAction(&_tsneSettingsAction.getAdvancedTsneSettingsAction());
 

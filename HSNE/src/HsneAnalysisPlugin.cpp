@@ -55,12 +55,12 @@ void HsneAnalysisPlugin::init()
 
     auto& tsneSettingsAction = _hsneSettingsAction->getTsneSettingsAction();
 
-    outputDataset.addAction(&_hsneSettingsAction->getGeneralHsneSettingsAction());
-    outputDataset.addAction(&_hsneSettingsAction->getAdvancedHsneSettingsAction());
-    outputDataset.addAction(&_hsneSettingsAction->getTopLevelScaleAction());
-    outputDataset.addAction(&tsneSettingsAction.getGeneralTsneSettingsAction());
-    outputDataset.addAction(&tsneSettingsAction.getAdvancedTsneSettingsAction());
-    outputDataset.addAction(&_hsneSettingsAction->getDimensionSelectionAction());
+    _hsneSettingsAction->getGeneralHsneSettingsAction().setContext(getOutputDatasetName());
+    _hsneSettingsAction->getAdvancedHsneSettingsAction().setContext(getOutputDatasetName());
+    _hsneSettingsAction->getTopLevelScaleAction().setContext(getOutputDatasetName());
+    tsneSettingsAction.getGeneralTsneSettingsAction().setContext(getOutputDatasetName());
+    tsneSettingsAction.getAdvancedTsneSettingsAction().setContext(getOutputDatasetName());
+    _hsneSettingsAction->getDimensionSelectionAction().setContext(getOutputDatasetName());
 
     _core->getDataHierarchyItem(outputDataset.getName())->select();
 
