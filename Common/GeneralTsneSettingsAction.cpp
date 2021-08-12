@@ -110,7 +110,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 }
 
 GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAction* generalTsneSettingsAction, const Widget::State& state) :
-    WidgetActionGroup::GroupWidget(parent, generalTsneSettingsAction)
+    WidgetActionGroup::Widget(parent, generalTsneSettingsAction)
 {
     addWidgetAction(generalTsneSettingsAction->_knnTypeAction);
     addWidgetAction(generalTsneSettingsAction->_distanceMetricAction);

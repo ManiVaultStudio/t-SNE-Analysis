@@ -17,7 +17,7 @@ class TsneComputationAction : public hdps::gui::WidgetAction
 protected:
 
     /** Widget class for TSNE computation action */
-    class Widget : public hdps::gui::WidgetAction::Widget {
+    class Widget : public hdps::gui::WidgetActionWidget {
     public:
 
         /**
@@ -26,7 +26,7 @@ protected:
          * @param tsneComputationAction Pointer to TSNE computation action
          * @param state State of the widget
          */
-        Widget(QWidget* parent, TsneComputationAction* tsneComputationAction, const Widget::State& state);
+        Widget(QWidget* parent, TsneComputationAction* tsneComputationAction, const hdps::gui::WidgetActionWidget::State& state);
     };
 
     /**
@@ -34,7 +34,7 @@ protected:
      * @param parent Pointer to parent widget
      * @param state Widget state
      */
-    QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
+    QWidget* getWidget(QWidget* parent, const hdps::gui::WidgetActionWidget::State& state = hdps::gui::WidgetActionWidget::State::Standard) override {
         return new Widget(parent, this, state);
     };
 

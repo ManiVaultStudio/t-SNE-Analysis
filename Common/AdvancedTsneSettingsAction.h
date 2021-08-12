@@ -17,7 +17,7 @@ class AdvancedTsneSettingsAction : public hdps::gui::WidgetActionGroup
 protected:
 
     /** Widget class for advanced TSNE settings action */
-    class Widget : public hdps::gui::WidgetActionGroup::GroupWidget {
+    class Widget : public hdps::gui::WidgetActionGroup::Widget {
     public:
 
         /**
@@ -26,7 +26,7 @@ protected:
          * @param advancedSettingsAction Pointer to advanced TSNE settings action
          * @param state State of the widget
          */
-        Widget(QWidget* parent, AdvancedTsneSettingsAction* advancedSettingsAction, const Widget::State& state);
+        Widget(QWidget* parent, AdvancedTsneSettingsAction* advancedSettingsAction, const hdps::gui::WidgetActionWidget::State& state);
     };
 
     /**
@@ -34,7 +34,7 @@ protected:
      * @param parent Pointer to parent widget
      * @param state Widget state
      */
-    QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
+    QWidget* getWidget(QWidget* parent, const hdps::gui::WidgetActionWidget::State& state = hdps::gui::WidgetActionWidget::State::Standard) override {
         return new Widget(parent, this, state);
     };
 

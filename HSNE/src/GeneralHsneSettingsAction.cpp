@@ -65,7 +65,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
 }
 
 GeneralHsneSettingsAction::Widget::Widget(QWidget* parent, GeneralHsneSettingsAction* generalHsneSettingsAction, const Widget::State& state) :
-    WidgetActionGroup::GroupWidget(parent, generalHsneSettingsAction)
+    WidgetActionGroup::Widget(parent, generalHsneSettingsAction)
 {
     addWidgetAction(generalHsneSettingsAction->_knnTypeAction);
     addWidgetAction(generalHsneSettingsAction->_seedAction);

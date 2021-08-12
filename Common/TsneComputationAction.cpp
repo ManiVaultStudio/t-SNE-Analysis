@@ -1,6 +1,8 @@
 #include "TsneComputationAction.h"
 #include "TsneSettingsAction.h"
 
+#include <QHBoxLayout>
+
 using namespace hdps::gui;
 
 TsneComputationAction::TsneComputationAction(TsneSettingsAction& tsneSettingsAction) :
@@ -30,7 +32,7 @@ QMenu* TsneComputationAction::getContextMenu(QWidget* parent /*= nullptr*/)
 }
 
 TsneComputationAction::Widget::Widget(QWidget* parent, TsneComputationAction* tsneComputationAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, tsneComputationAction, state)
+    WidgetActionWidget(parent, tsneComputationAction, state)
 {
     auto& tsneSettingsAction = tsneComputationAction->getTsneSettingsAction();
 

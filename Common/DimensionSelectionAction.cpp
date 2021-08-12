@@ -9,6 +9,8 @@
 #include <QHeaderView>
 #include <QTime>
 #include <QAbstractEventDispatcher>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 #include <deque>
 #include <set>
@@ -471,7 +473,7 @@ void DimensionSelectionAction::updateSummary()
 }
 
 DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionAction* dimensionSelectionAction, const Widget::State& state) :
-    WidgetAction::Widget(parent, dimensionSelectionAction, state)
+    WidgetActionGroup::Widget(parent, dimensionSelectionAction)
 {
     auto layout = new QVBoxLayout();
 

@@ -17,7 +17,7 @@ class GeneralHsneSettingsAction : public hdps::gui::WidgetActionGroup
 protected:
 
     /** Widget class for general HSNE settings action */
-    class Widget : public hdps::gui::WidgetActionGroup::GroupWidget {
+    class Widget : public hdps::gui::WidgetActionGroup::Widget {
     public:
 
         /**

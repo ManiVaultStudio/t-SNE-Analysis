@@ -4,6 +4,8 @@
 #include "DataHierarchyItem.h"
 #include "PointData.h"
 
+#include <QGridLayout>
+
 using namespace hdps;
 using namespace hdps::gui;
 
@@ -165,7 +167,7 @@ void HsneScaleAction::refine()
     auto& drillEmbedding = core->requestData<Points>(_refineEmbeddingName);
 
     drillEmbedding.setData(nullptr, 0, 2);
-    drillEmbedding.exposeAction(new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, core->getDataHierarchyItem(inputDatasetName), core->getDataHierarchyItem(_refineEmbeddingName)));
+    drillEmbedding.addAction(new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, core->getDataHierarchyItem(inputDatasetName), core->getDataHierarchyItem(_refineEmbeddingName)));
     //drillEmbedding.exposeAction(&_tsneSettingsAction.getGeneralTsneSettingsAction());
     //drillEmbedding.exposeAction(&_tsneSettingsAction.getAdvancedTsneSettingsAction());
 
@@ -195,7 +197,7 @@ void HsneScaleAction::refine()
 }
 
 HsneScaleAction::Widget::Widget(QWidget* parent, HsneScaleAction* hsneScaleAction, const Widget::State& state) :
-    WidgetActionGroup::GroupWidget(parent, hsneScaleAction)
+    WidgetActionGroup::Widget(parent, hsneScaleAction)
 {
     layout()->setColumnStretch(0, 0);
     layout()->setColumnStretch(1, 0);

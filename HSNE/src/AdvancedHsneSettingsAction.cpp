@@ -116,8 +116,8 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     updateReadOnly();
 }
 
-AdvancedHsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedHsneSettingsAction* advancedHsneSettingsAction, const Widget::State& state) :
-    WidgetActionGroup::GroupWidget(parent, advancedHsneSettingsAction)
+AdvancedHsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedHsneSettingsAction* advancedHsneSettingsAction, const WidgetActionWidget::State& state) :
+    WidgetActionGroup::Widget(parent, advancedHsneSettingsAction)
 {
     addWidgetAction(advancedHsneSettingsAction->_numWalksForLandmarkSelectionAction);
     addWidgetAction(advancedHsneSettingsAction->_numWalksForLandmarkSelectionThresholdAction);

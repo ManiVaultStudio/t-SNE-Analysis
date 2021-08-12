@@ -38,7 +38,7 @@ protected:
      * @param parent Pointer to parent widget
      * @param state Widget state
      */
-    QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
+    QWidget* getWidget(QWidget* parent, const hdps::gui::WidgetActionWidget::State& state = hdps::gui::WidgetActionWidget::State::Standard) override {
         return new Widget(parent, this, state);
     };
 
