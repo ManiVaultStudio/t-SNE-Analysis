@@ -27,7 +27,7 @@ class HsneScaleAction : public hdps::gui::WidgetActionGroup, public hdps::EventL
 protected:
 
     /** Widget class for HSNE scale action */
-    class Widget : public hdps::gui::WidgetActionGroup::Widget {
+    class Widget : public hdps::gui::WidgetActionGroup::FormWidget {
     public:
 
         /**

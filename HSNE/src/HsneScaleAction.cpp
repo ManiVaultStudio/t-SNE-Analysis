@@ -197,7 +197,7 @@ void HsneScaleAction::refine()
 }
 
 HsneScaleAction::Widget::Widget(QWidget* parent, HsneScaleAction* hsneScaleAction, const Widget::State& state) :
-    WidgetActionGroup::Widget(parent, hsneScaleAction)
+    WidgetActionGroup::FormWidget(parent, hsneScaleAction)
 {
     layout()->setColumnStretch(0, 0);
     layout()->setColumnStretch(1, 0);

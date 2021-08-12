@@ -473,7 +473,7 @@ void DimensionSelectionAction::updateSummary()
 }
 
 DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionAction* dimensionSelectionAction, const Widget::State& state) :
-    WidgetActionGroup::Widget(parent, dimensionSelectionAction)
+    WidgetActionWidget(parent, dimensionSelectionAction, state)
 {
     auto layout = new QVBoxLayout();
 

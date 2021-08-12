@@ -21,7 +21,7 @@ class DimensionSelectionAction : public hdps::gui::WidgetActionGroup
 protected:
 
     /** Widget class for dimension selection action */
-    class Widget : public hdps::gui::WidgetActionGroup::Widget {
+    class Widget : public hdps::gui::WidgetActionWidget {
     public:
 
         /**

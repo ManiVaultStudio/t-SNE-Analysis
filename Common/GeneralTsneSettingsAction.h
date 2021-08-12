@@ -17,7 +17,7 @@ class GeneralTsneSettingsAction : public hdps::gui::WidgetActionGroup
 protected:
 
     /** Widget class for general TSNE settings action */
-    class Widget : public hdps::gui::WidgetActionGroup::Widget {
+    class Widget : public hdps::gui::WidgetActionGroup::FormWidget {
     public:
 
         /**

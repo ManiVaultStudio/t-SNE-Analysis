@@ -117,7 +117,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
 }
 
 AdvancedHsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedHsneSettingsAction* advancedHsneSettingsAction, const WidgetActionWidget::State& state) :
-    WidgetActionGroup::Widget(parent, advancedHsneSettingsAction)
+    WidgetActionGroup::FormWidget(parent, advancedHsneSettingsAction)
 {
     addWidgetAction(advancedHsneSettingsAction->_numWalksForLandmarkSelectionAction);
     addWidgetAction(advancedHsneSettingsAction->_numWalksForLandmarkSelectionThresholdAction);

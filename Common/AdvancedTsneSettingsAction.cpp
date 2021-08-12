@@ -109,7 +109,7 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 }
 
 AdvancedTsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedTsneSettingsAction* advancedTsneSettingsAction, const Widget::State& state) :
-    WidgetActionGroup::Widget(parent, advancedTsneSettingsAction)
+    WidgetActionGroup::FormWidget(parent, advancedTsneSettingsAction)
 {
     addWidgetAction(advancedTsneSettingsAction->_exaggerationAction);
     addWidgetAction(advancedTsneSettingsAction->_exponentialDecayAction);
