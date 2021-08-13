@@ -3,6 +3,7 @@
 
 #include <QLabel>
 #include <QPushButton>
+#include <QGridLayout>
 
 using namespace hdps::gui;
 
@@ -117,4 +118,6 @@ GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAc
     addWidgetAction(generalTsneSettingsAction->_numIterationsAction);
     addWidgetAction(generalTsneSettingsAction->_perplexityAction);
     addWidgetAction(generalTsneSettingsAction->getTsneSettingsAction().getComputationAction());
+
+    layout()->itemAtPosition(5, 0)->widget()->setVisible(false);
 }
