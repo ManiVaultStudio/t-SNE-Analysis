@@ -13,7 +13,7 @@ TsneComputationAction::TsneComputationAction(TsneSettingsAction& tsneSettingsAct
     _stopComputationAction(this, "Stop"),
     _runningAction(this, "Running")
 {
-    setText("");
+    setText("TSNE");
 
     _startComputationAction.setToolTip("Start the tSNE computation");
     _continueComputationAction.setToolTip("Continue with the tSNE computation");
@@ -26,7 +26,7 @@ QMenu* TsneComputationAction::getContextMenu(QWidget* parent /*= nullptr*/)
 
     menu->addAction(&_startComputationAction);
     menu->addAction(&_continueComputationAction);
-    menu->addAction(&_runningAction);
+    menu->addAction(&_stopComputationAction);
 
     return menu;
 }

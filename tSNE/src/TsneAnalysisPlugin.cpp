@@ -43,9 +43,10 @@ void TsneAnalysisPlugin::init()
 
     outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
 
-    _tsneSettingsAction.getGeneralTsneSettingsAction().setContext(getOutputDatasetName());
-    _tsneSettingsAction.getAdvancedTsneSettingsAction().setContext(getOutputDatasetName());
-    _dimensionSelectionAction.setContext(getOutputDatasetName());
+    outputDataset.addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
+    outputDataset.addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
+    outputDataset.addAction(_dimensionSelectionAction);
+    outputDataset.addAction(_tsneSettingsAction.getComputationAction());
 
     _core->getDataHierarchyItem(outputDataset.getName())->select();
 
