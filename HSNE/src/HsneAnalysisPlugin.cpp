@@ -33,7 +33,7 @@ void HsneAnalysisPlugin::init()
     HsneScaleAction::core = _core;
 
     // Created derived dataset for embedding
-    setOutputDatasetName(_core->createDerivedData(QString("%1_embedding").arg(getInputDatasetName()), getInputDatasetName()));
+    setOutputDatasetName(_core->createDerivedData("hsne_embedding", getInputDatasetName()));
 
     // Create new HSNE settings actions
     _hsneSettingsAction = new HsneSettingsAction(this);
@@ -54,13 +54,13 @@ void HsneAnalysisPlugin::init()
     outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
 
     auto& tsneSettingsAction = _hsneSettingsAction->getTsneSettingsAction();
-
-    _hsneSettingsAction->getGeneralHsneSettingsAction().setContext(getOutputDatasetName());
-    _hsneSettingsAction->getAdvancedHsneSettingsAction().setContext(getOutputDatasetName());
-    _hsneSettingsAction->getTopLevelScaleAction().setContext(getOutputDatasetName());
-    tsneSettingsAction.getGeneralTsneSettingsAction().setContext(getOutputDatasetName());
-    tsneSettingsAction.getAdvancedTsneSettingsAction().setContext(getOutputDatasetName());
-    _hsneSettingsAction->getDimensionSelectionAction().setContext(getOutputDatasetName());
+    
+    outputDataset.addAction(_hsneSettingsAction->getGeneralHsneSettingsAction());
+    outputDataset.addAction(_hsneSettingsAction->getAdvancedHsneSettingsAction());
+    outputDataset.addAction(_hsneSettingsAction->getTopLevelScaleAction());
+    outputDataset.addAction(tsneSettingsAction.getGeneralTsneSettingsAction());
+    outputDataset.addAction(tsneSettingsAction.getAdvancedTsneSettingsAction());
+    outputDataset.addAction(_hsneSettingsAction->getDimensionSelectionAction());
 
     _core->getDataHierarchyItem(outputDataset.getName())->select();
 

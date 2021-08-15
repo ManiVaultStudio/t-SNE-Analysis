@@ -29,7 +29,7 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    setOutputDatasetName(_core->createDerivedData(QString("%1_tsne_embedding").arg(getInputDatasetName()), getInputDatasetName()));
+    setOutputDatasetName(_core->createDerivedData("tsne_embedding", getInputDatasetName()));
 
     // Get input/output datasets
     auto& inputDataset = getInputDataset<Points>();
