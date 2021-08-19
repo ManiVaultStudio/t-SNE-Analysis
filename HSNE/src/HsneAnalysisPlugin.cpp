@@ -15,8 +15,8 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
 
 using namespace hdps;
 
-HsneAnalysisPlugin::HsneAnalysisPlugin() :
-    AnalysisPlugin("H-SNE Analysis"),
+HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
+    AnalysisPlugin(factory),
     _hierarchy(),
     _tsneAnalysis(),
     _hsneSettingsAction(nullptr)
@@ -181,7 +181,7 @@ QIcon HsneAnalysisPlugin::getIcon() const
 
 AnalysisPlugin* HsneAnalysisPluginFactory::produce()
 {
-    return new HsneAnalysisPlugin();
+    return new HsneAnalysisPlugin(this);
 }
 
 hdps::DataTypes HsneAnalysisPluginFactory::supportedDataTypes() const

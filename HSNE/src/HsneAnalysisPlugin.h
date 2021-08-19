@@ -15,7 +15,7 @@ class HsneAnalysisPlugin : public QObject, public AnalysisPlugin
 {
     Q_OBJECT
 public:
-    HsneAnalysisPlugin();
+    HsneAnalysisPlugin(const PluginFactory* factory);
     ~HsneAnalysisPlugin() override;
 
     void init() override;
@@ -41,7 +41,7 @@ class HsneAnalysisPluginFactory : public AnalysisPluginFactory
     Q_INTERFACES(hdps::plugin::AnalysisPluginFactory hdps::plugin::PluginFactory)
         Q_OBJECT
         Q_PLUGIN_METADATA(IID   "nl.tudelft.HsneAnalysisPlugin"
-            FILE  "HsneAnalysisPlugin.json")
+                          FILE  "HsneAnalysisPlugin.json")
 
 public:
     HsneAnalysisPluginFactory(void) {}

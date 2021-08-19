@@ -14,8 +14,8 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 using namespace hdps;
 using namespace hdps::gui;
 
-TsneAnalysisPlugin::TsneAnalysisPlugin() :
-    AnalysisPlugin("tSNE Analysis"),
+TsneAnalysisPlugin::TsneAnalysisPlugin(const PluginFactory* factory) :
+    AnalysisPlugin(factory),
     _tsneAnalysis(),
     _tsneSettingsAction(this),
     _dimensionSelectionAction(this)
@@ -203,7 +203,7 @@ void TsneAnalysisPlugin::stopComputation()
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
 {
-    return new TsneAnalysisPlugin();
+    return new TsneAnalysisPlugin(this);
 }
 
 hdps::DataTypes TsneAnalysisPluginFactory::supportedDataTypes() const
