@@ -2,6 +2,8 @@
 
 #include "actions/Actions.h"
 
+using namespace hdps::gui;
+
 class QMenu;
 class TsneSettingsAction;
 
@@ -12,32 +14,8 @@ class TsneSettingsAction;
  *
  * @author Thomas Kroes
  */
-class AdvancedTsneSettingsAction : public hdps::gui::WidgetActionGroup
+class AdvancedTsneSettingsAction : public GroupAction
 {
-protected:
-
-    /** Widget class for advanced TSNE settings action */
-    class Widget : public hdps::gui::WidgetActionGroup::FormWidget {
-    public:
-
-        /**
-         * Constructor
-         * @param parent Pointer to parent widget
-         * @param advancedSettingsAction Pointer to advanced TSNE settings action
-         * @param state State of the widget
-         */
-        Widget(QWidget* parent, AdvancedTsneSettingsAction* advancedSettingsAction, const hdps::gui::WidgetActionWidget::State& state);
-    };
-
-    /**
-     * Get widget representation of the advanced TSNE settings action
-     * @param parent Pointer to parent widget
-     * @param state Widget state
-     */
-    QWidget* getWidget(QWidget* parent, const hdps::gui::WidgetActionWidget::State& state = hdps::gui::WidgetActionWidget::State::Standard) override {
-        return new Widget(parent, this, state);
-    };
-
 public:
 
     /**
@@ -49,19 +27,19 @@ public:
 public: // Action getters
     
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; };
-    hdps::gui::IntegralAction& getExaggerationAction() { return _exaggerationAction; };
-    hdps::gui::IntegralAction& getExponentialDecayAction() { return _exponentialDecayAction; };
-    hdps::gui::IntegralAction& getNumTreesAction() { return _numTreesAction; };
-    hdps::gui::IntegralAction& getNumChecksAction() { return _numChecksAction; };
-    hdps::gui::TriggerAction& getResetAction() { return _resetAction; };
+    IntegralAction& getExaggerationAction() { return _exaggerationAction; };
+    IntegralAction& getExponentialDecayAction() { return _exponentialDecayAction; };
+    IntegralAction& getNumTreesAction() { return _numTreesAction; };
+    IntegralAction& getNumChecksAction() { return _numChecksAction; };
+    TriggerAction& getResetAction() { return _resetAction; };
 
 protected:
-    TsneSettingsAction&         _tsneSettingsAction;        /** Pointer to parent tSNE settings action */
-    hdps::gui::IntegralAction   _exaggerationAction;        /** Exaggeration action */
-    hdps::gui::IntegralAction   _exponentialDecayAction;    /** Exponential decay action */
-    hdps::gui::IntegralAction   _numTreesAction;            /** Exponential decay action */
-    hdps::gui::IntegralAction   _numChecksAction;           /** Exponential decay action */
-    hdps::gui::TriggerAction    _resetAction;               /** Reset all input to defaults */
+    TsneSettingsAction&     _tsneSettingsAction;        /** Pointer to parent tSNE settings action */
+    IntegralAction          _exaggerationAction;        /** Exaggeration action */
+    IntegralAction          _exponentialDecayAction;    /** Exponential decay action */
+    IntegralAction          _numTreesAction;            /** Exponential decay action */
+    IntegralAction          _numChecksAction;           /** Exponential decay action */
+    TriggerAction           _resetAction;               /** Reset all input to defaults */
 
     friend class Widget;
 };

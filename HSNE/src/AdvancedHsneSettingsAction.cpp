@@ -4,7 +4,7 @@
 using namespace hdps::gui;
 
 AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
-    WidgetActionGroup(&hsneSettingsAction),
+    GroupAction(&hsneSettingsAction),
     _hsneSettingsAction(hsneSettingsAction),
     _numWalksForLandmarkSelectionAction(this, "No. walks for landmark sel."),
     _numWalksForLandmarkSelectionThresholdAction(this, "No. walks for landmark sel. thres."),
@@ -102,7 +102,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
         updateUseOutOfCoreComputation();
     });
 
-    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+    connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
 
@@ -114,16 +114,4 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     updateNumChecksAknn();
     updateUseOutOfCoreComputation();
     updateReadOnly();
-}
-
-AdvancedHsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedHsneSettingsAction* advancedHsneSettingsAction, const WidgetActionWidget::State& state) :
-    WidgetActionGroup::FormWidget(parent, advancedHsneSettingsAction)
-{
-    addWidgetAction(advancedHsneSettingsAction->_numWalksForLandmarkSelectionAction);
-    addWidgetAction(advancedHsneSettingsAction->_numWalksForLandmarkSelectionThresholdAction);
-    addWidgetAction(advancedHsneSettingsAction->_randomWalkLengthAction);
-    addWidgetAction(advancedHsneSettingsAction->_numWalksForAreaOfInfluenceAction);
-    addWidgetAction(advancedHsneSettingsAction->_minWalksRequiredAction);
-    addWidgetAction(advancedHsneSettingsAction->_numChecksAknnAction);
-    addWidgetAction(advancedHsneSettingsAction->_useOutOfCoreComputationAction);
 }

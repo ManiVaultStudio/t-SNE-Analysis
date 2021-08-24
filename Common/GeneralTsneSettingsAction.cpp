@@ -8,12 +8,13 @@
 using namespace hdps::gui;
 
 GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
-    WidgetActionGroup(&tsneSettingsAction, true),
+    GroupAction(&tsneSettingsAction, true),
     _tsneSettingsAction(tsneSettingsAction),
     _knnTypeAction(this, "KNN Type"),
     _distanceMetricAction(this, "Distance metric"),
     _numIterationsAction(this, "Number of iterations"),
     _perplexityAction(this, "Perplexity"),
+    _computationAction(this),
     _resetAction(this, "Reset all")
 {
     setText("TSNE");
@@ -98,7 +99,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _perplexityAction.reset();
     });
 
-    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+    connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
 
@@ -108,16 +109,4 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     updatePerplexity();
     updateReset();
     updateReadOnly();
-}
-
-GeneralTsneSettingsAction::Widget::Widget(QWidget* parent, GeneralTsneSettingsAction* generalTsneSettingsAction, const Widget::State& state) :
-    WidgetActionGroup::FormWidget(parent, generalTsneSettingsAction)
-{
-    addWidgetAction(generalTsneSettingsAction->_knnTypeAction);
-    addWidgetAction(generalTsneSettingsAction->_distanceMetricAction);
-    addWidgetAction(generalTsneSettingsAction->_numIterationsAction);
-    addWidgetAction(generalTsneSettingsAction->_perplexityAction);
-    addWidgetAction(generalTsneSettingsAction->getTsneSettingsAction().getComputationAction());
-
-    layout()->itemAtPosition(5, 0)->widget()->setVisible(false);
 }

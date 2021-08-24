@@ -2,6 +2,8 @@
 
 #include "actions/Actions.h"
 
+using namespace hdps::gui;
+
 class TsneSettingsAction;
 class QMenu;
 
@@ -12,12 +14,12 @@ class QMenu;
  *
  * @author Thomas Kroes
  */
-class TsneComputationAction : public hdps::gui::WidgetAction
+class TsneComputationAction : public WidgetAction
 {
 protected:
 
     /** Widget class for TSNE computation action */
-    class Widget : public hdps::gui::WidgetActionWidget {
+    class Widget : public WidgetActionWidget {
     public:
 
         /**
@@ -26,7 +28,7 @@ protected:
          * @param tsneComputationAction Pointer to TSNE computation action
          * @param state State of the widget
          */
-        Widget(QWidget* parent, TsneComputationAction* tsneComputationAction, const hdps::gui::WidgetActionWidget::State& state);
+        Widget(QWidget* parent, TsneComputationAction* tsneComputationAction, const WidgetActionWidget::State& state);
     };
 
     /**
@@ -34,7 +36,7 @@ protected:
      * @param parent Pointer to parent widget
      * @param state Widget state
      */
-    QWidget* getWidget(QWidget* parent, const hdps::gui::WidgetActionWidget::State& state = hdps::gui::WidgetActionWidget::State::Standard) override {
+    QWidget* getWidget(QWidget* parent, const WidgetActionWidget::State& state = WidgetActionWidget::State::Standard) override {
         return new Widget(parent, this, state);
     };
 
@@ -42,9 +44,9 @@ public:
 
     /**
      * Constructor
-     * @param tsneSettingsAction Reference to TSNE settings action
+     * @param parent Pointer to parent object
      */
-    TsneComputationAction(TsneSettingsAction& tsneSettingsAction);
+    TsneComputationAction(QObject* parent);
 
     /**
      * Get the context menu for the action
@@ -55,18 +57,16 @@ public:
 
 public: // Action getters
 
-    TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
-    hdps::gui::TriggerAction& getStartComputationAction() { return _startComputationAction; }
-    hdps::gui::TriggerAction& getContinueComputationAction() { return _continueComputationAction; }
-    hdps::gui::TriggerAction& getStopComputationAction() { return _stopComputationAction; }
-    hdps::gui::ToggleAction& getRunningAction() { return _runningAction; }
+    TriggerAction& getStartComputationAction() { return _startComputationAction; }
+    TriggerAction& getContinueComputationAction() { return _continueComputationAction; }
+    TriggerAction& getStopComputationAction() { return _stopComputationAction; }
+    ToggleAction& getRunningAction() { return _runningAction; }
 
 protected:
-    TsneSettingsAction&         _tsneSettingsAction;            /** Reference to parent tSNE settings action */
-    hdps::gui::TriggerAction    _startComputationAction;        /** Start computation action */
-    hdps::gui::TriggerAction    _continueComputationAction;     /** Continue computation action */
-    hdps::gui::TriggerAction    _stopComputationAction;         /** Stop computation action */
-    hdps::gui::ToggleAction     _runningAction;                 /** Running action */
+    TriggerAction           _startComputationAction;        /** Start computation action */
+    TriggerAction           _continueComputationAction;     /** Continue computation action */
+    TriggerAction           _stopComputationAction;         /** Stop computation action */
+    ToggleAction            _runningAction;                 /** Running action */
 
     friend class Widget;
 };

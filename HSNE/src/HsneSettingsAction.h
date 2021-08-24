@@ -8,6 +8,8 @@
 #include "TsneSettingsAction.h"
 #include "DimensionSelectionAction.h"
 
+using namespace hdps::gui;
+
 class QMenu;
 class HsneAnalysisPlugin;
 
@@ -18,7 +20,7 @@ class HsneAnalysisPlugin;
  *
  * @author Thomas Kroes
  */
-class HsneSettingsAction : public hdps::gui::WidgetActionGroup
+class HsneSettingsAction : public GroupAction
 {
 public:
 
@@ -34,7 +36,6 @@ public:
 
 public: // Action getters
 
-    hdps::gui::TriggerAction& getStartAction() { return _startAction; }
     GeneralHsneSettingsAction& getGeneralHsneSettingsAction() { return _generalHsneSettingsAction; }
     AdvancedHsneSettingsAction& getAdvancedHsneSettingsAction() { return _advancedHsneSettingsAction; }
     HsneScaleAction& getTopLevelScaleAction() { return _topLevelScaleAction; }
@@ -45,7 +46,6 @@ protected:
     HsneAnalysisPlugin*             _hsneAnalysisPlugin;            /** Pointer to HSNE analysis plugin */
     HsneParameters                  _hsneParameters;                /** HSNE parameters */
     TsneParameters                  _tsneParameters;                /** TSNE parameters */
-    hdps::gui::TriggerAction        _startAction;                   /** Start action */
     GeneralHsneSettingsAction       _generalHsneSettingsAction;     /** General HSNE settings action */
     AdvancedHsneSettingsAction      _advancedHsneSettingsAction;    /** Advanced HSNE settings action */
     HsneScaleAction                 _topLevelScaleAction;           /** Top level scale action */

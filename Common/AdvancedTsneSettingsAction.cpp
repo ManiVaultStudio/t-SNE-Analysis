@@ -6,7 +6,7 @@
 using namespace hdps::gui;
 
 AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
-    WidgetActionGroup(&tsneSettingsAction),
+    GroupAction(&tsneSettingsAction),
     _tsneSettingsAction(tsneSettingsAction),
     _exaggerationAction(this, "Exaggeration"),
     _exponentialDecayAction(this, "Exponential decay"),
@@ -96,7 +96,7 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
         _numChecksAction.reset();
     });
 
-    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+    connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
 
@@ -106,13 +106,4 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
     updateNumChecks();
     updateReset();
     updateReadOnly();
-}
-
-AdvancedTsneSettingsAction::Widget::Widget(QWidget* parent, AdvancedTsneSettingsAction* advancedTsneSettingsAction, const Widget::State& state) :
-    WidgetActionGroup::FormWidget(parent, advancedTsneSettingsAction)
-{
-    addWidgetAction(advancedTsneSettingsAction->_exaggerationAction);
-    addWidgetAction(advancedTsneSettingsAction->_exponentialDecayAction);
-    addWidgetAction(advancedTsneSettingsAction->_numTreesAction);
-    addWidgetAction(advancedTsneSettingsAction->_numChecksAction);
 }

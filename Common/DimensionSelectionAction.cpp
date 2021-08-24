@@ -23,7 +23,7 @@ using namespace hdps;
 using namespace hdps::gui;
 
 DimensionSelectionAction::DimensionSelectionAction(QObject* parent) :
-    WidgetActionGroup(parent),
+    GroupAction(parent),
     _pointData(nullptr),
     _selectionHolder(),
     _selectionItemModel(new DimensionSelectionItemModel(_selectionHolder)),
@@ -135,7 +135,7 @@ DimensionSelectionAction::DimensionSelectionAction(QObject* parent) :
         _loadExclusionAction.setEnabled(enable);
     };
 
-    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+    connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
 

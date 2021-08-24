@@ -6,6 +6,9 @@
 
 #include "actions/Actions.h"
 
+using namespace hdps;
+using namespace hdps::gui;
+
 class QMenu;
 class Points;
 
@@ -16,12 +19,12 @@ class Points;
  *
  * @author Thomas Kroes
  */
-class DimensionSelectionAction : public hdps::gui::WidgetActionGroup
+class DimensionSelectionAction : public GroupAction
 {
 protected:
 
     /** Widget class for dimension selection action */
-    class Widget : public hdps::gui::WidgetActionWidget {
+    class Widget : public WidgetActionWidget {
     public:
 
         /**
@@ -38,7 +41,7 @@ protected:
      * @param parent Pointer to parent widget
      * @param state Widget state
      */
-    QWidget* getWidget(QWidget* parent, const hdps::gui::WidgetActionWidget::State& state = hdps::gui::WidgetActionWidget::State::Standard) override {
+    QWidget* getWidget(QWidget* parent, const WidgetActionWidget::State& state = WidgetActionWidget::State::Standard) override {
         return new Widget(parent, this, state);
     };
 
@@ -147,23 +150,23 @@ protected:
     }
 
 protected:
-    Points*                                             _pointData;                             /** Pointer to points set */
-    hdps::DimensionSelectionHolder                      _selectionHolder;                       /** Selection holder */
-    std::unique_ptr<hdps::DimensionSelectionItemModel>  _selectionItemModel;                    /** Selection item model */
-    std::unique_ptr<hdps::DimensionSelectionProxyModel> _selectionProxyModel;                   /** Selection proxy model for filtering etc. */
-    hdps::gui::StringAction                             _nameFilterAction;                      /** Name filter action */
-    hdps::gui::ToggleAction                             _showOnlySelectedDimensionsAction;      /** Show only selected dimensions action */
-    hdps::gui::ToggleAction                             _applyExclusionListAction;              /** Apply exclusion list action */
-    hdps::gui::ToggleAction                             _ignoreZeroValuesAction;                /** Ignore zero values for statistics action */
-    hdps::gui::IntegralAction                           _selectionThresholdAction;              /** Selection threshold action */
-    hdps::gui::StringAction                             _summaryAction;                         /** Summary action */
-    hdps::gui::TriggerAction                            _computeStatisticsAction;               /** Compute statistics action */
-    hdps::gui::TriggerAction                            _selectVisibleAction;                   /** Select visible dimensions action */
-    hdps::gui::TriggerAction                            _selectNonVisibleAction;                /** Select non visible dimensions action */
-    hdps::gui::TriggerAction                            _loadSelectionAction;                   /** Load selection action */
-    hdps::gui::TriggerAction                            _saveSelectionAction;                   /** Save selection action */
-    hdps::gui::TriggerAction                            _loadExclusionAction;                   /** Load exclusion action */
-    QMetaObject::Connection                             _summaryUpdateAwakeConnection;          /** Update summary view when idle */
+    Points*                                         _pointData;                             /** Pointer to points set */
+    DimensionSelectionHolder                        _selectionHolder;                       /** Selection holder */
+    std::unique_ptr<DimensionSelectionItemModel>    _selectionItemModel;                    /** Selection item model */
+    std::unique_ptr<DimensionSelectionProxyModel>   _selectionProxyModel;                   /** Selection proxy model for filtering etc. */
+    StringAction                                    _nameFilterAction;                      /** Name filter action */
+    ToggleAction                                    _showOnlySelectedDimensionsAction;      /** Show only selected dimensions action */
+    ToggleAction                                    _applyExclusionListAction;              /** Apply exclusion list action */
+    ToggleAction                                    _ignoreZeroValuesAction;                /** Ignore zero values for statistics action */
+    IntegralAction                                  _selectionThresholdAction;              /** Selection threshold action */
+    StringAction                                    _summaryAction;                         /** Summary action */
+    TriggerAction                                   _computeStatisticsAction;               /** Compute statistics action */
+    TriggerAction                                   _selectVisibleAction;                   /** Select visible dimensions action */
+    TriggerAction                                   _selectNonVisibleAction;                /** Select non visible dimensions action */
+    TriggerAction                                   _loadSelectionAction;                   /** Load selection action */
+    TriggerAction                                   _saveSelectionAction;                   /** Save selection action */
+    TriggerAction                                   _loadExclusionAction;                   /** Load exclusion action */
+    QMetaObject::Connection                         _summaryUpdateAwakeConnection;          /** Update summary view when idle */
 
     friend class Widget;
 };

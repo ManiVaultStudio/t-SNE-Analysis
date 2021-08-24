@@ -2,6 +2,8 @@
 
 #include "actions/Actions.h"
 
+using namespace hdps::gui;
+
 class QMenu;
 class HsneSettingsAction;
 
@@ -12,32 +14,8 @@ class HsneSettingsAction;
  *
  * @author Thomas Kroes
  */
-class GeneralHsneSettingsAction : public hdps::gui::WidgetActionGroup
+class GeneralHsneSettingsAction : public GroupAction
 {
-protected:
-
-    /** Widget class for general HSNE settings action */
-    class Widget : public hdps::gui::WidgetActionGroup::FormWidget {
-    public:
-
-        /**
-         * Constructor
-         * @param parent Pointer to parent widget
-         * @param generalHsneSettingsAction Pointer to general HSNE settings action
-         * @param state State of the widget
-         */
-        Widget(QWidget* parent, GeneralHsneSettingsAction* generalHsneSettingsAction, const Widget::State& state);
-    };
-
-    /**
-     * Get widget representation of the general HSNE settings action
-     * @param parent Pointer to parent widget
-     * @param state Widget state
-     */
-    QWidget* getWidget(QWidget* parent, const Widget::State& state = Widget::State::Standard) override {
-        return new Widget(parent, this, state);
-    };
-
 public:
 
     /**
@@ -49,15 +27,17 @@ public:
 public: // Action getters
 
     HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
-    hdps::gui::OptionAction& getKnnTypeAction() { return _knnTypeAction; }
-    hdps::gui::IntegralAction& getSeedAction() { return _seedAction; }
-    hdps::gui::ToggleAction& getUseMonteCarloSamplingAction() { return _useMonteCarloSamplingAction; }
+    OptionAction& getKnnTypeAction() { return _knnTypeAction; }
+    IntegralAction& getSeedAction() { return _seedAction; }
+    ToggleAction& getUseMonteCarloSamplingAction() { return _useMonteCarloSamplingAction; }
+    TriggerAction& getStartAction() { return _startAction; }
 
 protected:
-    HsneSettingsAction&         _hsneSettingsAction;                /** Reference to HSNE settings action */
-    hdps::gui::OptionAction     _knnTypeAction;                     /** KNN action */
-    hdps::gui::IntegralAction   _seedAction;                        /** Random seed action */
-    hdps::gui::ToggleAction     _useMonteCarloSamplingAction;       /** Use Monte Carlo sampling on/off action */
+    HsneSettingsAction&     _hsneSettingsAction;                /** Reference to HSNE settings action */
+    OptionAction            _knnTypeAction;                     /** KNN action */
+    IntegralAction          _seedAction;                        /** Random seed action */
+    ToggleAction            _useMonteCarloSamplingAction;       /** Use Monte Carlo sampling on/off action */
+    TriggerAction           _startAction;                       /** Start action */
 
     friend class Widget;
 };

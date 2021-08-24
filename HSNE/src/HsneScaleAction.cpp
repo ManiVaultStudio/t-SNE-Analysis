@@ -9,11 +9,11 @@
 using namespace hdps;
 using namespace hdps::gui;
 
-hdps::CoreInterface* HsneScaleAction::core = nullptr;
+CoreInterface* HsneScaleAction::core = nullptr;
 
-HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, hdps::DataHierarchyItem* inputDataHierarchyItem, hdps::DataHierarchyItem* embeddingDataHierarchyItem) :
-    WidgetActionGroup(parent, true),
-    hdps::EventListener(),
+HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, DataHierarchyItem* inputDataHierarchyItem, DataHierarchyItem* embeddingDataHierarchyItem) :
+    GroupAction(parent, true),
+    EventListener(),
     _tsneSettingsAction(tsneSettingsAction),
     _tsneAnalysis(),
     _hsneHierarchy(hsneHierarchy),
@@ -39,15 +39,15 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         _refineAction.setEnabled(!isReadOnly() && !selection.indices.empty());
     };
 
-    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+    connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
 
-    registerDataEventByType(PointType, [this, updateReadOnly](hdps::DataEvent* dataEvent) {
+    registerDataEventByType(PointType, [this, updateReadOnly](DataEvent* dataEvent) {
         if (dataEvent->dataSetName != _embeddingDataHierarchyItem->getDatasetName())
             return;
 
-        if (dataEvent->getType() == hdps::EventType::SelectionChanged)
+        if (dataEvent->getType() == EventType::SelectionChanged)
             updateReadOnly();
     });
 
@@ -79,7 +79,7 @@ void HsneScaleAction::refine()
 {
     // Request the embedding from the core and find out the source data from which it derives
     auto& embedding = _embeddingDataHierarchyItem->getDataset<Points>();
-    auto& source = hdps::DataSet::getSourceData<Points>(embedding);
+    auto& source = DataSet::getSourceData<Points>(embedding);
 
     // Get associated selection with embedding
     auto& selection = static_cast<Points&>(embedding.getSelection());
@@ -198,13 +198,4 @@ void HsneScaleAction::refine()
 
     // Start the embedding process
     _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), transitionMatrix, nextLevelIdxs.size(), _hsneHierarchy.getNumDimensions());
-}
-
-HsneScaleAction::Widget::Widget(QWidget* parent, HsneScaleAction* hsneScaleAction, const Widget::State& state) :
-    WidgetActionGroup::FormWidget(parent, hsneScaleAction)
-{
-    layout()->setColumnStretch(0, 0);
-    layout()->setColumnStretch(1, 0);
-
-    layout()->addWidget(hsneScaleAction->getRefineAction().createWidget(this), 0, 0);
 }

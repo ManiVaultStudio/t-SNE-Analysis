@@ -75,11 +75,11 @@ void HsneAnalysisPlugin::init()
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
         setTaskFinished();
 
-        _hsneSettingsAction->getStartAction().setEnabled(false);
+        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setEnabled(false);
         _hsneSettingsAction->setReadOnly(false);
     });
 
-    connect(&_hsneSettingsAction->getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
+    connect(&_hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
         _hsneSettingsAction->setReadOnly(true);
         
         setTaskRunning();

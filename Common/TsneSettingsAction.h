@@ -1,11 +1,14 @@
 #pragma once
 
 #include "TsneParameters.h"
-#include "TsneComputationAction.h"
 #include "GeneralTsneSettingsAction.h"
 #include "AdvancedTsneSettingsAction.h"
 
+using namespace hdps::gui;
+
 class QMenu;
+
+class TsneComputationAction;
 
 /**
  * TSNE settings class
@@ -14,7 +17,7 @@ class QMenu;
  *
  * @author Thomas Kroes
  */
-class TsneSettingsAction : public hdps::gui::WidgetActionGroup
+class TsneSettingsAction : public GroupAction
 {
 public:
 
@@ -34,13 +37,12 @@ public:
 public: // Action getters
 
     TsneParameters& getTsneParameters() { return _tsneParameters; }
-    TsneComputationAction& getComputationAction() { return _computationAction; }
     GeneralTsneSettingsAction& getGeneralTsneSettingsAction() { return _generalTsneSettingsAction; }
     AdvancedTsneSettingsAction& getAdvancedTsneSettingsAction() { return _advancedTsneSettingsAction; }
+    TsneComputationAction& getComputationAction() { return _generalTsneSettingsAction.getComputationAction(); }
 
 protected:
     TsneParameters                  _tsneParameters;                /** TSNE parameters */
-    TsneComputationAction           _computationAction;             /** Computation action */
     GeneralTsneSettingsAction       _generalTsneSettingsAction;     /** General tSNE settings action */
     AdvancedTsneSettingsAction      _advancedTsneSettingsAction;    /** Advanced tSNE settings action */
 

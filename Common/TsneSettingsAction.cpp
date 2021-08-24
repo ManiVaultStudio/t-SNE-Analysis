@@ -3,9 +3,8 @@
 using namespace hdps::gui;
 
 TsneSettingsAction::TsneSettingsAction(QObject* parent) :
-    WidgetActionGroup(parent),
+    GroupAction(parent),
     _tsneParameters(),
-    _computationAction(*this),
     _generalTsneSettingsAction(*this),
     _advancedTsneSettingsAction(*this)
 {
@@ -16,7 +15,7 @@ TsneSettingsAction::TsneSettingsAction(QObject* parent) :
         _advancedTsneSettingsAction.setReadOnly(isReadOnly());
     };
 
-    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+    connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
 
@@ -27,9 +26,11 @@ QMenu* TsneSettingsAction::getContextMenu(QWidget* parent /*= nullptr*/)
 {
     auto menu = new QMenu(text(), parent);
 
-    menu->addAction(&_computationAction.getStartComputationAction());
-    menu->addAction(&_computationAction.getContinueComputationAction());
-    menu->addAction(&_computationAction.getStopComputationAction());
+    auto& computationAction = _generalTsneSettingsAction.getComputationAction();
+
+    menu->addAction(&computationAction.getStartComputationAction());
+    menu->addAction(&computationAction.getContinueComputationAction());
+    menu->addAction(&computationAction.getStopComputationAction());
 
     return menu;
 }

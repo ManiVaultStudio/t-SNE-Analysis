@@ -4,11 +4,10 @@
 using namespace hdps::gui;
 
 HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
-    WidgetActionGroup(hsneAnalysisPlugin, true),
+    GroupAction(hsneAnalysisPlugin, true),
     _hsneAnalysisPlugin(hsneAnalysisPlugin),
     _hsneParameters(),
     _tsneParameters(),
-    _startAction(this, "Start"),
     _generalHsneSettingsAction(*this),
     _advancedHsneSettingsAction(*this),
     _topLevelScaleAction(this, _tsneSettingsAction, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDataHierarchyItem(), hsneAnalysisPlugin->getOutputDataHierarchyItem()),
@@ -17,11 +16,7 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
 {
     setText("HSNE");
 
-    _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
-
     const auto updateReadOnly = [this]() -> void {
-        _startAction.setEnabled(!isReadOnly());
-
         _generalHsneSettingsAction.setReadOnly(isReadOnly());
         _advancedHsneSettingsAction.setReadOnly(isReadOnly());
         _topLevelScaleAction.setReadOnly(isReadOnly());
@@ -29,7 +24,7 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
         _dimensionSelectionAction.setReadOnly(isReadOnly());
     };
 
-    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+    connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
 

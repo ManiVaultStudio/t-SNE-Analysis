@@ -4,11 +4,12 @@
 using namespace hdps::gui;
 
 GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
-    WidgetActionGroup(&hsneSettingsAction, true),
+    GroupAction(&hsneSettingsAction, true),
     _hsneSettingsAction(hsneSettingsAction),
     _knnTypeAction(this, "KNN Type"),
     _seedAction(this, "Random seed"),
-    _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling")
+    _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling"),
+    _startAction(this, "Start")
 {
     setText("HSNE");
 
@@ -17,6 +18,8 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
     _seedAction.initialize(-1000, 1000, -1, -1);
     _useMonteCarloSamplingAction.initialize(hsneParameters.useMonteCarloSampling(), hsneParameters.useMonteCarloSampling());
+    
+    _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 
     const auto updateKnnAlgorithm = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setKnnLibrary(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
@@ -33,6 +36,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     const auto updateReadOnly = [this]() -> void {
         const auto enabled = !isReadOnly();
 
+        _startAction.setEnabled(enabled);
         _knnTypeAction.setEnabled(enabled);
         _seedAction.setEnabled(enabled);
         _useMonteCarloSamplingAction.setEnabled(enabled);
@@ -50,11 +54,11 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
         updateUseMonteCarloSampling();
     });
 
-    connect(&_hsneSettingsAction.getStartAction(), &ToggleAction::toggled, this, [this](bool toggled) {
+    connect(&_startAction, &ToggleAction::toggled, this, [this](bool toggled) {
         setReadOnly(toggled);
     });
 
-    connect(this, &WidgetActionGroup::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+    connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
 
@@ -62,13 +66,4 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     updateSeed();
     updateUseMonteCarloSampling();
     updateReadOnly();
-}
-
-GeneralHsneSettingsAction::Widget::Widget(QWidget* parent, GeneralHsneSettingsAction* generalHsneSettingsAction, const Widget::State& state) :
-    WidgetActionGroup::FormWidget(parent, generalHsneSettingsAction)
-{
-    addWidgetAction(generalHsneSettingsAction->_knnTypeAction);
-    addWidgetAction(generalHsneSettingsAction->_seedAction);
-    addWidgetAction(generalHsneSettingsAction->_useMonteCarloSamplingAction);
-    addWidgetAction(generalHsneSettingsAction->getHsneSettingsAction().getStartAction(), true);
 }

@@ -2,6 +2,10 @@
 
 #include "actions/Actions.h"
 
+#include "TsneComputationAction.h"
+
+using namespace hdps::gui;
+
 class QMenu;
 class TsneSettingsAction;
 
@@ -12,32 +16,8 @@ class TsneSettingsAction;
  *
  * @author Thomas Kroes
  */
-class GeneralTsneSettingsAction : public hdps::gui::WidgetActionGroup
+class GeneralTsneSettingsAction : public GroupAction
 {
-protected:
-
-    /** Widget class for general TSNE settings action */
-    class Widget : public hdps::gui::WidgetActionGroup::FormWidget {
-    public:
-
-        /**
-         * Constructor
-         * @param parent Pointer to parent widget
-         * @param generalSettingsAction Pointer to general TSNE settings action
-         * @param state State of the widget
-         */
-        Widget(QWidget* parent, GeneralTsneSettingsAction* generalSettingsAction, const hdps::gui::WidgetActionWidget::State& state);
-    };
-
-    /**
-     * Get widget representation of the general TSNE settings action
-     * @param parent Pointer to parent widget
-     * @param state Widget state
-     */
-    QWidget* getWidget(QWidget* parent, const hdps::gui::WidgetActionWidget::State& state = hdps::gui::WidgetActionWidget::State::Standard) override {
-        return new Widget(parent, this, state);
-    };
-
 public:
 
     /**
@@ -49,19 +29,21 @@ public:
 public: // Action getters
 
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; };
-    hdps::gui::OptionAction& getKnnTypeAction() { return _knnTypeAction; };
-    hdps::gui::OptionAction& getDistanceMetricAction() { return _distanceMetricAction; };
-    hdps::gui::IntegralAction& getNumIterationsAction() { return _numIterationsAction; };
-    hdps::gui::IntegralAction& getPerplexityAction() { return _perplexityAction; };
-    hdps::gui::TriggerAction& getResetAction() { return _resetAction; };
+    OptionAction& getKnnTypeAction() { return _knnTypeAction; };
+    OptionAction& getDistanceMetricAction() { return _distanceMetricAction; };
+    IntegralAction& getNumIterationsAction() { return _numIterationsAction; };
+    IntegralAction& getPerplexityAction() { return _perplexityAction; };
+    TsneComputationAction& getComputationAction() { return _computationAction; }
+    TriggerAction& getResetAction() { return _resetAction; };
 
 protected:
-    TsneSettingsAction&         _tsneSettingsAction;            /** Reference to parent tSNE settings action */
-    hdps::gui::OptionAction     _knnTypeAction;                 /** KNN action */
-    hdps::gui::OptionAction     _distanceMetricAction;          /** Distance metric action */
-    hdps::gui::IntegralAction   _numIterationsAction;           /** Number of iterations action */
-    hdps::gui::IntegralAction   _perplexityAction;              /** Perplexity action */
-    hdps::gui::TriggerAction    _resetAction;                   /** Reset all input to defaults */
+    TsneSettingsAction&     _tsneSettingsAction;            /** Reference to parent tSNE settings action */
+    OptionAction            _knnTypeAction;                 /** KNN action */
+    OptionAction            _distanceMetricAction;          /** Distance metric action */
+    IntegralAction          _numIterationsAction;           /** Number of iterations action */
+    IntegralAction          _perplexityAction;              /** Perplexity action */
+    TsneComputationAction   _computationAction;             /** Computation action */
+    TriggerAction           _resetAction;                   /** Reset all input to defaults */
 
     friend class Widget;
 };
