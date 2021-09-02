@@ -2,11 +2,14 @@
 
 #include "actions/Actions.h"
 #include "event/EventListener.h"
+#include "util/DatasetRef.h"
 
 #include "TsneAnalysis.h"
+#include "PointData.h"
 
 using namespace hdps;
 using namespace hdps::gui;
+using namespace hdps::util;
 
 class QMenu;
 
@@ -16,7 +19,6 @@ class TsneSettingsAction;
 
 namespace hdps {
     class CoreInterface;
-    class DataHierarchyItem;
 }
 
 /**
@@ -35,10 +37,10 @@ public:
      * @param parent Pointer to parent object
      * @param tsneSettingsAction Reference to TSNE settings action
      * @param hsneHierarchy Reference to HSNE hierarchy
-     * @param inputDataHierarchyItem Pointer to input data hierarchy item
-     * @param embeddingDataHierarchyItem Pointer to embedding data hierarchy item
+     * @param inputDatasetName Name of the input dataset
+     * @param embeddingDatasetName Name of the embedding dataset
      */
-    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, DataHierarchyItem* inputDataHierarchyItem, DataHierarchyItem* embeddingDataHierarchyItem);
+    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, const QString& inputDatasetName, const QString& embeddingDatasetName);
 
     /**
      * Get the context menu for the action
@@ -58,13 +60,13 @@ public: // Action getters
     TriggerAction& getRefineAction() { return _refineAction; }
 
 protected:
-    TsneSettingsAction&     _tsneSettingsAction;            /** Reference to TSNE settings action from the HSNE analysis */
-    TsneAnalysis            _tsneAnalysis;                  /** TSNE analysis */
-    HsneHierarchy&          _hsneHierarchy;                 /** Reference to HSNE hierarchy */
-    DataHierarchyItem*      _inputDataHierarchyItem;        /** Input data hierarchy item */
-    DataHierarchyItem*      _embeddingDataHierarchyItem;    /** Embedding data hierarchy item */
-    QString                 _refineEmbeddingName;           /** Name of the output embedding dataset */
-    TriggerAction           _refineAction;                  /** Refine action */
+    TsneSettingsAction&     _tsneSettingsAction;    /** Reference to TSNE settings action from the HSNE analysis */
+    TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
+    HsneHierarchy&          _hsneHierarchy;         /** Reference to HSNE hierarchy */
+    DatasetRef<Points>      _input;                 /** Input dataset reference */
+    DatasetRef<Points>      _embedding;             /** Embedding dataset reference */
+    QString                 _refineEmbeddingName;   /** Name of the output embedding dataset */
+    TriggerAction           _refineAction;          /** Refine action */
 
 protected:
     static hdps::CoreInterface* core;      /** Pointer to the core */

@@ -88,13 +88,10 @@ void HsneAnalysisPlugin::init()
 
         qApp->processEvents();
 
-        // Obtain a reference to the the input dataset
-        const auto& inputData = getInputDataset<Points>();
-
         std::vector<bool> enabledDimensions = _hsneSettingsAction->getDimensionSelectionAction().getEnabledDimensions();
 
         // Initialize the HSNE algorithm with the given parameters
-        _hierarchy.initialize(_core, inputData, enabledDimensions, _hsneSettingsAction->getHsneParameters());
+        _hierarchy.initialize(_core, getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
 
         setTaskDescription("Computing top-level embedding");
 

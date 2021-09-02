@@ -10,7 +10,7 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _tsneParameters(),
     _generalHsneSettingsAction(*this),
     _advancedHsneSettingsAction(*this),
-    _topLevelScaleAction(this, _tsneSettingsAction, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDataHierarchyItem(), hsneAnalysisPlugin->getOutputDataHierarchyItem()),
+    _topLevelScaleAction(this, _tsneSettingsAction, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDatasetName(), hsneAnalysisPlugin->getOutputDatasetName()),
     _tsneSettingsAction(this),
     _dimensionSelectionAction(this)
 {

@@ -32,7 +32,7 @@ void TsneAnalysisPlugin::init()
     setOutputDatasetName(_core->createDerivedData("tsne_embedding", getInputDatasetName()));
 
     // Get input/output datasets
-    auto& inputDataset = getInputDataset<Points>();
+    auto& inputDataset  = getInputDataset<Points>();
     auto& outputDataset = getOutputDataset<Points>();
 
     std::vector<float> initialData;
