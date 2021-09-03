@@ -1,6 +1,7 @@
 #include "HsneScaleAction.h"
 #include "HsneHierarchy.h"
 #include "TsneSettingsAction.h"
+#include "DataHierarchyItem.h"
 
 #include <QGridLayout>
 
