@@ -150,7 +150,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         selection.indices[i] = topScale._landmark_to_original_data_idx[i];
 
     // Create the subset and clear the selection
-    QString subsetName = inputData.createSubset("", false);
+    QString subsetName = inputData.createSubset("hsne_scale_2", "", false);
     selection.indices.clear();
     
     Points& embedding = getOutputDataset<Points>();
