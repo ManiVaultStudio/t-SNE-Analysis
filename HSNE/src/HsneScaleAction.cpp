@@ -151,7 +151,7 @@ void HsneScaleAction::refine()
             selection.indices.push_back(dScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
         }
 
-        const auto subsetName = _input->createSubset("", false);
+        const auto subsetName = _input->createSubset("hsne_scale", false);
         auto& subset = core->requestData<Points>(subsetName);
 
         _refineEmbeddingName = core->createDerivedData(QString("%1_embedding").arg(inputDatasetName), inputDatasetName, _embedding->getName());
