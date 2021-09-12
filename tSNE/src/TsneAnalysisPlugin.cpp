@@ -151,11 +151,6 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     }
 }
 
-QIcon TsneAnalysisPlugin::getIcon() const
-{
-    return QIcon(":/images/icon.png");
-}
-
 void TsneAnalysisPlugin::startComputation()
 {
     setTaskRunning();
@@ -199,6 +194,11 @@ void TsneAnalysisPlugin::continueComputation()
 void TsneAnalysisPlugin::stopComputation()
 {
     _tsneAnalysis.stopComputation();
+}
+
+QIcon TsneAnalysisPluginFactory::getIcon() const
+{
+    return QIcon(":/images/icon.png");
 }
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()

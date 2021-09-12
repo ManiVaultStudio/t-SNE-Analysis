@@ -171,7 +171,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
 }
 
-QIcon HsneAnalysisPlugin::getIcon() const
+QIcon HsneAnalysisPluginFactory::getIcon() const
 {
     return QIcon(":/images/icon.png");
 }

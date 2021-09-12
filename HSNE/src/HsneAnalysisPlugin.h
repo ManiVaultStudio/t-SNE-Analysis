@@ -22,9 +22,6 @@ public:
 
     void computeTopLevelEmbedding();
 
-    /** Returns the icon of this plugin */
-    QIcon getIcon() const override;
-
     HsneHierarchy& getHierarchy() { return _hierarchy; }
     TsneAnalysis& getTsneAnalysis() { return _tsneAnalysis; }
 
@@ -46,6 +43,9 @@ class HsneAnalysisPluginFactory : public AnalysisPluginFactory
 public:
     HsneAnalysisPluginFactory(void) {}
     ~HsneAnalysisPluginFactory(void) override {}
+
+    /** Returns the plugin icon */
+    QIcon getIcon() const override;
 
     AnalysisPlugin* produce() override;
 

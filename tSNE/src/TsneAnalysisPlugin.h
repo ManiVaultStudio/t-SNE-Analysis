@@ -21,9 +21,6 @@ public:
 
     void onDataEvent(hdps::DataEvent* dataEvent);
 
-    /** Returns the icon of this plugin */
-    QIcon getIcon() const override;
-
     void startComputation();
     void continueComputation();
     void stopComputation();
@@ -47,6 +44,9 @@ class TsneAnalysisPluginFactory : public AnalysisPluginFactory
 public:
     TsneAnalysisPluginFactory(void) {}
     ~TsneAnalysisPluginFactory(void) override {}
+
+    /** Returns the plugin icon */
+    QIcon getIcon() const override;
 
     AnalysisPlugin* produce() override;
 
