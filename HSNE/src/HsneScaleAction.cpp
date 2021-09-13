@@ -75,13 +75,10 @@ QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
 
 void HsneScaleAction::refine()
 {
-    // Request the embedding from the core and find out the source data from which it derives
-    auto& source = DataSet::getSourceData<Points>(*_embedding);
-
     // Get associated selection with embedding
-    auto& selection = static_cast<Points&>(_embedding->getSelection());
+    auto& selection = static_cast<Points&>(_embedding->getSelection()); // Global selection
     
-    // Scale the embedding is a part of
+    // Scale the current embedding is a part of
     int currentScale = _embedding->getProperty("scale").value<int>();
     int drillScale = currentScale - 1;
 
@@ -89,7 +86,7 @@ void HsneScaleAction::refine()
     std::vector<bool> pointsSelected;
     _embedding->selectedLocalIndices(selection.indices, pointsSelected);
 
-    std::vector<unsigned int> selectionIndices;
+    std::vector<unsigned int> selectionIndices; // Selected indices relative to scale
     if (_embedding->hasProperty("drill_indices"))
     {
         QList<uint32_t> drillIndices = _embedding->getProperty("drill_indices").value<QList<uint32_t>>();
@@ -120,7 +117,7 @@ void HsneScaleAction::refine()
     _hsneHierarchy.getInfluencedLandmarksInPreviousScale(currentScale, selectionIndices, neighbors);
 
     // Threshold neighbours with enough influence
-    std::vector<uint32_t> nextLevelIdxs;
+    std::vector<uint32_t> nextLevelIdxs; // Scale-relative indices
     nextLevelIdxs.clear();
     for (auto n : neighbors) {
         if (n.second > 0.5) //QUICKPAPER
@@ -152,11 +149,8 @@ void HsneScaleAction::refine()
         }
 
         const auto subsetName = _input->createSubset("hsne_scale", false);
-        auto& subset = core->requestData<Points>(subsetName);
 
-        _refineEmbeddingName = core->createDerivedData(QString("%1_embedding").arg(inputDatasetName), inputDatasetName, _embedding->getName());
-
-        auto& embedding = core->requestData<Points>(_refineEmbeddingName);
+        _refineEmbeddingName = core->createDerivedData(QString("%1_embedding").arg(inputDatasetName), subsetName, _embedding->getName());
     }
     
     // Store drill indices with embedding
