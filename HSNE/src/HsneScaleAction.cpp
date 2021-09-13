@@ -162,6 +162,7 @@ void HsneScaleAction::refine()
 
     hsneScaleAction->setContext(drillEmbedding.getName());
     
+    drillEmbedding.addAction(*hsneScaleAction);
     //drillEmbedding.exposeAction(&_tsneSettingsAction.getGeneralTsneSettingsAction());
     //drillEmbedding.exposeAction(&_tsneSettingsAction.getAdvancedTsneSettingsAction());
 
