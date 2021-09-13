@@ -176,17 +176,17 @@ void HsneScaleAction::refine()
     
     // Add linked selection between the upper embedding and the refined embedding
     {
-        std::vector<std::vector<unsigned int>> landmarkMap = embedding.getProperty("landmarkMap").value<std::vector<std::vector<unsigned int>>>();
+        std::vector<std::vector<unsigned int>> landmarkMap = _embedding->getProperty("landmarkMap").value<std::vector<std::vector<unsigned int>>>();
 
-        Points& selection = static_cast<Points&>(embedding.getSelection());
+        Points& selection = static_cast<Points&>(_embedding->getSelection());
 
         std::vector<unsigned int> localSelectionIndices;
-        embedding.getLocalSelectionIndices(localSelectionIndices);
+        _embedding->getLocalSelectionIndices(localSelectionIndices);
 
         // Transmute local indices by drill indices specifying relation to full hierarchy scale
-        if (embedding.hasProperty("drill_indices"))
+        if (_embedding->hasProperty("drill_indices"))
         {
-            QList<uint32_t> drillIndices = embedding.getProperty("drill_indices").value<QList<uint32_t>>();
+            QList<uint32_t> drillIndices = _embedding->getProperty("drill_indices").value<QList<uint32_t>>();
 
             for (int i = 0; i < localSelectionIndices.size(); i++)
                 localSelectionIndices[i] = drillIndices[localSelectionIndices[i]];
@@ -198,7 +198,7 @@ void HsneScaleAction::refine()
             int bottomLevelIdx = _hsneHierarchy.getScale(currentScale)._landmark_to_original_data_idx[selectionIndex];
             mapping[bottomLevelIdx] = landmarkMap[selectionIndex];
         }
-        embedding.addLinkedSelection(drillEmbedding.getName(), mapping);
+        _embedding->addLinkedSelection(drillEmbedding.getName(), mapping);
     }
 
     auto refineEmbeddingDataHierarchyItem = core->getDataHierarchyItem(_refineEmbeddingName);
