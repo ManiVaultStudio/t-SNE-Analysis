@@ -4,8 +4,8 @@
 
 #include "PointData.h"
 
-#include <QtCore>
-#include <QtDebug>
+#include <QDebug>
+#include <QPainter>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
 
@@ -173,7 +173,39 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
 QIcon HsneAnalysisPluginFactory::getIcon() const
 {
-    return QIcon(":/images/icon.png");
+    const auto margin       = 3;
+    const auto pixmapSize   = QSize(100, 100);
+    const auto pixmapRect   = QRect(QPoint(), pixmapSize).marginsRemoved(QMargins(margin, margin, margin, margin));
+    const auto halfSize     = pixmapRect.size() / 2;
+
+    // Create pixmap
+    QPixmap pixmap(pixmapSize);
+
+    // Fill with a transparent background
+    pixmap.fill(Qt::transparent);
+
+    // Create a painter to draw in the pixmap
+    QPainter painter(&pixmap);
+
+    // Enable anti-aliasing
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // Get the text color from the application
+    const auto textColor = QApplication::palette().text().color();
+
+    // Configure painter
+    painter.setPen(QPen(textColor, 1, Qt::SolidLine, Qt::SquareCap, Qt::SvgMiterJoin));
+    painter.setFont(QFont("Arial", 38, 250));
+
+    const auto textOption = QTextOption(Qt::AlignCenter);
+
+    // Do the painting
+    painter.drawText(QRect(pixmapRect.topLeft(), halfSize), "H", textOption);
+    painter.drawText(QRect(QPoint(halfSize.width(), pixmapRect.top()), halfSize), "S", textOption);
+    painter.drawText(QRect(QPoint(pixmapRect.left(), halfSize.height()), halfSize), "N", textOption);
+    painter.drawText(QRect(QPoint(halfSize.width(), halfSize.height()), halfSize), "E", textOption);
+
+    return QIcon(pixmap);
 }
 
 AnalysisPlugin* HsneAnalysisPluginFactory::produce()
