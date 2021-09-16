@@ -15,6 +15,10 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
+    _knnTypeAction.setWidgetFlags(OptionAction::WidgetFlag::All);
+    _seedAction.setWidgetFlags(IntegralAction::WidgetFlag::All);
+    _useMonteCarloSamplingAction.setWidgetFlags(ToggleAction::WidgetFlag::CheckBoxAndReset);
+
     _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
     _seedAction.initialize(-1000, 1000, -1, -1);
     _useMonteCarloSamplingAction.initialize(hsneParameters.useMonteCarloSampling(), hsneParameters.useMonteCarloSampling());

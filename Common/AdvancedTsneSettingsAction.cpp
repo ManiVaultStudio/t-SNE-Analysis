@@ -18,6 +18,11 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
+    _exaggerationAction.setWidgetFlags(IntegralAction::SpinBoxAndReset);
+    _exponentialDecayAction.setWidgetFlags(IntegralAction::SpinBoxAndReset);
+    _numTreesAction.setWidgetFlags(IntegralAction::SpinBoxAndReset);
+    _numChecksAction.setWidgetFlags(IntegralAction::SpinBoxAndReset);
+
     _exaggerationAction.initialize(1, 10000, 250, 250);
     _exponentialDecayAction.initialize(1, 10000, 70, 70);
     _numTreesAction.initialize(1, 10000, 4, 4);

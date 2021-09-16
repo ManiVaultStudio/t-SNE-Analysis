@@ -21,6 +21,11 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
+    _knnTypeAction.setWidgetFlags(OptionAction::All);
+    _distanceMetricAction.setWidgetFlags(OptionAction::All);
+    _numIterationsAction.setWidgetFlags(IntegralAction::SpinBoxAndReset);
+    _perplexityAction.setWidgetFlags(IntegralAction::All);
+
     _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean");
     _numIterationsAction.initialize(1, 10000, 1000, 1000);
