@@ -44,27 +44,27 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
         _tsneSettingsAction.getTsneParameters().setNumChecks(_numChecksAction.getValue());
     };
 
-    const auto canReset = [this]() -> bool {
-        if (_exaggerationAction.canReset())
+    const auto isResettable = [this]() -> bool {
+        if (_exaggerationAction.isResettable())
             return true;
 
-        if (_exponentialDecayAction.canReset())
+        if (_exponentialDecayAction.isResettable())
             return true;
 
-        if (_numTreesAction.canReset())
+        if (_numTreesAction.isResettable())
             return true;
 
-        if (_numChecksAction.canReset())
+        if (_numChecksAction.isResettable())
             return true;
 
         return false;
     };
 
-    const auto updateReset = [this, canReset]() -> void {
-        _resetAction.setEnabled(canReset());
+    const auto updateReset = [this, isResettable]() -> void {
+        _resetAction.setEnabled(isResettable());
     };
 
-    const auto updateReadOnly = [this, canReset]() -> void {
+    const auto updateReadOnly = [this, isResettable]() -> void {
         const auto enable = !isReadOnly();
 
         _exaggerationAction.setEnabled(enable);

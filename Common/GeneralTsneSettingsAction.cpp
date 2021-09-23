@@ -47,24 +47,24 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _tsneSettingsAction.getTsneParameters().setPerplexity(_perplexityAction.getValue());
     };
 
-    const auto canReset = [this]() -> bool {
-        if (_knnTypeAction.canReset())
+    const auto isResettable = [this]() -> bool {
+        if (_knnTypeAction.isResettable())
             return true;
 
-        if (_distanceMetricAction.canReset())
+        if (_distanceMetricAction.isResettable())
             return true;
 
-        if (_numIterationsAction.canReset())
+        if (_numIterationsAction.isResettable())
             return true;
 
-        if (_perplexityAction.canReset())
+        if (_perplexityAction.isResettable())
             return true;
 
         return false;
     };
 
-    const auto updateReset = [this, canReset]() -> void {
-        _resetAction.setEnabled(canReset());
+    const auto updateReset = [this, isResettable]() -> void {
+        _resetAction.setEnabled(isResettable());
     };
 
     const auto updateReadOnly = [this]() -> void {
