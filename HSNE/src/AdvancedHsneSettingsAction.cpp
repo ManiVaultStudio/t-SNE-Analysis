@@ -16,13 +16,15 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
 {
     setText("Advanced HSNE");
 
-    _numWalksForLandmarkSelectionAction.setWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
-    _numWalksForLandmarkSelectionThresholdAction.setWidgetFlags(DecimalAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
-    _randomWalkLengthAction.setWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
-    _numWalksForAreaOfInfluenceAction.setWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
-    _minWalksRequiredAction.setWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
-    _numChecksAknnAction.setWidgetFlags(IntegralAction::WidgetFlag::All);
-    _useOutOfCoreComputationAction.setWidgetFlags(ToggleAction::WidgetFlag::CheckBoxAndReset);
+    /*
+    _numWalksForLandmarkSelectionAction.setDefaultWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
+    _numWalksForLandmarkSelectionThresholdAction.setDefaultWidgetFlags(DecimalAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
+    _randomWalkLengthAction.setDefaultWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
+    _numWalksForAreaOfInfluenceAction.setDefaultWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
+    _minWalksRequiredAction.setDefaultWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
+    _numChecksAknnAction.setDefaultWidgetFlags(IntegralAction::WidgetFlag::All);
+    _useOutOfCoreComputationAction.setDefaultWidgetFlags(ToggleAction::WidgetFlag::CheckBoxAndReset);
+    */
 
     _numWalksForLandmarkSelectionAction.setToolTip("Number of walks for landmark selection");
     _numWalksForLandmarkSelectionThresholdAction.setToolTip("Number of walks for landmark selection");
