@@ -21,12 +21,10 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
-    /*
-    _knnTypeAction.setDefaultWidgetFlags(OptionAction::All);
-    _distanceMetricAction.setDefaultWidgetFlags(OptionAction::All);
-    _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBoxAndReset);
-    _perplexityAction.setDefaultWidgetFlags(IntegralAction::All);
-    */
+    _knnTypeAction.setDefaultWidgetFlags(OptionAction::ComboBox);
+    _distanceMetricAction.setDefaultWidgetFlags(OptionAction::ComboBox);
+    _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _perplexityAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
     _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean");

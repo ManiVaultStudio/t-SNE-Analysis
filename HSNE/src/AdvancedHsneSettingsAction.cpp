@@ -16,15 +16,13 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
 {
     setText("Advanced HSNE");
 
-    /*
-    _numWalksForLandmarkSelectionAction.setDefaultWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
-    _numWalksForLandmarkSelectionThresholdAction.setDefaultWidgetFlags(DecimalAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
-    _randomWalkLengthAction.setDefaultWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
-    _numWalksForAreaOfInfluenceAction.setDefaultWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
-    _minWalksRequiredAction.setDefaultWidgetFlags(IntegralAction::WidgetFlag::SpinBox | IntegralAction::WidgetFlag::Reset);
-    _numChecksAknnAction.setDefaultWidgetFlags(IntegralAction::WidgetFlag::All);
-    _useOutOfCoreComputationAction.setDefaultWidgetFlags(ToggleAction::WidgetFlag::CheckBoxAndReset);
-    */
+    _numWalksForLandmarkSelectionAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _numWalksForLandmarkSelectionThresholdAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _randomWalkLengthAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _numWalksForAreaOfInfluenceAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _minWalksRequiredAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _numChecksAknnAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
+    _useOutOfCoreComputationAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
 
     _numWalksForLandmarkSelectionAction.setToolTip("Number of walks for landmark selection");
     _numWalksForLandmarkSelectionThresholdAction.setToolTip("Number of walks for landmark selection");
