@@ -10,20 +10,20 @@ class TsneData : public QObject
 {
     Q_OBJECT
 public:
-    TsneData::TsneData() :
+    TsneData() :
         _numPoints(0),
         _numDimensions(0)
     {
     }
 
-    TsneData::TsneData(const TsneData& other)
+    TsneData(const TsneData& other)
     {
         _numPoints = other._numPoints;
         _numDimensions = other._numDimensions;
         _data = other._data;
     }
 
-    TsneData::~TsneData()
+    ~TsneData()
     {
     }
 
