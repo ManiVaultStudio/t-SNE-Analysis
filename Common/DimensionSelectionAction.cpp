@@ -484,9 +484,9 @@ DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionActi
 
     layout->addLayout(nameMatchesLayout);
     
-    layout->addWidget(dimensionSelectionAction->_showOnlySelectedDimensionsAction.createCheckBoxWidget(this));
-    layout->addWidget(dimensionSelectionAction->_applyExclusionListAction.createCheckBoxWidget(this));
-    layout->addWidget(dimensionSelectionAction->_ignoreZeroValuesAction.createCheckBoxWidget(this));
+    layout->addWidget(dimensionSelectionAction->_showOnlySelectedDimensionsAction.createWidget(this, ToggleAction::CheckBox));
+    layout->addWidget(dimensionSelectionAction->_applyExclusionListAction.createWidget(this, ToggleAction::CheckBox));
+    layout->addWidget(dimensionSelectionAction->_ignoreZeroValuesAction.createWidget(this, ToggleAction::CheckBox));
 
     auto selectionThresholdLayout = new QHBoxLayout();
 
@@ -494,7 +494,7 @@ DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionActi
     auto lessLabel = new QLabel("Less");
 
     selectionThresholdLayout->addWidget(moreLabel);
-    selectionThresholdLayout->addWidget(dimensionSelectionAction->_selectionThresholdAction.createSliderWidget(this));
+    selectionThresholdLayout->addWidget(dimensionSelectionAction->_selectionThresholdAction.createWidget(this, IntegralAction::Slider));
     selectionThresholdLayout->addWidget(lessLabel);
 
     const auto updateSelectionThresholdLabels = [this, dimensionSelectionAction, moreLabel, lessLabel]() -> void {
