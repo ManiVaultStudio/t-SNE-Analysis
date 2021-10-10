@@ -472,8 +472,8 @@ void DimensionSelectionAction::updateSummary()
     _summaryAction.setString(tr("%1 available, %2 visible, %3 selected").arg(numberOfDimensions).arg(numberOfVisibleDimensions).arg(holder.getNumberOfSelectedDimensions()));
 }
 
-DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionAction* dimensionSelectionAction, const Widget::State& state) :
-    WidgetActionWidget(parent, dimensionSelectionAction, state)
+DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionAction* dimensionSelectionAction) :
+    WidgetActionWidget(parent, dimensionSelectionAction)
 {
     auto layout = new QVBoxLayout();
 
@@ -552,18 +552,5 @@ DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionActi
 
     layout->addLayout(fileLayout);
 
-    switch (state)
-    {
-        case Widget::State::Standard:
-            //layout->setMargin(0);
-            setLayout(layout);
-            break;
-
-        case Widget::State::Popup:
-            setPopupLayout(layout);
-            break;
-
-        default:
-            break;
-    }
+    setLayout(layout);
 }
