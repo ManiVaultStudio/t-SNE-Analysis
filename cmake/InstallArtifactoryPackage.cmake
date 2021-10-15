@@ -93,31 +93,42 @@ macro(get_artifactory_package
         package_name package_version package_builder
         compiler_name compiler_version os_name is_combined_package)
     if(is_combined_package)
+        # retrieve the single combined package from lkeb-artifactory
         file(REMOVE ${CMAKE_BINARY_DIR}/aql.json)
-        configure_file(${CMAKE_SOURCE_DIR}/cmake/aql.json.in ${CMAKE_BINARY_DIR}/aql.json)
+        configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_multi.json.in ${CMAKE_BINARY_DIR}/aql.json)
         find_artifactory_package()
         message(STATUS "package url ${package_url} - name ${package_name}")
         file(DOWNLOAD ${package_url} "${CMAKE_SOURCE_DIR}/${package_name}.tgz")
         execute_process(COMMAND cmake -E make_directory "${LIBRARY_INSTALL_DIR}/${package_name}")
         execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}.tgz" WORKING_DIRECTORY "${LIBRARY_INSTALL_DIR}/${package_name}")
     else()
+        # retrieve the separate Release and Debug packages  from lkeb-artifactory
+        set(option_shared "False") # hardcoded - TODO make parameter
         file(REMOVE ${CMAKE_BINARY_DIR}/aql.json)
-        set(build_type "Release")
-        configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_build_type.json.in ${CMAKE_BINARY_DIR}/aql.json)
+        if (os_name STREQUAL "Windows")
+            set(build_runtime_type "\"@conan.settings.compiler.runtime\":{\"$eq\" : \"MD\"}")
+        else()
+            set(build_runtime_type "\"@conan.settings.compiler.runtime\":{\"$eq\" : \"Release\"}")
+        endif()
+        configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_single.json.in ${CMAKE_BINARY_DIR}/aql.json)
         find_artifactory_package()
         message(STATUS "package url ${package_url} - name ${package_name}")
         file(DOWNLOAD ${package_url} "${CMAKE_SOURCE_DIR}/${package_name}_Release.tgz")
-        execute_process(COMMAND cmake -E make_directory "${CMAKE_SOURCE_DIR}/${package_name}/Release")
-        execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}_Release.tgz" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/${package_name}/Release")
+        execute_process(COMMAND cmake -E make_directory "${LIBRARY_INSTALL_DIR}/${package_name}/Release")
+        execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}_Release.tgz" WORKING_DIRECTORY "${LIBRARY_INSTALL_DIR}/${package_name}/Release")
 
         file(REMOVE ${CMAKE_BINARY_DIR}/aql.json)
-        set(build_type "Debug")
-        configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_build_type.json.in ${CMAKE_BINARY_DIR}/aql.json)
+        if (os_name STREQUAL "Windows")
+            set(build_runtime_type "\"@conan.settings.compiler.runtime\":{\"$eq\" : \"MDd\"}")
+        else()
+            set(build_runtime_type "\"@conan.settings.compiler.runtime\":{\"$eq\" : \"Debug\"}")
+        endif()
+        configure_file(${CMAKE_SOURCE_DIR}/cmake/aql_single.json.in ${CMAKE_BINARY_DIR}/aql.json)
         find_artifactory_package()
         message(STATUS "package url ${package_url} - name ${package_name}")
         file(DOWNLOAD ${package_url} "${CMAKE_SOURCE_DIR}/${package_name}_Debug.tgz")
-        execute_process(COMMAND cmake -E make_directory "${CMAKE_SOURCE_DIR}/${package_name}/Debug")
-        execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}_Debug.tgz" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/${package_name}/Debug")
+        execute_process(COMMAND cmake -E make_directory "${LIBRARY_INSTALL_DIR}/${package_name}/Debug")
+        execute_process(COMMAND cmake -E tar xvf "${CMAKE_SOURCE_DIR}/${package_name}_Debug.tgz" WORKING_DIRECTORY "${LIBRARY_INSTALL_DIR}/${package_name}/Debug")
     endif()
 endmacro()
 
@@ -132,6 +143,11 @@ endmacro()
 #           FALSE - the package contains either debug or release 
 
 function(install_artifactory_package package_name package_version package_builder is_combined_package)
+    cmake_parse_arguments(PARSE_ARGV 0 IAPARG 
+        "COMBINED_PACKAGE"
+        "PACKAGE_NAME;PACKAGE_VERSION;PACKAGE_BUILDER;"
+        "" ${ARGN})
+
     message(STATUS "Installing package * ${package_name} * from lkeb-artifactory.lumc.nl")
     get_settings()
     set(package_name ${package_name})

@@ -44,6 +44,7 @@ target_include_directories(${HSNE_PLUGIN} PRIVATE "Common")
 
 set_HDILib_project_includes(${HSNE_PLUGIN})
 set_flann_project_includes(${HSNE_PLUGIN})
+set_lz4_project_includes(${HSNE_PLUGIN})
 
 # -----------------------------------------------------------------------------
 # Target properties
@@ -68,6 +69,7 @@ target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAK
 target_link_libraries(${HSNE_PLUGIN} ${OPENGL_LIBRARIES})
 set_flann_project_link_libraries(${HSNE_PLUGIN})
 set_HDILib_project_link_libraries(${HSNE_PLUGIN})
+set_lz4_project_link_libraries(${HSNE_PLUGIN}) 
 
 # -----------------------------------------------------------------------------
 # Target installation

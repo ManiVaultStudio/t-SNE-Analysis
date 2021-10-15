@@ -42,6 +42,7 @@ target_include_directories(${TSNE_PLUGIN} PRIVATE "Common")
 
 set_HDILib_project_includes(${TSNE_PLUGIN})
 set_flann_project_includes(${TSNE_PLUGIN})
+set_lz4_project_includes(${TSNE_PLUGIN})
 
 # -----------------------------------------------------------------------------
 # Target properties
@@ -67,6 +68,7 @@ target_link_libraries(${TSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAK
 target_link_libraries(${TSNE_PLUGIN} ${OPENGL_LIBRARIES})
 set_flann_project_link_libraries(${TSNE_PLUGIN})
 set_HDILib_project_link_libraries(${TSNE_PLUGIN})
+set_lz4_project_link_libraries(${TSNE_PLUGIN})
 
 # -----------------------------------------------------------------------------
 # Target installation
@@ -75,7 +77,7 @@ install(TARGETS ${TSNE_PLUGIN}
    RUNTIME DESTINATION "${INSTALL_DIR}/$<CONFIGURATION>/Plugins" COMPONENT TSNE_SHAREDLIB
 )
 
-if(USE_PREBUILT_LIBS)
+if(USE_ARTIFACTORY_LIBS)
     install(FILES
         "${INSTALL_DIR}/flann/bin/$<CONFIGURATION>/${CMAKE_SHARED_LIBRARY_PREFIX}flann${CMAKE_SHARED_LIBRARY_SUFFIX}"
         "${INSTALL_DIR}/flann/bin/$<CONFIGURATION>/${CMAKE_SHARED_LIBRARY_PREFIX}flann_cpp${CMAKE_SHARED_LIBRARY_SUFFIX}"

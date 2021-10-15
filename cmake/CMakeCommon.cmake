@@ -45,7 +45,7 @@ set(DIMENSION_SELECTION_ACTION_SOURCES
 
 # Include flann includes via target_include_directories to the current project
 macro(set_flann_project_includes target)
-    if(USE_PREBUILT_LIBS)
+    if(USE_ARTIFACTORY_LIBS)
         MESSAGE( STATUS "Including PREBUILT flann ${LIBRARY_INSTALL_DIR}/flann")
         target_include_directories("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/flann/include")
     else()
@@ -65,7 +65,7 @@ endmacro()
 
 # Include HDILib includes via target_include_directories to the current project
 macro(set_HDILib_project_includes target)
-    if(USE_PREBUILT_LIBS)
+    if(USE_ARTIFACTORY_LIBS)
         MESSAGE( STATUS "Including PREBUILT HDILib ${HDILib_INCLUDE_DIR}")
         target_include_directories("${target}" PRIVATE "${HDILib_INCLUDE_DIR}")
     else()
@@ -75,7 +75,7 @@ endmacro()
 
 # Link the flann libraries via target_link_library to the current project
 macro(set_flann_project_link_libraries target)
-    if(USE_PREBUILT_LIBS)
+    if(USE_ARTIFACTORY_LIBS)
         MESSAGE( STATUS "Linking PREBUILT flann libraries...")
         if(MSVC)
             target_link_libraries("${target}" debug "${LIBRARY_INSTALL_DIR}/flann/lib/Debug/flann.lib")
@@ -97,7 +97,7 @@ endmacro()
 
 # Link the HDILib libraries via target_link_library to the current project
 macro(set_HDILib_project_link_libraries target)
-    if(USE_PREBUILT_LIBS)
+    if(USE_ARTIFACTORY_LIBS)
         MESSAGE( STATUS "Linking PREBUILT HDILib libraries...")
         target_link_libraries("${target}" ${HDILib_LINK_LIBS})
     else()
@@ -121,5 +121,25 @@ macro(set_HDILib_project_link_libraries target)
             target_link_libraries("${target}" debug "${LIBRARY_INSTALL_DIR}/tSNE/lib/AtSNE/OSX/Debug/libbh_t_sne_library.a")
             target_link_libraries("${target}" optimized "${LIBRARY_INSTALL_DIR}/tSNE/lib/AtSNE/OSX/Release/libbh_t_sne_library.a")
         endif()
+    endif()
+endmacro()
+
+# lz4 currently only with prebuilt libs - is used in flann 1.8.4 and greater.
+macro(set_lz4_project_includes target)
+    if(USE_ARTIFACTORY_LIBS)
+        MESSAGE( STATUS "Including PREBUILT lz4 ${LIBRARY_INSTALL_DIR}/lz4")
+        target_include_directories("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/lz4/Release/include")
+    else()
+    endif()
+endmacro()
+
+macro(set_lz4_project_link_libraries target)
+    if(USE_ARTIFACTORY_LIBS)
+        MESSAGE( STATUS "Linking PREBUILT flann libraries...")
+        if(MSVC)
+            target_link_libraries("${target}" debug "${LIBRARY_INSTALL_DIR}/lz4/Debug/lib/lz4.lib")
+            target_link_libraries("${target}" optimized "${LIBRARY_INSTALL_DIR}/lz4/Release/lib/lz4.lib")
+        endif()
+    else()
     endif()
 endmacro()
