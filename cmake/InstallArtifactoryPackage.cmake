@@ -30,6 +30,7 @@ macro(get_settings)
 
     set(compiler_version UNSUPPORTED)
     get_major_version("${CMAKE_CXX_COMPILER_VERSION}" "${compiler_version}")
+    message("Using compiler major version: -${compiler_version}-")
 
     set(os_name UNSUPPORTED)
     if (APPLE)
