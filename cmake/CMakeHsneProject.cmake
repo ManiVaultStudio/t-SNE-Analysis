@@ -46,6 +46,7 @@ set_HDILib_project_includes(${HSNE_PLUGIN})
 set_flann_project_includes(${HSNE_PLUGIN})
 set_lz4_project_includes(${HSNE_PLUGIN})
 
+
 # -----------------------------------------------------------------------------
 # Target properties
 # -----------------------------------------------------------------------------
@@ -70,6 +71,10 @@ target_link_libraries(${HSNE_PLUGIN} ${OPENGL_LIBRARIES})
 set_flann_project_link_libraries(${HSNE_PLUGIN})
 set_HDILib_project_link_libraries(${HSNE_PLUGIN})
 set_lz4_project_link_libraries(${HSNE_PLUGIN}) 
+if(UNIX)
+    message(STATUS "pThreads for Linux")
+    find_package(Threads REQUIRED)
+endif(UNIX)
 
 # -----------------------------------------------------------------------------
 # Target installation
