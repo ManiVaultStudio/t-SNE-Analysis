@@ -21,10 +21,10 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
-    _knnTypeAction.setWidgetFlags(OptionAction::All);
-    _distanceMetricAction.setWidgetFlags(OptionAction::All);
-    _numIterationsAction.setWidgetFlags(IntegralAction::SpinBoxAndReset);
-    _perplexityAction.setWidgetFlags(IntegralAction::All);
+    _knnTypeAction.setDefaultWidgetFlags(OptionAction::ComboBox);
+    _distanceMetricAction.setDefaultWidgetFlags(OptionAction::ComboBox);
+    _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _perplexityAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
     _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean");
@@ -47,24 +47,24 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _tsneSettingsAction.getTsneParameters().setPerplexity(_perplexityAction.getValue());
     };
 
-    const auto canReset = [this]() -> bool {
-        if (_knnTypeAction.canReset())
+    const auto isResettable = [this]() -> bool {
+        if (_knnTypeAction.isResettable())
             return true;
 
-        if (_distanceMetricAction.canReset())
+        if (_distanceMetricAction.isResettable())
             return true;
 
-        if (_numIterationsAction.canReset())
+        if (_numIterationsAction.isResettable())
             return true;
 
-        if (_perplexityAction.canReset())
+        if (_perplexityAction.isResettable())
             return true;
 
         return false;
     };
 
-    const auto updateReset = [this, canReset]() -> void {
-        _resetAction.setEnabled(canReset());
+    const auto updateReset = [this, isResettable]() -> void {
+        _resetAction.setEnabled(isResettable());
     };
 
     const auto updateReadOnly = [this]() -> void {

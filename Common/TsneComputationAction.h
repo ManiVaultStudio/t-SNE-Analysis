@@ -26,18 +26,17 @@ protected:
          * Constructor
          * @param parent Pointer to parent widget
          * @param tsneComputationAction Pointer to TSNE computation action
-         * @param state State of the widget
          */
-        Widget(QWidget* parent, TsneComputationAction* tsneComputationAction, const WidgetActionWidget::State& state);
+        Widget(QWidget* parent, TsneComputationAction* tsneComputationAction);
     };
 
     /**
      * Get widget representation of the TSNE computation action
      * @param parent Pointer to parent widget
-     * @param state Widget state
+     * @param widgetFlags Widget flags for the configuration of the widget (type)
      */
-    QWidget* getWidget(QWidget* parent, const WidgetActionWidget::State& state = WidgetActionWidget::State::Standard) override {
-        return new Widget(parent, this, state);
+    QWidget* getWidget(QWidget* parent, const std::int32_t& widgetFlags) override {
+        return new Widget(parent, this);
     };
 
 public:

@@ -472,8 +472,8 @@ void DimensionSelectionAction::updateSummary()
     _summaryAction.setString(tr("%1 available, %2 visible, %3 selected").arg(numberOfDimensions).arg(numberOfVisibleDimensions).arg(holder.getNumberOfSelectedDimensions()));
 }
 
-DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionAction* dimensionSelectionAction, const Widget::State& state) :
-    WidgetActionWidget(parent, dimensionSelectionAction, state)
+DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionAction* dimensionSelectionAction) :
+    WidgetActionWidget(parent, dimensionSelectionAction)
 {
     auto layout = new QVBoxLayout();
 
@@ -484,9 +484,9 @@ DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionActi
 
     layout->addLayout(nameMatchesLayout);
     
-    layout->addWidget(dimensionSelectionAction->_showOnlySelectedDimensionsAction.createCheckBoxWidget(this));
-    layout->addWidget(dimensionSelectionAction->_applyExclusionListAction.createCheckBoxWidget(this));
-    layout->addWidget(dimensionSelectionAction->_ignoreZeroValuesAction.createCheckBoxWidget(this));
+    layout->addWidget(dimensionSelectionAction->_showOnlySelectedDimensionsAction.createWidget(this, ToggleAction::CheckBox));
+    layout->addWidget(dimensionSelectionAction->_applyExclusionListAction.createWidget(this, ToggleAction::CheckBox));
+    layout->addWidget(dimensionSelectionAction->_ignoreZeroValuesAction.createWidget(this, ToggleAction::CheckBox));
 
     auto selectionThresholdLayout = new QHBoxLayout();
 
@@ -494,7 +494,7 @@ DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionActi
     auto lessLabel = new QLabel("Less");
 
     selectionThresholdLayout->addWidget(moreLabel);
-    selectionThresholdLayout->addWidget(dimensionSelectionAction->_selectionThresholdAction.createSliderWidget(this));
+    selectionThresholdLayout->addWidget(dimensionSelectionAction->_selectionThresholdAction.createWidget(this, IntegralAction::Slider));
     selectionThresholdLayout->addWidget(lessLabel);
 
     const auto updateSelectionThresholdLabels = [this, dimensionSelectionAction, moreLabel, lessLabel]() -> void {
@@ -552,18 +552,5 @@ DimensionSelectionAction::Widget::Widget(QWidget* parent, DimensionSelectionActi
 
     layout->addLayout(fileLayout);
 
-    switch (state)
-    {
-        case Widget::State::Standard:
-            //layout->setMargin(0);
-            setLayout(layout);
-            break;
-
-        case Widget::State::Popup:
-            setPopupLayout(layout);
-            break;
-
-        default:
-            break;
-    }
+    setLayout(layout);
 }

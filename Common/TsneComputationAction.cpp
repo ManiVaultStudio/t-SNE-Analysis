@@ -30,8 +30,8 @@ QMenu* TsneComputationAction::getContextMenu(QWidget* parent /*= nullptr*/)
     return menu;
 }
 
-TsneComputationAction::Widget::Widget(QWidget* parent, TsneComputationAction* tsneComputationAction, const Widget::State& state) :
-    WidgetActionWidget(parent, tsneComputationAction, state)
+TsneComputationAction::Widget::Widget(QWidget* parent, TsneComputationAction* tsneComputationAction) :
+    WidgetActionWidget(parent, tsneComputationAction)
 {
     auto layout = new QHBoxLayout();
 
