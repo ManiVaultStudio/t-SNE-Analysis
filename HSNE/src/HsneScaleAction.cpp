@@ -148,7 +148,7 @@ void HsneScaleAction::refine()
             selection.indices.push_back(dScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
         }
 
-        const auto subsetName = _input->createSubset("hsne_scale", false);
+        const auto subsetName = _input->createSubset("hsne_scale", inputDatasetName, false);
 
         _refineEmbeddingName = core->createDerivedData(QString("%1_embedding").arg(inputDatasetName), subsetName, _embedding->getName());
     }
