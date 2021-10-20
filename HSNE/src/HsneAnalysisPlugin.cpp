@@ -166,6 +166,20 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     HsneParameters hsneParameters = _hsneSettingsAction->getHsneParameters();
     TsneParameters tsneParameters = _hsneSettingsAction->getTsneSettingsAction().getTsneParameters();
 
+    // Add linked selection between the upper embedding and the bottom layer
+    {
+        std::vector<std::vector<unsigned int>> landmarkMap = embedding.getProperty("landmarkMap").value<std::vector<std::vector<unsigned int>>>();
+        
+        hdps::SelectionMap mapping;
+        for (int i = 0; i < landmarkMap.size(); i++)
+        {
+            int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
+            mapping[bottomLevelIdx] = landmarkMap[i];
+        }
+
+        embedding.addLinkedSelection(embedding.getName(), mapping);
+    }
+
     // Embed data
     _tsneAnalysis.stopComputation();
     _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
