@@ -59,7 +59,7 @@ class SNEAnalysesConan(ConanFile):
         )
 
     def set_version(self):
-        print("In setversion")
+        # print("In setversion")
         # Assign a version from the branch name
         branch_info = PluginBranchInfo(pathlib.Path(__file__).parent.resolve())
         self.version = branch_info.version
