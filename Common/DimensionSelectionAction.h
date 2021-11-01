@@ -3,6 +3,7 @@
 #include "DimensionSelectionHolder.h"
 #include "DimensionSelectionItemModel.h"
 #include "DimensionSelectionProxyModel.h"
+#include "ModelResetter.h"
 
 #include "actions/Actions.h"
 
