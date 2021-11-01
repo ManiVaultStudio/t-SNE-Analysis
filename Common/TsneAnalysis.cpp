@@ -1,5 +1,6 @@
 #include "TsneAnalysis.h"
 
+#include "hdi/utils/glad/glad.h"
 #include "OffscreenBuffer.h"
 
 #include <vector>
@@ -9,7 +10,6 @@
 
 #include "hdi/dimensionality_reduction/tsne_parameters.h"
 #include "hdi/utils/scoped_timers.h"
-#include "hdi/utils/glad/glad.h"
 
 TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions) :
     _currentIteration(0),

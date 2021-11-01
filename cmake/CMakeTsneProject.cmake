@@ -51,10 +51,6 @@ set_lz4_project_includes(${TSNE_PLUGIN})
 # Request C++17, in order to use std::for_each_n with std::execution::par_unseq.
 set_target_properties(${TSNE_PLUGIN} PROPERTIES CXX_STANDARD 17)
 
-if(APPLE)
-    # eliminate double OpenGL header inclusion
-    target_compile_definitions(${TSNE_PLUGIN} PRIVATE GLFW_INCLUDE_NONE)
-endif()
 target_compile_definitions(${TSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 
 # -----------------------------------------------------------------------------
