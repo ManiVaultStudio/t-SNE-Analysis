@@ -1,3 +1,7 @@
 build/
 flann
-HDILib
+HDILibflann.tgz
+aql_out.txt
+HDILib.tgz
+HDILib/
+flann.tgz

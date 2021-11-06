@@ -4,7 +4,10 @@ set(TSNE_PLUGIN_SOURCES
     ${DIR}/TsneAnalysisPlugin.h
     ${DIR}/TsneAnalysisPlugin.cpp
     ${DIR}/TsneAnalysisPlugin.json
-    ${DIR}/TsneSettingsWidget.h
-    ${DIR}/TsneSettingsWidget.cpp
+    PARENT_SCOPE
+)
+
+set(TSNE_RESOURCES
+    ${DIR}/../res/resources.qrc
     PARENT_SCOPE
 )
