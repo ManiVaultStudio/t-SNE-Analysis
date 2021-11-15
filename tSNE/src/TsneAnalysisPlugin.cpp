@@ -29,7 +29,7 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    setOutputDatasetName(_core->createDerivedData("tsne_embedding", getInputDatasetName()));
+    setOutputDataset(_core->createDerivedData("tsne_embedding", getInputDataset()));
 
     // Get input/output datasets
     auto& inputDataset  = getInputDataset<Points>();
@@ -41,6 +41,8 @@ void TsneAnalysisPlugin::init()
 
     initialData.resize(inputDataset.getNumPoints() * numEmbeddingDimensions);
 
+    outputDataset.setGuiName("TSNE Embedding");
+
     outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
 
     outputDataset.addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
@@ -48,7 +50,7 @@ void TsneAnalysisPlugin::init()
     outputDataset.addAction(_dimensionSelectionAction);
     outputDataset.addAction(_tsneSettingsAction.getComputationAction());
 
-    _core->getDataHierarchyItem(outputDataset.getName())->select();
+    outputDataset.getDataHierarchyItem().select();
 
     auto& computationAction = _tsneSettingsAction.getComputationAction();
 
@@ -119,7 +121,7 @@ void TsneAnalysisPlugin::init()
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData tsneData) {
         auto& embedding = getOutputDataset<Points>();
         embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
-        _core->notifyDataChanged(getOutputDatasetName());
+        _core->notifyDataChanged(getOutputDataset());
     });
 
     _dimensionSelectionAction.dataChanged(inputDataset);
@@ -141,13 +143,8 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
     if (dataEvent->getType() == EventType::DataChanged)
     {
-        auto dataChangedEvent = static_cast<DataChangedEvent*>(dataEvent);
-
-        // If we are not looking at the changed dataset, ignore it
-        if (dataChangedEvent->dataSetName != getInputDatasetName())
-            return;
-
-        _dimensionSelectionAction.dataChanged(_core->requestData<Points>(dataChangedEvent->dataSetName));
+        if (dataEvent->getDataset() == getInputDataset())
+            _dimensionSelectionAction.dataChanged(dataEvent->getDataset<Points>());
     }
 }
 

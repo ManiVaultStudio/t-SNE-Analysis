@@ -10,15 +10,15 @@ using namespace hdps::gui;
 
 CoreInterface* HsneScaleAction::core = nullptr;
 
-HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, const QString& inputDatasetName, const QString& embeddingDatasetName) :
+HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Points& inputDataset, Points& embeddingDataset) :
     GroupAction(parent, true),
     EventListener(),
     _tsneSettingsAction(tsneSettingsAction),
     _tsneAnalysis(),
     _hsneHierarchy(hsneHierarchy),
-    _input(inputDatasetName),
-    _embedding(embeddingDatasetName),
-    _refineEmbeddingName(),
+    _input(inputDataset),
+    _embedding(embeddingDataset),
+    _refineEmbedding(),
     _refineAction(this, "Refine...")
 {
     setText("HSNE scale");
@@ -42,25 +42,22 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     });
 
     registerDataEventByType(PointType, [this, updateReadOnly](DataEvent* dataEvent) {
-        if (dataEvent->dataSetName != _embedding->getName())
-            return;
-
-        if (dataEvent->getType() == EventType::SelectionChanged)
+        if (dataEvent->getDataset() == *_embedding && dataEvent->getType() == EventType::DataSelectionChanged)
             updateReadOnly();
     });
 
     updateReadOnly();
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
-        core->getDataHierarchyItem(_refineEmbeddingName)->setTaskProgress(percentage);
+        _refineEmbedding->getDataHierarchyItem().setTaskProgress(percentage);
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
-        core->getDataHierarchyItem(_refineEmbeddingName)->setTaskDescription(section);
+        _refineEmbedding->getDataHierarchyItem().setTaskDescription(section);
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
-        core->getDataHierarchyItem(_refineEmbeddingName)->setTaskFinished();
+        _refineEmbedding->getDataHierarchyItem().setTaskFinished();
     });
 }
 
@@ -134,8 +131,6 @@ void HsneScaleAction::refine()
     HsneMatrix transitionMatrix;
     _hsneHierarchy.getTransitionMatrixForSelection(currentScale, transitionMatrix, nextLevelIdxs);
 
-    const auto inputDatasetName = _input->getName();
-
     // Create a new data set for the embedding
     {
         auto& selection = static_cast<Points&>(_input->getSelection());
@@ -143,36 +138,31 @@ void HsneScaleAction::refine()
 
         //std::vector<unsigned int> dataIndices;
         selection.indices.clear();
+        
         for (int i = 0; i < nextLevelIdxs.size(); i++)
-        {
             selection.indices.push_back(dScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
-        }
 
-        const auto subsetName = _input->createSubset("hsne_scale", inputDatasetName, false);
+        // Create HSNE scale subset
+        auto& subset = _input->createSubset("hsne_scale", _input.get(), false);
 
-        _refineEmbeddingName = core->createDerivedData(QString("%1_embedding").arg(inputDatasetName), subsetName, _embedding->getName());
+        // And the derived data for the embedding
+        _refineEmbedding.set(core->createDerivedData(QString("%1_embedding").arg(_input->getGuiName()), subset, _embedding.get()));
     }
-    
-    // Store drill indices with embedding
-    auto& drillEmbedding = core->requestData<Points>(_refineEmbeddingName);
 
-    drillEmbedding.setData(nullptr, 0, 2);
+    _refineEmbedding->setData(nullptr, 0, 2);
 
-    auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, inputDatasetName, _refineEmbeddingName);
+    auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, *_input, *_refineEmbedding);
 
-    hsneScaleAction->setContext(drillEmbedding.getName());
-    
-    drillEmbedding.addAction(*hsneScaleAction);
-    //drillEmbedding.exposeAction(&_tsneSettingsAction.getGeneralTsneSettingsAction());
-    //drillEmbedding.exposeAction(&_tsneSettingsAction.getAdvancedTsneSettingsAction());
+    _refineEmbedding->addAction(*hsneScaleAction);
 
-    core->notifyDataAdded(_refineEmbeddingName);
+    core->notifyDataAdded(*_refineEmbedding);
 
     QList<uint32_t> indices(nextLevelIdxs.begin(), nextLevelIdxs.end());
     QVariant variantIndices = QVariant::fromValue<QList<uint32_t>>(indices);
-    drillEmbedding.setProperty("drill_indices", variantIndices);
-    drillEmbedding.setProperty("scale", drillScale);
-    drillEmbedding.setProperty("landmarkMap", qVariantFromValue(_hsneHierarchy.getInfluenceHierarchy().getMap()[drillScale]));
+    
+    _refineEmbedding->setProperty("drill_indices", variantIndices);
+    _refineEmbedding->setProperty("scale", drillScale);
+    _refineEmbedding->setProperty("landmarkMap", qVariantFromValue(_hsneHierarchy.getInfluenceHierarchy().getMap()[drillScale]));
     
     // Add linked selection between the upper embedding and the refined embedding
     {
@@ -198,20 +188,20 @@ void HsneScaleAction::refine()
             int bottomLevelIdx = _hsneHierarchy.getScale(currentScale)._landmark_to_original_data_idx[selectionIndex];
             mapping[bottomLevelIdx] = landmarkMap[selectionIndex];
         }
-        _embedding->addLinkedSelection(drillEmbedding.getName(), mapping);
+        _embedding->addLinkedSelection(*_refineEmbedding, mapping);
     }
 
-    auto refineEmbeddingDataHierarchyItem = core->getDataHierarchyItem(_refineEmbeddingName);
+    _refineEmbedding->getDataHierarchyItem().setTaskName("HSNE scale");
+    _refineEmbedding->getDataHierarchyItem().select();
 
-    refineEmbeddingDataHierarchyItem->setTaskName("HSNE scale");
-    refineEmbeddingDataHierarchyItem->select();
-
+    // Update embedding points when the TSNE analysis produces new data
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
-        auto& embedding = core->requestData<Points>(_refineEmbeddingName);
 
-        embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
+        // Update the refine embedding with new data
+        _refineEmbedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
-        core->notifyDataChanged(_refineEmbeddingName);
+        // Notify others that the embedding points have changed
+        core->notifyDataChanged(*_refineEmbedding);
     });
 
     // Start the embedding process

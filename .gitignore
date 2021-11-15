@@ -5,3 +5,5 @@ aql_out.txt
 HDILib.tgz
 HDILib/
 flann.tgz
+lz4_Debug.tgz
+lz4_Release.tgz
