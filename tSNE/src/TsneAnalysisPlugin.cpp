@@ -35,6 +35,8 @@ void TsneAnalysisPlugin::init()
     auto& inputDataset  = getInputDataset<Points>();
     auto& outputDataset = getOutputDataset<Points>();
 
+    outputDataset.setGuiName("HSNE Embedding");
+
     std::vector<float> initialData;
 
     const auto numEmbeddingDimensions = 2;
