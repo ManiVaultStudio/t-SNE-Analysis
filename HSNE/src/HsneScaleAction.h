@@ -2,7 +2,7 @@
 
 #include "actions/Actions.h"
 #include "event/EventListener.h"
-#include "util/DatasetRef.h"
+//#include "util/SmartDataset.h"
 
 #include "TsneAnalysis.h"
 #include "PointData.h"
@@ -63,9 +63,9 @@ protected:
     TsneSettingsAction&     _tsneSettingsAction;    /** Reference to TSNE settings action from the HSNE analysis */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneHierarchy&          _hsneHierarchy;         /** Reference to HSNE hierarchy */
-    DatasetRef<Points>      _input;                 /** Input dataset reference */
-    DatasetRef<Points>      _embedding;             /** Embedding dataset reference */
-    DatasetRef<Points>      _refineEmbedding;       /** Refine embedding dataset reference */
+    Dataset<Points>         _input;                 /** Input dataset reference */
+    Dataset<Points>         _embedding;             /** Embedding dataset reference */
+    Dataset<Points>         _refineEmbedding;       /** Refine embedding dataset reference */
     TriggerAction           _refineAction;          /** Refine action */
 
 protected:

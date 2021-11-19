@@ -32,9 +32,9 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     setEventCore(core);
 
     const auto updateReadOnly = [this]() -> void {
-        auto& selection = dynamic_cast<Points&>(_input->getSelection());
+        auto& selection = _input->getSelection<Points>();
 
-        _refineAction.setEnabled(!isReadOnly() && !selection.indices.empty());
+        _refineAction.setEnabled(!isReadOnly() && !selection->indices.empty());
     };
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
@@ -42,7 +42,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     });
 
     registerDataEventByType(PointType, [this, updateReadOnly](DataEvent* dataEvent) {
-        if (dataEvent->getDataset() == *_embedding && dataEvent->getType() == EventType::DataSelectionChanged)
+        if (dataEvent->getDataset() == _embedding && dataEvent->getType() == EventType::DataSelectionChanged)
             updateReadOnly();
     });
 
@@ -72,16 +72,18 @@ QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
 
 void HsneScaleAction::refine()
 {
-    // Get associated selection with embedding
-    auto& selection = static_cast<Points&>(_embedding->getSelection()); // Global selection
-    
-    // Scale the current embedding is a part of
-    int currentScale = _embedding->getProperty("scale").value<int>();
-    int drillScale = currentScale - 1;
+    // Get associated points selection with embedding
+    auto& selection = _embedding->getSelection<Points>();
+
+    // The scale the current embedding is a part of
+    const auto currentScale = _embedding->getProperty("scale").value<int>();
+
+    // Get the drill-in scale
+    const auto drillScale = currentScale - 1;
 
     // Find proper selection indices
     std::vector<bool> pointsSelected;
-    _embedding->selectedLocalIndices(selection.indices, pointsSelected);
+    _embedding->selectedLocalIndices(selection->indices, pointsSelected);
 
     std::vector<unsigned int> selectionIndices; // Selected indices relative to scale
     if (_embedding->hasProperty("drill_indices"))
@@ -133,20 +135,20 @@ void HsneScaleAction::refine()
 
     // Create a new data set for the embedding
     {
-        auto& selection = static_cast<Points&>(_input->getSelection());
+        auto& selection = _input->getSelection<Points>();
         Hsne::scale_type& dScale = _hsneHierarchy.getScale(drillScale);
 
         //std::vector<unsigned int> dataIndices;
-        selection.indices.clear();
+        selection->indices.clear();
         
         for (int i = 0; i < nextLevelIdxs.size(); i++)
-            selection.indices.push_back(dScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
+            selection->indices.push_back(dScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
 
         // Create HSNE scale subset
-        auto& subset = _input->createSubset("hsne_scale", _input.get(), false);
+        auto hsneScaleSubset = _input->createSubset("hsne_scale", _input.get(), false);
 
         // And the derived data for the embedding
-        _refineEmbedding.set(core->createDerivedData(QString("%1_embedding").arg(_input->getGuiName()), subset, _embedding.get()));
+        _refineEmbedding = core->createDerivedData<Points>(QString("%1_embedding").arg(_input->getGuiName()), hsneScaleSubset, _embedding);
 
         _refineEmbedding->setGuiName("HSNE Scale");
     }

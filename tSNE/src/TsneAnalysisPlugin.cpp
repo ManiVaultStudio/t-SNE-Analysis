@@ -29,30 +29,30 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    setOutputDataset(_core->createDerivedData("tsne_embedding", getInputDataset()));
+    setOutputDataset(_core->createDerivedData("tsne_embedding", getInputDataset(), getInputDataset()));
 
     // Get input/output datasets
     auto& inputDataset  = getInputDataset<Points>();
     auto& outputDataset = getOutputDataset<Points>();
 
-    outputDataset.setGuiName("HSNE Embedding");
+    outputDataset->setGuiName("HSNE Embedding");
 
     std::vector<float> initialData;
 
     const auto numEmbeddingDimensions = 2;
 
-    initialData.resize(inputDataset.getNumPoints() * numEmbeddingDimensions);
+    initialData.resize(inputDataset->getNumPoints() * numEmbeddingDimensions);
 
-    outputDataset.setGuiName("TSNE Embedding");
+    outputDataset->setGuiName("TSNE Embedding");
 
-    outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
+    outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
-    outputDataset.addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
-    outputDataset.addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
-    outputDataset.addAction(_dimensionSelectionAction);
-    outputDataset.addAction(_tsneSettingsAction.getComputationAction());
+    outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
+    outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
+    outputDataset->addAction(_dimensionSelectionAction);
+    outputDataset->addAction(_tsneSettingsAction.getComputationAction());
 
-    outputDataset.getDataHierarchyItem().select();
+    outputDataset->getDataHierarchyItem().select();
 
     auto& computationAction = _tsneSettingsAction.getComputationAction();
 
@@ -121,8 +121,11 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData tsneData) {
-        auto& embedding = getOutputDataset<Points>();
-        embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
+
+        // Update the output points dataset with new data from the TSNE analysis
+        getOutputDataset<Points>()->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
+
+        // Notify others that the embedding data changed
         _core->notifyDataChanged(getOutputDataset());
     });
 
@@ -156,7 +159,7 @@ void TsneAnalysisPlugin::startComputation()
     setTaskProgress(0.0f);
     setTaskDescription("Preparing data");
 
-    const auto& inputPoints = getInputDataset<Points>();
+    auto inputPoints = getInputDataset<Points>();
 
     // Create list of data from the enabled dimensions
     std::vector<float> data;
@@ -167,13 +170,13 @@ void TsneAnalysisPlugin::startComputation()
 
     const auto numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 
-    data.resize((inputPoints.isFull() ? inputPoints.getNumPoints() : inputPoints.indices.size()) * numEnabledDimensions);
+    data.resize((inputPoints->isFull() ? inputPoints->getNumPoints() : inputPoints->indices.size()) * numEnabledDimensions);
 
-    for (int i = 0; i < inputPoints.getNumDimensions(); i++)
+    for (int i = 0; i < inputPoints->getNumDimensions(); i++)
         if (enabledDimensions[i])
             indices.push_back(i);
 
-    inputPoints.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
+    inputPoints->populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
     _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
 
