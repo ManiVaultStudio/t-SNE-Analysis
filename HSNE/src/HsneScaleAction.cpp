@@ -10,7 +10,7 @@ using namespace hdps::gui;
 
 CoreInterface* HsneScaleAction::core = nullptr;
 
-HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Points& inputDataset, Points& embeddingDataset) :
+HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points>& inputDataset, Dataset<Points>& embeddingDataset) :
     GroupAction(parent, true),
     EventListener(),
     _tsneSettingsAction(tsneSettingsAction),
@@ -73,7 +73,7 @@ QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
 void HsneScaleAction::refine()
 {
     // Get associated points selection with embedding
-    auto& selection = _embedding->getSelection<Points>();
+    auto selection = _embedding->getSelection<Points>();
 
     // The scale the current embedding is a part of
     const auto currentScale = _embedding->getProperty("scale").value<int>();
@@ -145,7 +145,7 @@ void HsneScaleAction::refine()
             selection->indices.push_back(dScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
 
         // Create HSNE scale subset
-        auto hsneScaleSubset = _input->createSubset("hsne_scale", _input.get(), false);
+        auto hsneScaleSubset = _input->createSubset("hsne_scale", _input, false);
 
         // And the derived data for the embedding
         _refineEmbedding = core->createDerivedData<Points>(QString("%1_embedding").arg(_input->getGuiName()), hsneScaleSubset, _embedding);
@@ -155,7 +155,7 @@ void HsneScaleAction::refine()
 
     _refineEmbedding->setData(nullptr, 0, 2);
 
-    auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, *_input, *_refineEmbedding);
+    auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, _input, _refineEmbedding);
 
     _refineEmbedding->addAction(*hsneScaleAction);
 
@@ -172,7 +172,7 @@ void HsneScaleAction::refine()
     {
         std::vector<std::vector<unsigned int>> landmarkMap = _embedding->getProperty("landmarkMap").value<std::vector<std::vector<unsigned int>>>();
 
-        Points& selection = static_cast<Points&>(_embedding->getSelection());
+        auto selection = _embedding->getSelection<Points>();
 
         std::vector<unsigned int> localSelectionIndices;
         _embedding->getLocalSelectionIndices(localSelectionIndices);

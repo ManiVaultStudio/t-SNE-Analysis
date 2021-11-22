@@ -317,7 +317,7 @@ void DimensionSelectionAction::computeStatistics()
     auto& statistics = _selectionHolder._statistics;
     statistics.clear();
 
-    if (_points != nullptr)
+    if (_points.isValid())
     {
         QTime time;
 

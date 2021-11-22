@@ -37,10 +37,10 @@ public:
      * @param parent Pointer to parent object
      * @param tsneSettingsAction Reference to TSNE settings action
      * @param hsneHierarchy Reference to HSNE hierarchy
-     * @param inputDataset Input dataset
-     * @param embeddingDataset Embedding dataset
+     * @param inputDataset Smart pointer to input dataset
+     * @param embeddingDataset Smart pointer to embedding dataset
      */
-    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Points& inputDataset, Points& embeddingDataset);
+    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points>& inputDataset, Dataset<Points>& embeddingDataset);
 
     /**
      * Get the context menu for the action
