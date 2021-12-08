@@ -109,9 +109,6 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
     // Convert our own HSNE parameters to the HDI parameters
     Hsne::Parameters internalParams = setParameters(parameters);
 
-    // Prepare data
-    _inputDataName = inputData.getName();
-
     // Create list of data from the enabled dimensions
     std::vector<float> data;
     std::vector<unsigned int> indices;

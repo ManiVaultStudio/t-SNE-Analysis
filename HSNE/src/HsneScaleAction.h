@@ -2,7 +2,7 @@
 
 #include "actions/Actions.h"
 #include "event/EventListener.h"
-#include "util/DatasetRef.h"
+//#include "util/SmartDataset.h"
 
 #include "TsneAnalysis.h"
 #include "PointData.h"
@@ -37,10 +37,10 @@ public:
      * @param parent Pointer to parent object
      * @param tsneSettingsAction Reference to TSNE settings action
      * @param hsneHierarchy Reference to HSNE hierarchy
-     * @param inputDatasetName Name of the input dataset
-     * @param embeddingDatasetName Name of the embedding dataset
+     * @param inputDataset Smart pointer to input dataset
+     * @param embeddingDataset Smart pointer to embedding dataset
      */
-    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, const QString& inputDatasetName, const QString& embeddingDatasetName);
+    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points>& inputDataset, Dataset<Points>& embeddingDataset);
 
     /**
      * Get the context menu for the action
@@ -63,9 +63,9 @@ protected:
     TsneSettingsAction&     _tsneSettingsAction;    /** Reference to TSNE settings action from the HSNE analysis */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneHierarchy&          _hsneHierarchy;         /** Reference to HSNE hierarchy */
-    DatasetRef<Points>      _input;                 /** Input dataset reference */
-    DatasetRef<Points>      _embedding;             /** Embedding dataset reference */
-    QString                 _refineEmbeddingName;   /** Name of the output embedding dataset */
+    Dataset<Points>         _input;                 /** Input dataset reference */
+    Dataset<Points>         _embedding;             /** Embedding dataset reference */
+    Dataset<Points>         _refineEmbedding;       /** Refine embedding dataset reference */
     TriggerAction           _refineAction;          /** Refine action */
 
 protected:

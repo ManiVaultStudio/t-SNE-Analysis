@@ -33,7 +33,7 @@ void HsneAnalysisPlugin::init()
     HsneScaleAction::core = _core;
 
     // Created derived dataset for embedding
-    setOutputDatasetName(_core->createDerivedData("hsne_embedding", getInputDatasetName()));
+    setOutputDataset(_core->createDerivedData("hsne_embedding", getInputDataset(), getInputDataset()));
 
     // Create new HSNE settings actions
     _hsneSettingsAction = new HsneSettingsAction(this);
@@ -49,20 +49,21 @@ void HsneAnalysisPlugin::init()
 
     const auto numEmbeddingDimensions = 2;
 
-    initialData.resize(inputDataset.getNumPoints() * numEmbeddingDimensions);
+    initialData.resize(inputDataset->getNumPoints() * numEmbeddingDimensions);
 
-    outputDataset.setData(initialData.data(), inputDataset.getNumPoints(), numEmbeddingDimensions);
+    outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
     auto& tsneSettingsAction = _hsneSettingsAction->getTsneSettingsAction();
     
-    outputDataset.addAction(_hsneSettingsAction->getGeneralHsneSettingsAction());
-    outputDataset.addAction(_hsneSettingsAction->getAdvancedHsneSettingsAction());
-    outputDataset.addAction(_hsneSettingsAction->getTopLevelScaleAction());
-    outputDataset.addAction(tsneSettingsAction.getGeneralTsneSettingsAction());
-    outputDataset.addAction(tsneSettingsAction.getAdvancedTsneSettingsAction());
-    outputDataset.addAction(_hsneSettingsAction->getDimensionSelectionAction());
+    outputDataset->addAction(_hsneSettingsAction->getGeneralHsneSettingsAction());
+    outputDataset->addAction(_hsneSettingsAction->getAdvancedHsneSettingsAction());
+    outputDataset->addAction(_hsneSettingsAction->getTopLevelScaleAction());
+    outputDataset->addAction(tsneSettingsAction.getGeneralTsneSettingsAction());
+    outputDataset->addAction(tsneSettingsAction.getAdvancedTsneSettingsAction());
+    outputDataset->addAction(_hsneSettingsAction->getDimensionSelectionAction());
 
-    _core->getDataHierarchyItem(outputDataset.getName())->select();
+    outputDataset->setGuiName("hsne_embedding");
+    outputDataset->getDataHierarchyItem().select();
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
         setTaskProgress(percentage);
@@ -91,7 +92,7 @@ void HsneAnalysisPlugin::init()
         std::vector<bool> enabledDimensions = _hsneSettingsAction->getDimensionSelectionAction().getEnabledDimensions();
 
         // Initialize the HSNE algorithm with the given parameters
-        _hierarchy.initialize(_core, getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
+        _hierarchy.initialize(_core, *getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
 
         setTaskDescription("Computing top-level embedding");
 
@@ -107,13 +108,12 @@ void HsneAnalysisPlugin::init()
             case EventType::DataChanged:
             {
                 // If we are not looking at the changed dataset, ignore it
-                if (dataEvent->dataSetName != getInputDatasetName())
+                if (dataEvent->getDataset() != getInputDataset())
                     break;
 
-                // Passes changes to the current dataset to the dimension selection widget
-                Points& points = _core->requestData<Points>(dataEvent->dataSetName);
+                // Update dimension selection with new data
+                _hsneSettingsAction->getDimensionSelectionAction().dataChanged(dataEvent->getDataset<Points>());
 
-                _hsneSettingsAction->getDimensionSelectionAction().dataChanged(points);
                 break;
             }
         }
@@ -124,9 +124,9 @@ void HsneAnalysisPlugin::init()
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
         auto& embedding = getOutputDataset<Points>();
 
-        embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
+        embedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
-        _core->notifyDataChanged(getOutputDatasetName());
+        _core->notifyDataChanged(getOutputDataset());
     });
 
     setTaskName("HSNE");
@@ -136,29 +136,32 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 {
     // Get the top scale of the HSNE hierarchy
     int topScaleIndex = _hierarchy.getTopScale();
+
     Hsne::scale_type& topScale = _hierarchy.getScale(topScaleIndex);
+    
     int numLandmarks = topScale.size();
 
     // Create a subset of the points corresponding to the top level HSNE landmarks,
     // Then create an empty embedding derived from this subset
-    Points& inputData = getInputDataset<Points>();
-    Points& selection = static_cast<Points&>(inputData.getSelection());
+    auto inputDataset       = getInputDataset<Points>();
+    auto selectionDataset   = inputDataset->getSelection<Points>();
 
     // Select the appropriate points to create a subset from
-    selection.indices.resize(numLandmarks);
+    selectionDataset->indices.resize(numLandmarks);
+
     for (int i = 0; i < numLandmarks; i++)
-        selection.indices[i] = topScale._landmark_to_original_data_idx[i];
+        selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
 
     // Create the subset and clear the selection
-    QString subsetName = inputData.createSubset("hsne_scale_2", "", false);
-    selection.indices.clear();
-    
-    Points& embedding = getOutputDataset<Points>();
+    auto subset = inputDataset->createSubset("hsne_scale_2", nullptr, false);
 
-    embedding.setSourceData(subsetName);
+    selectionDataset->indices.clear();
 
-    embedding.setProperty("scale", topScaleIndex);
-    embedding.setProperty("landmarkMap", qVariantFromValue(_hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex]));
+    auto embeddingDataset = getOutputDataset<Points>();
+
+    embeddingDataset->setSourceDataSet(subset);
+    embeddingDataset->setProperty("scale", topScaleIndex);
+    embeddingDataset->setProperty("landmarkMap", qVariantFromValue(_hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex]));
     
     _hierarchy.printScaleInfo();
 
@@ -168,7 +171,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
     // Add linked selection between the upper embedding and the bottom layer
     {
-        std::vector<std::vector<unsigned int>> landmarkMap = embedding.getProperty("landmarkMap").value<std::vector<std::vector<unsigned int>>>();
+        std::vector<std::vector<unsigned int>> landmarkMap = embeddingDataset->getProperty("landmarkMap").value<std::vector<std::vector<unsigned int>>>();
         
         hdps::SelectionMap mapping;
         for (int i = 0; i < landmarkMap.size(); i++)
@@ -177,7 +180,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
             mapping[bottomLevelIdx] = landmarkMap[i];
         }
 
-        embedding.addLinkedSelection(embedding.getName(), mapping);
+        embeddingDataset->addLinkedSelection(embeddingDataset, mapping);
     }
 
     // Embed data
