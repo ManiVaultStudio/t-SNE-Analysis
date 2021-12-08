@@ -10,7 +10,7 @@ using namespace hdps::gui;
 
 CoreInterface* HsneScaleAction::core = nullptr;
 
-HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points>& inputDataset, Dataset<Points>& embeddingDataset) :
+HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
     GroupAction(parent, true),
     EventListener(),
     _tsneSettingsAction(tsneSettingsAction),

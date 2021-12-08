@@ -32,8 +32,8 @@ void TsneAnalysisPlugin::init()
     setOutputDataset(_core->createDerivedData("tsne_embedding", getInputDataset(), getInputDataset()));
 
     // Get input/output datasets
-    auto& inputDataset  = getInputDataset<Points>();
-    auto& outputDataset = getOutputDataset<Points>();
+    auto inputDataset  = getInputDataset<Points>();
+    auto outputDataset = getOutputDataset<Points>();
 
     outputDataset->setGuiName("HSNE Embedding");
 
