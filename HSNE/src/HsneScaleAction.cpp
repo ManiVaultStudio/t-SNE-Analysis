@@ -32,7 +32,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     setEventCore(core);
 
     const auto updateReadOnly = [this]() -> void {
-        auto& selection = _input->getSelection<Points>();
+        auto selection = _input->getSelection<Points>();
 
         _refineAction.setEnabled(!isReadOnly() && !selection->indices.empty());
     };
@@ -135,7 +135,8 @@ void HsneScaleAction::refine()
 
     // Create a new data set for the embedding
     {
-        auto& selection = _input->getSelection<Points>();
+        auto selection = _input->getSelection<Points>();
+
         Hsne::scale_type& dScale = _hsneHierarchy.getScale(drillScale);
 
         //std::vector<unsigned int> dataIndices;
