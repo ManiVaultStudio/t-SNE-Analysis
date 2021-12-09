@@ -42,8 +42,8 @@ void HsneAnalysisPlugin::init()
     _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().collapse();
 
     // Get input/output datasets
-    auto& inputDataset  = getInputDataset<Points>();
-    auto& outputDataset = getOutputDataset<Points>();
+    auto inputDataset  = getInputDataset<Points>();
+    auto outputDataset = getOutputDataset<Points>();
 
     std::vector<float> initialData;
 
@@ -116,13 +116,17 @@ void HsneAnalysisPlugin::init()
 
                 break;
             }
+
+            case EventType::DataAdded:
+            case EventType::DataAboutToBeRemoved:
+                break;
         }
     });
 
     _hsneSettingsAction->getDimensionSelectionAction().dataChanged(inputDataset);
 
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
-        auto& embedding = getOutputDataset<Points>();
+        auto embedding = getOutputDataset<Points>();
 
         embedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
