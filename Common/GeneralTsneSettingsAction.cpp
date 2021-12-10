@@ -32,11 +32,34 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _perplexityAction.initialize(2, 50, 30, 30);
 
     const auto updateKnnAlgorithm = [this]() -> void {
-        _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
+        if (_knnTypeAction.getCurrentText() == "FLANN")
+            _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_FLANN);
+
+        if (_knnTypeAction.getCurrentText() == "HNSW")
+            _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_HNSW);
+
+        if (_knnTypeAction.getCurrentText() == "ANNOY")
+            _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_ANNOY);
     };
 
     const auto updateDistanceMetric = [this]() -> void {
-        _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(static_cast<hdi::dr::knn_distance_metric>(_distanceMetricAction.getCurrentIndex()));
+        if (_distanceMetricAction.getCurrentText() == "Euclidean")
+            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_EUCLIDEAN);
+
+        if (_distanceMetricAction.getCurrentText() == "Cosine")
+            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_COSINE);
+
+        if (_distanceMetricAction.getCurrentText() == "Inner Product")
+            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_INNER_PRODUCT);
+
+        if (_distanceMetricAction.getCurrentText() == "Manhattan")
+            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_MANHATTAN);
+
+        if (_distanceMetricAction.getCurrentText() == "Hamming")
+            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_HAMMING);
+
+        if (_distanceMetricAction.getCurrentText() == "Dot")
+            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_DOT);
     };
 
     const auto updateNumIterations = [this]() -> void {

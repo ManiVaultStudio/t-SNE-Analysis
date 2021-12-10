@@ -160,7 +160,7 @@ void HsneScaleAction::refine()
 
     _refineEmbedding->addAction(*hsneScaleAction);
 
-    core->notifyDataAdded(*_refineEmbedding);
+    core->notifyDataAdded(_refineEmbedding);
 
     QList<uint32_t> indices(nextLevelIdxs.begin(), nextLevelIdxs.end());
     QVariant variantIndices = QVariant::fromValue<QList<uint32_t>>(indices);
@@ -193,7 +193,7 @@ void HsneScaleAction::refine()
             int bottomLevelIdx = _hsneHierarchy.getScale(currentScale)._landmark_to_original_data_idx[selectionIndex];
             mapping[bottomLevelIdx] = landmarkMap[selectionIndex];
         }
-        _embedding->addLinkedSelection(*_refineEmbedding, mapping);
+        _embedding->addLinkedSelection(_refineEmbedding, mapping);
     }
 
     _refineEmbedding->getDataHierarchyItem().setTaskName("HSNE scale");
@@ -206,7 +206,7 @@ void HsneScaleAction::refine()
         _refineEmbedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
         // Notify others that the embedding points have changed
-        core->notifyDataChanged(*_refineEmbedding);
+        core->notifyDataChanged(_refineEmbedding);
     });
 
     // Start the embedding process
