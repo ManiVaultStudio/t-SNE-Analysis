@@ -61,13 +61,13 @@ public: // Action getters
 
     void setScale(unsigned int scale)
     {
-        _currentScale = scale;
+        _currentScaleLevel = scale;
     }
 
     void setDrillIndices(const std::vector<uint32_t>& drillIndices)
     {
         _drillIndices = drillIndices;
-        _topScale = false;
+        _isTopScale = false;
     }
 
 protected:
@@ -86,7 +86,7 @@ protected:
     friend class Widget;
 
 private:
-    std::vector<uint32_t>   _drillIndices;
-    bool                    _topScale;
-    unsigned int            _currentScale;
+    std::vector<uint32_t>   _drillIndices;          /** Vector relating local indices to scale relative indices */
+    bool                    _isTopScale;            /** Whether current scale is the top scale */
+    unsigned int            _currentScaleLevel;     /** The scale the current embedding is a part of */
 };

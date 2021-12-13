@@ -20,7 +20,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _embedding(embeddingDataset),
     _refineEmbedding(),
     _refineAction(this, "Refine..."),
-    _topScale(true)
+    _isTopScale(true)
 {
     setText("HSNE scale");
 
@@ -76,43 +76,26 @@ void HsneScaleAction::refine()
     // Get associated points selection with embedding
     auto selection = _embedding->getSelection<Points>();
 
-    // The scale the current embedding is a part of
-    const auto currentScale = _currentScale;
-
-    // Get the drill-in scale
-    const auto drillScale = currentScale - 1;
+    // Get the refined scale level
+    const auto refinedScaleLevel = _currentScaleLevel - 1;
 
     // Find proper selection indices
-    std::vector<bool> pointsSelected;
-    _embedding->selectedLocalIndices(selection->indices, pointsSelected);
+    std::vector<bool> selectedLocalIndices;
+    _embedding->selectedLocalIndices(selection->indices, selectedLocalIndices);
 
+    // Transform local indices to scale relative indices
     std::vector<unsigned int> selectionIndices; // Selected indices relative to scale
-    if (_topScale)
+    for (int i = 0; i < selectedLocalIndices.size(); i++)
     {
-        //selectionIndices = selection.indices;
-        for (int i = 0; i < pointsSelected.size(); i++)
+        if (selectedLocalIndices[i])
         {
-            if (pointsSelected[i])
-            {
-                selectionIndices.push_back(i);
-            }
-        }
-    }
-    else
-    {
-        for (int i = 0; i < pointsSelected.size(); i++)
-        {
-            if (pointsSelected[i])
-            {
-                selectionIndices.push_back(_drillIndices[i]);
-            }
+            selectionIndices.push_back(_isTopScale ? i : _drillIndices[i]);
         }
     }
     
     // Find the points in the previous level corresponding to selected landmarks
     std::map<uint32_t, float> neighbors;
-    
-    _hsneHierarchy.getInfluencedLandmarksInPreviousScale(currentScale, selectionIndices, neighbors);
+    _hsneHierarchy.getInfluencedLandmarksInPreviousScale(_currentScaleLevel, selectionIndices, neighbors);
 
     // Threshold neighbours with enough influence
     std::vector<uint32_t> nextLevelIdxs; // Scale-relative indices
@@ -126,17 +109,17 @@ void HsneScaleAction::refine()
     std::cout << "#selected indices: " << selectionIndices.size() << std::endl;
     std::cout << "#landmarks at previous scale: " << neighbors.size() << std::endl;
     std::cout << "#thresholded at previous scale: " << nextLevelIdxs.size() << std::endl;
-    std::cout << "Drilling in" << std::endl;
+    std::cout << "Refining embedding.." << std::endl;
     
     // Compute the transition matrix for the landmarks above the threshold
     HsneMatrix transitionMatrix;
-    _hsneHierarchy.getTransitionMatrixForSelection(currentScale, transitionMatrix, nextLevelIdxs);
+    _hsneHierarchy.getTransitionMatrixForSelection(_currentScaleLevel, transitionMatrix, nextLevelIdxs);
 
     // Create a new data set for the embedding
     {
         auto selection = _input->getSelection<Points>();
 
-        Hsne::scale_type& dScale = _hsneHierarchy.getScale(drillScale);
+        Hsne::scale_type& dScale = _hsneHierarchy.getScale(refinedScaleLevel);
 
         //std::vector<unsigned int> dataIndices;
         selection->indices.clear();
@@ -156,22 +139,20 @@ void HsneScaleAction::refine()
     _refineEmbedding->setData(nullptr, 0, 2);
 
     // Only add a new scale action if the drill scale is higher than data level
-    if (drillScale > 0)
+    if (refinedScaleLevel > 0)
     {
         auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, _input, _refineEmbedding);
         hsneScaleAction->setDrillIndices(nextLevelIdxs);
-        hsneScaleAction->setScale(drillScale);
+        hsneScaleAction->setScale(refinedScaleLevel);
 
         _refineEmbedding->addAction(*hsneScaleAction);
     }
 
     core->notifyDataAdded(_refineEmbedding);
 
-    _refineEmbedding->setProperty("landmarkMap", qVariantFromValue(_hsneHierarchy.getInfluenceHierarchy().getMap()[drillScale]));
-    
     // Add linked selection between the upper embedding and the refined embedding
     {
-        std::vector<std::vector<unsigned int>> landmarkMap = _embedding->getProperty("landmarkMap").value<std::vector<std::vector<unsigned int>>>();
+        LandmarkMap& landmarkMap = _hsneHierarchy.getInfluenceHierarchy().getMap()[_currentScaleLevel];
 
         auto selection = _embedding->getSelection<Points>();
 
@@ -179,7 +160,7 @@ void HsneScaleAction::refine()
         _embedding->getLocalSelectionIndices(localSelectionIndices);
 
         // Transmute local indices by drill indices specifying relation to full hierarchy scale
-        if (!_topScale)
+        if (!_isTopScale)
         {
             for (int i = 0; i < localSelectionIndices.size(); i++)
                 localSelectionIndices[i] = _drillIndices[localSelectionIndices[i]];
@@ -188,7 +169,7 @@ void HsneScaleAction::refine()
         hdps::SelectionMap mapping;
         for (const unsigned int& selectionIndex : localSelectionIndices)
         {
-            int bottomLevelIdx = _hsneHierarchy.getScale(currentScale)._landmark_to_original_data_idx[selectionIndex];
+            int bottomLevelIdx = _hsneHierarchy.getScale(_currentScaleLevel)._landmark_to_original_data_idx[selectionIndex];
             mapping[bottomLevelIdx] = landmarkMap[selectionIndex];
         }
 
