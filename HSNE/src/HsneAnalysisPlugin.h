@@ -11,6 +11,13 @@ using namespace hdps::gui;
 
 class HsneScaleAction;
 
+/**
+ * HsneAnalysisPlugin
+ *
+ * Main plugin class responsible for computing HSNE hierarchies over point data
+ *
+ * @author Julian Thijssen
+ */
 class HsneAnalysisPlugin : public QObject, public AnalysisPlugin
 {
     Q_OBJECT

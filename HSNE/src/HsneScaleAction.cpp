@@ -119,13 +119,12 @@ void HsneScaleAction::refine()
     {
         auto selection = _input->getSelection<Points>();
 
-        Hsne::scale_type& dScale = _hsneHierarchy.getScale(refinedScaleLevel);
+        Hsne::scale_type& refinedScale = _hsneHierarchy.getScale(refinedScaleLevel);
 
-        //std::vector<unsigned int> dataIndices;
         selection->indices.clear();
         
         for (int i = 0; i < nextLevelIdxs.size(); i++)
-            selection->indices.push_back(dScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
+            selection->indices.push_back(refinedScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
 
         // Create HSNE scale subset
         auto hsneScaleSubset = _input->createSubset("hsne_scale", _input, false);
