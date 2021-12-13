@@ -20,7 +20,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _embedding(embeddingDataset),
     _refineEmbedding(),
     _refineAction(this, "Refine..."),
-    _topLevel(true)
+    _topScale(true)
 {
     setText("HSNE scale");
 
@@ -77,7 +77,7 @@ void HsneScaleAction::refine()
     auto selection = _embedding->getSelection<Points>();
 
     // The scale the current embedding is a part of
-    const auto currentScale = _embedding->getProperty("scale").value<int>();
+    const auto currentScale = _currentScale;
 
     // Get the drill-in scale
     const auto drillScale = currentScale - 1;
@@ -87,7 +87,7 @@ void HsneScaleAction::refine()
     _embedding->selectedLocalIndices(selection->indices, pointsSelected);
 
     std::vector<unsigned int> selectionIndices; // Selected indices relative to scale
-    if (_topLevel)
+    if (_topScale)
     {
         //selectionIndices = selection.indices;
         for (int i = 0; i < pointsSelected.size(); i++)
@@ -160,17 +160,13 @@ void HsneScaleAction::refine()
     {
         auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, _input, _refineEmbedding);
         hsneScaleAction->setDrillIndices(nextLevelIdxs);
+        hsneScaleAction->setScale(drillScale);
 
         _refineEmbedding->addAction(*hsneScaleAction);
     }
 
     core->notifyDataAdded(_refineEmbedding);
 
-    //QList<uint32_t> indices(nextLevelIdxs.begin(), nextLevelIdxs.end());
-    //QVariant variantIndices = QVariant::fromValue<QList<uint32_t>>(indices);
-    
-    //_refineEmbedding->setProperty("drill_indices", variantIndices);
-    _refineEmbedding->setProperty("scale", drillScale);
     _refineEmbedding->setProperty("landmarkMap", qVariantFromValue(_hsneHierarchy.getInfluenceHierarchy().getMap()[drillScale]));
     
     // Add linked selection between the upper embedding and the refined embedding
@@ -183,7 +179,7 @@ void HsneScaleAction::refine()
         _embedding->getLocalSelectionIndices(localSelectionIndices);
 
         // Transmute local indices by drill indices specifying relation to full hierarchy scale
-        if (!_topLevel)
+        if (!_topScale)
         {
             for (int i = 0; i < localSelectionIndices.size(); i++)
                 localSelectionIndices[i] = _drillIndices[localSelectionIndices[i]];

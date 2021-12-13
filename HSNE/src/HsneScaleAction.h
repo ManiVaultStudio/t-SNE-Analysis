@@ -59,10 +59,15 @@ public: // Action getters
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
     TriggerAction& getRefineAction() { return _refineAction; }
 
+    void setScale(unsigned int scale)
+    {
+        _currentScale = scale;
+    }
+
     void setDrillIndices(const std::vector<uint32_t>& drillIndices)
     {
         _drillIndices = drillIndices;
-        _topLevel = false;
+        _topScale = false;
     }
 
 protected:
@@ -81,6 +86,7 @@ protected:
     friend class Widget;
 
 private:
-    std::vector<uint32_t> _drillIndices;
-    bool _topLevel;
+    std::vector<uint32_t>   _drillIndices;
+    bool                    _topScale;
+    unsigned int            _currentScale;
 };

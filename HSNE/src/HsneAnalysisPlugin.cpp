@@ -164,7 +164,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     auto embeddingDataset = getOutputDataset<Points>();
 
     embeddingDataset->setSourceDataSet(subset);
-    embeddingDataset->setProperty("scale", topScaleIndex);
+    _hsneSettingsAction->getTopLevelScaleAction().setScale(topScaleIndex);
     embeddingDataset->setProperty("landmarkMap", qVariantFromValue(_hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex]));
     
     _hierarchy.printScaleInfo();
