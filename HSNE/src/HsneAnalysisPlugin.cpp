@@ -157,7 +157,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
 
     // Create the subset and clear the selection
-    auto subset = inputDataset->createSubset("hsne_scale_2", nullptr, false);
+    auto subset = inputDataset->createSubset(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
 
     selectionDataset->indices.clear();
 
