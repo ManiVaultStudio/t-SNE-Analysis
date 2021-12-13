@@ -193,7 +193,8 @@ void HsneScaleAction::refine()
             int bottomLevelIdx = _hsneHierarchy.getScale(currentScale)._landmark_to_original_data_idx[selectionIndex];
             mapping[bottomLevelIdx] = landmarkMap[selectionIndex];
         }
-        _embedding->addLinkedSelection(_refineEmbedding, mapping);
+
+        _refineEmbedding->addLinkedSelection(_refineEmbedding, mapping);
     }
 
     _refineEmbedding->getDataHierarchyItem().setTaskName("HSNE scale");
