@@ -26,7 +26,14 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 
     const auto updateKnnAlgorithm = [this]() -> void {
-        _hsneSettingsAction.getHsneParameters().setKnnLibrary(static_cast<hdi::dr::knn_library>(_knnTypeAction.getCurrentIndex()));
+        if (_knnTypeAction.getCurrentText() == "FLANN")
+            _hsneSettingsAction.getHsneParameters().setKnnLibrary(hdi::dr::knn_library::KNN_FLANN);
+
+        if (_knnTypeAction.getCurrentText() == "HNSW")
+            _hsneSettingsAction.getHsneParameters().setKnnLibrary(hdi::dr::knn_library::KNN_HNSW);
+
+        if (_knnTypeAction.getCurrentText() == "ANNOY")
+            _hsneSettingsAction.getHsneParameters().setKnnLibrary(hdi::dr::knn_library::KNN_ANNOY);
     };
 
     const auto updateSeed = [this]() -> void {
