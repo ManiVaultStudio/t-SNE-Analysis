@@ -156,9 +156,13 @@ void HsneScaleAction::refine()
 
     _refineEmbedding->setData(nullptr, 0, 2);
 
-    auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, _input, _refineEmbedding);
+    // Only add a new scale action if the drill scale is higher than data level
+    if (drillScale > 0)
+    {
+        auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, _input, _refineEmbedding);
 
-    _refineEmbedding->addAction(*hsneScaleAction);
+        _refineEmbedding->addAction(*hsneScaleAction);
+    }
 
     core->notifyDataAdded(_refineEmbedding);
 
