@@ -59,6 +59,12 @@ public: // Action getters
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
     TriggerAction& getRefineAction() { return _refineAction; }
 
+    void setDrillIndices(const std::vector<uint32_t>& drillIndices)
+    {
+        _drillIndices = drillIndices;
+        _topLevel = false;
+    }
+
 protected:
     TsneSettingsAction&     _tsneSettingsAction;    /** Reference to TSNE settings action from the HSNE analysis */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
@@ -73,4 +79,8 @@ protected:
 
     friend class HsneAnalysisPlugin;
     friend class Widget;
+
+private:
+    std::vector<uint32_t> _drillIndices;
+    bool _topLevel;
 };

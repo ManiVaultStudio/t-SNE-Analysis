@@ -19,7 +19,8 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _input(inputDataset),
     _embedding(embeddingDataset),
     _refineEmbedding(),
-    _refineAction(this, "Refine...")
+    _refineAction(this, "Refine..."),
+    _topLevel(true)
 {
     setText("HSNE scale");
 
@@ -86,19 +87,7 @@ void HsneScaleAction::refine()
     _embedding->selectedLocalIndices(selection->indices, pointsSelected);
 
     std::vector<unsigned int> selectionIndices; // Selected indices relative to scale
-    if (_embedding->hasProperty("drill_indices"))
-    {
-        QList<uint32_t> drillIndices = _embedding->getProperty("drill_indices").value<QList<uint32_t>>();
-
-        for (int i = 0; i < pointsSelected.size(); i++)
-        {
-            if (pointsSelected[i])
-            {
-                selectionIndices.push_back(drillIndices[i]);
-            }
-        }
-    }
-    else
+    if (_topLevel)
     {
         //selectionIndices = selection.indices;
         for (int i = 0; i < pointsSelected.size(); i++)
@@ -106,6 +95,16 @@ void HsneScaleAction::refine()
             if (pointsSelected[i])
             {
                 selectionIndices.push_back(i);
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < pointsSelected.size(); i++)
+        {
+            if (pointsSelected[i])
+            {
+                selectionIndices.push_back(_drillIndices[i]);
             }
         }
     }
@@ -160,16 +159,17 @@ void HsneScaleAction::refine()
     if (drillScale > 0)
     {
         auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, _input, _refineEmbedding);
+        hsneScaleAction->setDrillIndices(nextLevelIdxs);
 
         _refineEmbedding->addAction(*hsneScaleAction);
     }
 
     core->notifyDataAdded(_refineEmbedding);
 
-    QList<uint32_t> indices(nextLevelIdxs.begin(), nextLevelIdxs.end());
-    QVariant variantIndices = QVariant::fromValue<QList<uint32_t>>(indices);
+    //QList<uint32_t> indices(nextLevelIdxs.begin(), nextLevelIdxs.end());
+    //QVariant variantIndices = QVariant::fromValue<QList<uint32_t>>(indices);
     
-    _refineEmbedding->setProperty("drill_indices", variantIndices);
+    //_refineEmbedding->setProperty("drill_indices", variantIndices);
     _refineEmbedding->setProperty("scale", drillScale);
     _refineEmbedding->setProperty("landmarkMap", qVariantFromValue(_hsneHierarchy.getInfluenceHierarchy().getMap()[drillScale]));
     
@@ -183,12 +183,10 @@ void HsneScaleAction::refine()
         _embedding->getLocalSelectionIndices(localSelectionIndices);
 
         // Transmute local indices by drill indices specifying relation to full hierarchy scale
-        if (_embedding->hasProperty("drill_indices"))
+        if (!_topLevel)
         {
-            QList<uint32_t> drillIndices = _embedding->getProperty("drill_indices").value<QList<uint32_t>>();
-
             for (int i = 0; i < localSelectionIndices.size(); i++)
-                localSelectionIndices[i] = drillIndices[localSelectionIndices[i]];
+                localSelectionIndices[i] = _drillIndices[localSelectionIndices[i]];
         }
 
         hdps::SelectionMap mapping;
