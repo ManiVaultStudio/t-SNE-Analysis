@@ -28,6 +28,7 @@ public: // Action getters
 
     HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
     OptionAction& getKnnTypeAction() { return _knnTypeAction; }
+    IntegralAction& getNumScalesAction() { return _numScalesAction; }
     IntegralAction& getSeedAction() { return _seedAction; }
     ToggleAction& getUseMonteCarloSamplingAction() { return _useMonteCarloSamplingAction; }
     TriggerAction& getStartAction() { return _startAction; }
@@ -35,6 +36,7 @@ public: // Action getters
 protected:
     HsneSettingsAction&     _hsneSettingsAction;                /** Reference to HSNE settings action */
     OptionAction            _knnTypeAction;                     /** KNN action */
+    IntegralAction          _numScalesAction;                   /** Num scales action */
     IntegralAction          _seedAction;                        /** Random seed action */
     ToggleAction            _useMonteCarloSamplingAction;       /** Use Monte Carlo sampling on/off action */
     TriggerAction           _startAction;                       /** Start action */

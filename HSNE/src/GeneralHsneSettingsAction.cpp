@@ -7,6 +7,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     GroupAction(&hsneSettingsAction, true),
     _hsneSettingsAction(hsneSettingsAction),
     _knnTypeAction(this, "KNN Type"),
+    _numScalesAction(this, "Number of Hierarchy Scales"),
     _seedAction(this, "Random seed"),
     _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling"),
     _startAction(this, "Start")
@@ -16,10 +17,12 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
     _knnTypeAction.setDefaultWidgetFlags(OptionAction::ComboBox);
+    _numScalesAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _seedAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _useMonteCarloSamplingAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
 
     _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
+    _numScalesAction.initialize(1, 10, 3, 3);
     _seedAction.initialize(-1000, 1000, -1, -1);
     _useMonteCarloSamplingAction.initialize(hsneParameters.useMonteCarloSampling(), hsneParameters.useMonteCarloSampling());
     
@@ -36,6 +39,10 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
             _hsneSettingsAction.getHsneParameters().setKnnLibrary(hdi::dr::knn_library::KNN_ANNOY);
     };
 
+    const auto updateNumScales = [this]() -> void {
+        _hsneSettingsAction.getHsneParameters().setNumScales(_numScalesAction.getValue());
+    };
+
     const auto updateSeed = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setSeed(_seedAction.getValue());
     };
@@ -49,12 +56,17 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
 
         _startAction.setEnabled(enabled);
         _knnTypeAction.setEnabled(enabled);
+        _numScalesAction.setEnabled(enabled);
         _seedAction.setEnabled(enabled);
         _useMonteCarloSamplingAction.setEnabled(enabled);
     };
 
     connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm]() {
         updateKnnAlgorithm();
+    });
+
+    connect(&_numScalesAction, &IntegralAction::valueChanged, this, [this, updateNumScales]() {
+        updateNumScales();
     });
 
     connect(&_seedAction, &IntegralAction::valueChanged, this, [this, updateSeed]() {
@@ -74,6 +86,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     });
 
     updateKnnAlgorithm();
+    updateNumScales();
     updateSeed();
     updateUseMonteCarloSampling();
     updateReadOnly();
