@@ -165,8 +165,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
     embeddingDataset->setSourceDataSet(subset);
     _hsneSettingsAction->getTopLevelScaleAction().setScale(topScaleIndex);
-    embeddingDataset->setProperty("landmarkMap", qVariantFromValue(_hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex]));
-    
+
     _hierarchy.printScaleInfo();
 
     // Set t-SNE parameters
@@ -175,7 +174,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
     // Add linked selection between the upper embedding and the bottom layer
     {
-        std::vector<std::vector<unsigned int>> landmarkMap = embeddingDataset->getProperty("landmarkMap").value<std::vector<std::vector<unsigned int>>>();
+        LandmarkMap& landmarkMap = _hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex];
         
         hdps::SelectionMap mapping;
         for (int i = 0; i < landmarkMap.size(); i++)
