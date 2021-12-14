@@ -22,8 +22,8 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _useMonteCarloSamplingAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
 
     _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
-    _numScalesAction.initialize(1, 10, 3, 3);
-    _seedAction.initialize(-1000, 1000, -1, -1);
+    _numScalesAction.initialize(1, 10, hsneParameters.getNumScales(), hsneParameters.getNumScales());
+    _seedAction.initialize(-1000, 1000, hsneParameters.getSeed(), hsneParameters.getSeed());
     _useMonteCarloSamplingAction.initialize(hsneParameters.useMonteCarloSampling(), hsneParameters.useMonteCarloSampling());
     
     _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
