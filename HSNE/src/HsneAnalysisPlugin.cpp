@@ -94,7 +94,7 @@ void HsneAnalysisPlugin::init()
 
         qApp->processEvents();
 
-        std::vector<bool> enabledDimensions = _hsneSettingsAction->getDimensionSelectionAction().getEnabledDimensions();
+        std::vector<bool> enabledDimensions = _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().getEnabledDimensions();
 
         // Initialize the HSNE algorithm with the given parameters
         _hierarchy.initialize(_core, *getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
@@ -117,7 +117,7 @@ void HsneAnalysisPlugin::init()
                     break;
 
                 // Update dimension selection with new data
-                _hsneSettingsAction->getDimensionSelectionAction().dataChanged(dataEvent->getDataset<Points>());
+                _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().setPointsDataset(dataEvent->getDataset<Points>());
 
                 break;
             }
@@ -128,7 +128,7 @@ void HsneAnalysisPlugin::init()
         }
     });
 
-    _hsneSettingsAction->getDimensionSelectionAction().dataChanged(inputDataset);
+    _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().setPointsDataset(inputDataset);
 
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
         auto embedding = getOutputDataset<Points>();

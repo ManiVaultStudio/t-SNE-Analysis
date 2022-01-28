@@ -25,6 +25,8 @@ public:
     void continueComputation();
     void stopComputation();
 
+public: // Action getters
+
     TsneSettingsAction& getGeneralSettingsAction() { return _tsneSettingsAction; }
     DimensionSelectionAction& getDimensionSelectionAction() { return _dimensionSelectionAction; }
 

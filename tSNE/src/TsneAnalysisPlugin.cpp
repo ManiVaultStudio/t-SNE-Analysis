@@ -129,7 +129,7 @@ void TsneAnalysisPlugin::init()
         _core->notifyDataChanged(getOutputDataset());
     });
 
-    _dimensionSelectionAction.dataChanged(inputDataset);
+    _dimensionSelectionAction.getPickerAction().setPointsDataset(inputDataset);
 
     connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction, updateComputationAction](bool toggled) {
         _dimensionSelectionAction.setEnabled(!toggled);
@@ -149,7 +149,7 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     if (dataEvent->getType() == EventType::DataChanged)
     {
         if (dataEvent->getDataset() == getInputDataset())
-            _dimensionSelectionAction.dataChanged(dataEvent->getDataset<Points>());
+            _dimensionSelectionAction.getPickerAction().setPointsDataset(dataEvent->getDataset<Points>());
     }
 }
 
@@ -166,7 +166,7 @@ void TsneAnalysisPlugin::startComputation()
     std::vector<unsigned int> indices;
 
     // Extract the enabled dimensions from the data
-    std::vector<bool> enabledDimensions = _dimensionSelectionAction.getEnabledDimensions();
+    std::vector<bool> enabledDimensions = _dimensionSelectionAction.getPickerAction().getEnabledDimensions();
 
     const auto numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 

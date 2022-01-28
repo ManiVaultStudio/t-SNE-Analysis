@@ -21,7 +21,6 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
         _advancedHsneSettingsAction.setReadOnly(isReadOnly());
         _topLevelScaleAction.setReadOnly(isReadOnly());
         _tsneSettingsAction.setReadOnly(isReadOnly());
-        _dimensionSelectionAction.setReadOnly(isReadOnly());
     };
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
