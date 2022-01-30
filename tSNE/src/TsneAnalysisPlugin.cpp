@@ -142,6 +142,20 @@ void TsneAnalysisPlugin::init()
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 
     setTaskName("TSNE");
+
+    auto& generalTsneSettingsAction = _tsneSettingsAction.getGeneralTsneSettingsAction();
+
+    generalTsneSettingsAction.getKnnTypeAction().setSettingsPrefix("TSNE general settings/KNN Type", this);
+    generalTsneSettingsAction.getDistanceMetricAction().setSettingsPrefix("TSNE general settings/Distance metric", this);
+    generalTsneSettingsAction.getNumIterationsAction().setSettingsPrefix("TSNE general settings/Number of iterations", this);
+    generalTsneSettingsAction.getPerplexityAction().setSettingsPrefix("TSNE general settings/Perplexity", this);
+
+    auto& advancedTsneSettingsAction = _tsneSettingsAction.getAdvancedTsneSettingsAction();
+
+    advancedTsneSettingsAction.getExaggerationAction().setSettingsPrefix("TSNE advanced settings/Datasets/Exaggeration", this);
+    advancedTsneSettingsAction.getExponentialDecayAction().setSettingsPrefix("TSNE advanced settings/Datasets/Exponential decay", this);
+    advancedTsneSettingsAction.getNumTreesAction().setSettingsPrefix("TSNE advanced settings/Datasets/Number of trees", this);
+    advancedTsneSettingsAction.getNumChecksAction().setSettingsPrefix("TSNE advanced settings/Datasets/Number of checks", this);
 }
 
 void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
