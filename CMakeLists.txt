@@ -1,74 +1,120 @@
 cmake_minimum_required(VERSION 3.15.0)
 
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX $ENV{HDPS_INSTALL_DIR} CACHE PATH "..." FORCE)
-endif()
-
-set(HDILib_VERSION latest)
+# -----------------------------------------------------------------------------
+# CMake Options
+# -----------------------------------------------------------------------------
 set(VERBOSE TRUE)
 
-if(NOT USE_PREBUILT_LIBS)
-    set(USE_PREBUILT_LIBS TRUE CACHE BOOL "Use the prebuilt libraries from artifactory")
-endif()
+# Set the directory where CMake include files are to be found
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-if(WIN32)
-    set(flann_VERSION 1.8.5)
-elseif(APPLE)
+# -----------------------------------------------------------------------------
+# Library versions
+# -----------------------------------------------------------------------------
+set(HDILib_VERSION latest)
+set(flann_VERSION 1.8.5)
+set(lz4_VERSION 1.9.3)
+if(APPLE)
     set(flann_VERSION 1.9.1)
 endif()
 
-project("SNE-Analyses")
+# -----------------------------------------------------------------------------
+# Define the SNE Analyses project
+# -----------------------------------------------------------------------------
+project("SNE-Analyses" C CXX)
+
+if(NOT USE_ARTIFACTORY_LIBS)
+    set(USE_ARTIFACTORY_LIBS TRUE CACHE BOOL "Use the prebuilt libraries from artifactory")
+endif()
+
+# -----------------------------------------------------------------------------
+# Set install directory
+# -----------------------------------------------------------------------------
+# Checks whether this is the first CMake run for this project.
+# If so, sets the CMake Install Prefix to the HDPS install directory.
+# This if-statement must be placed after the project() command to work.
+
+if(NOT USE_ARTIFACTORY_LIBS)
+    message(STATUS "***********NO PBL*********** ${USE_ARTIFACTORY_LIBS}")
+    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        if (NOT DEFINED ENV{HDPS_INSTALL_DIR})
+            message(WARNING "Environment variable HDPS_INSTALL_DIR not set. \
+                            Plugins will have to be manually copied or \
+                            CMAKE_INSTALL_PREFIX should be set manually.")
+        else()
+            # Load HDPS_INSTALL_DIR in CMake format and store in INSTALL_DIR
+            # Set the default install prefix to HDPS_INSTALL_DIR
+            file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} HDPS_INSTALL_DIR)
+            set(CMAKE_INSTALL_PREFIX ${HDPS_INSTALL_DIR} CACHE PATH "..." FORCE)
+        endif()
+    endif()
+else()
+    if (NOT DEFINED ENV{HDPS_INSTALL_DIR})
+        message(FATAL_ERROR "Environment variable HDPS_INSTALL_DIR not set.")
+    endif()
+    file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} HDPS_INSTALL_DIR)
+    set(CMAKE_INSTALL_PREFIX ${HDPS_INSTALL_DIR} CACHE PATH "..." FORCE)
+endif()
+
+set(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "t-SNE-Analysis install directory")
+
+# -----------------------------------------------------------------------------
+# Windows compiler and linker flags
+# -----------------------------------------------------------------------------
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif(MSVC)
 
+# -----------------------------------------------------------------------------
+# Qt library and flags
+# -----------------------------------------------------------------------------
+# Find Qt library
 find_package(Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
-set(INSTALL_DIR ${CMAKE_SOURCE_DIR} CACHE PATH "Canonical form of HDPS_INSTALL_DIR")
-
-# Normalize the incoming install path
-file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} INSTALL_DIR_TEMP)
-
-set(INSTALL_DIR ${INSTALL_DIR_TEMP} CACHE PATH "" FORCE)
-
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Enables Qt auto-moc to run for all target projects
 set(CMAKE_AUTOMOC ON)
 
-set(UI_FILES
-    ui/DimensionSelectionWidget.ui
-)
-
-QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
+# -----------------------------------------------------------------------------
+# Install libraries
+# -----------------------------------------------------------------------------
+set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
 
 include(InstallArtifactoryPackage)
-if (USE_PREBUILT_LIBS AND NOT PREBUILT_LIBS_INSTALLED)
-    # Both HDILib and flann are available prebuilt in the lkeb-artifactory.
-    # The packages can be downloaded containing both Debug & Release binaries
-    install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) #1.2.3
-    install_artifactory_package(flann ${flann_VERSION} lkeb TRUE) #1.2.3
+if (USE_ARTIFACTORY_LIBS AND NOT ARTIFACTORY_LIBS_INSTALLED)
+    # Both HDILib and flann are available prebuilt in the lkeb-artifactory as combined Debug/Release packages
+    # lz4 is also available in the lkb-artifactory in separate Debug and |Release packages
+    install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) 
+    install_artifactory_package(flann ${flann_VERSION} lkeb TRUE)
+    install_artifactory_package(lz4 ${lz4_VERSION} _ FALSE)
 
-    message("module path ${CMAKE_MODULE_PATH}")
-    message("Call find_package HDILib search ${CMAKE_SOURCE_DIR}/HDILib/lib/cmake/HDILib")
-    message("Run find_package HDILib")
+    message(STATUS "module path ${CMAKE_MODULE_PATH}")
+    message(STATUS "Call find_package HDILib search ${CMAKE_SOURCE_DIR}/HDILib/lib/cmake/HDILib")
+    message(STATUS "Run find_package HDILib")
 
-    set(PREBUILT_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
+    set(ARTIFACTORY_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
 endif()
 
-if(USE_PREBUILT_LIBS AND PREBUILT_LIBS_INSTALLED)
+if(USE_ARTIFACTORY_LIBS AND ARTIFACTORY_LIBS_INSTALLED)
     # If the HDILib_VERSION is not a x.y.z version number 
     # omit the version argument from find package
-    find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${INSTALL_DIR}/HDILib" CONFIG REQUIRED)
+    find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${LIBRARY_INSTALL_DIR}/HDILib" CONFIG REQUIRED)
 endif()
 
+find_package(OpenGL REQUIRED)
+
+# -----------------------------------------------------------------------------
+# Target definitions
+# -----------------------------------------------------------------------------
 if (APPLE)
     # This silences OpenGL deprecation warnings on MacOS
     add_definitions(-DGL_SILENCE_DEPRECATION)
 endif()
 
+# -----------------------------------------------------------------------------
+# Project targets
+# -----------------------------------------------------------------------------
 include(CMakeCommon)
 include(CMakeTsneProject)
 include(CMakeHsneProject)

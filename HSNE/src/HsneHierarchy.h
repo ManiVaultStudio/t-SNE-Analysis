@@ -22,6 +22,13 @@ class HsneHierarchy;
 
 using LandmarkMap = std::vector<std::vector<unsigned int>>;
 
+/**
+ * InfluenceHierarchy
+ *
+ * Container class for the mapping of the HSNE scales to the data level
+ *
+ * @author Julian Thijssen
+ */
 class InfluenceHierarchy
 {
 public:
@@ -33,6 +40,13 @@ private:
     std::vector<LandmarkMap> _influenceMap;
 };
 
+/**
+ * HsneHierarchy
+ *
+ * Wrapper for the HDI HSNE hierarchy
+ *
+ * @author Julian Thijssen
+ */
 class HsneHierarchy : public QObject
 {
     Q_OBJECT
@@ -97,9 +111,6 @@ public:
     QString getInputDataName() { return _inputDataName; }
     int getNumPoints() { return _numPoints; }
     int getNumDimensions() { return _numDimensions; }
-
-public slots:
-    void newScale();
 
 private:
     hdps::CoreInterface* _core;

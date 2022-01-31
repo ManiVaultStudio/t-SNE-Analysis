@@ -5,74 +5,52 @@
 #include <AnalysisPlugin.h>
 
 #include "TsneAnalysis.h"
-
-#include "Application.h"
-
-class TsneSettingsWidget;
+#include "TsneSettingsAction.h"
+#include "DimensionSelectionAction.h"
 
 using namespace hdps::plugin;
 
-// =============================================================================
-// View
-// =============================================================================
-
 class TsneAnalysisPlugin : public QObject, public AnalysisPlugin
 {
-    Q_OBJECT   
+    Q_OBJECT
 public:
-    TsneAnalysisPlugin();
+    TsneAnalysisPlugin(const PluginFactory* factory);
     ~TsneAnalysisPlugin(void) override;
-    
+
     void init() override;
 
     void onDataEvent(hdps::DataEvent* dataEvent);
 
-    /** Returns the icon of this plugin */
-    QIcon getIcon() const override {
-        return hdps::Application::getIconFont("FontAwesome").getIcon("table");
-    }
-
-    hdps::DataTypes supportedDataTypes() const override;
-
-    hdps::gui::SettingsWidget* const getSettings() override;
-
     void startComputation();
+    void continueComputation();
     void stopComputation();
 
-public: // GUI
+public: // Action getters
 
-    /**
-     * Generates a context menu for display in other (view) plugins
-     * @param kind Kind of plugin in which the context menu will be shown
-     * @return Context menu
-     */
-    QMenu* contextMenu(const QVariant& context) override;
+    TsneSettingsAction& getGeneralSettingsAction() { return _tsneSettingsAction; }
+    DimensionSelectionAction& getDimensionSelectionAction() { return _dimensionSelectionAction; }
 
-public slots:
-    void dataSetPicked(const QString& name);
-    void onNewEmbedding(const TsneData tsneData);
-
-private:
-    TsneAnalysis _tsne;
-
-    std::unique_ptr<TsneSettingsWidget> _settings;
-    QString _embeddingName;
+protected:
+    TsneAnalysis                _tsneAnalysis;                  /** TSNE analysis */
+    TsneSettingsAction          _tsneSettingsAction;            /** TSNE settings action */
+    DimensionSelectionAction    _dimensionSelectionAction;      /** Dimension selection settings action */
 };
-
-// =============================================================================
-// Factory
-// =============================================================================
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory
 {
     Q_INTERFACES(hdps::plugin::AnalysisPluginFactory hdps::plugin::PluginFactory)
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID   "nl.tudelft.TsneAnalysisPlugin"
-                      FILE  "TsneAnalysisPlugin.json")
-    
+        Q_OBJECT
+        Q_PLUGIN_METADATA(IID   "nl.tudelft.TsneAnalysisPlugin"
+                          FILE  "TsneAnalysisPlugin.json")
+
 public:
     TsneAnalysisPluginFactory(void) {}
     ~TsneAnalysisPluginFactory(void) override {}
-    
+
+    /** Returns the plugin icon */
+    QIcon getIcon() const override;
+
     AnalysisPlugin* produce() override;
+
+    hdps::DataTypes supportedDataTypes() const override;
 };

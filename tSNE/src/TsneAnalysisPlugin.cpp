@@ -1,170 +1,248 @@
 #include "TsneAnalysisPlugin.h"
-#include "TsneSettingsWidget.h"
 
 #include "PointData.h"
 
 #include <QtCore>
 #include <QtDebug>
 #include <QMenu>
+#include <QPainter>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 
 #include <set>
 
-// =============================================================================
-// View
-// =============================================================================
-
 using namespace hdps;
-TsneAnalysisPlugin::TsneAnalysisPlugin() :
-    AnalysisPlugin("tSNE Analysis")
+using namespace hdps::gui;
+
+TsneAnalysisPlugin::TsneAnalysisPlugin(const PluginFactory* factory) :
+    AnalysisPlugin(factory),
+    _tsneAnalysis(),
+    _tsneSettingsAction(this),
+    _dimensionSelectionAction(this)
 {
-    QObject::connect(&_tsne, &TsneAnalysis::progressMessage, [this](const QString& message) {
-        _settings->setSubtitle(message);
-    });
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 {
-    stopComputation();
+    _tsneSettingsAction.getComputationAction().getStopComputationAction().trigger();
 }
 
 void TsneAnalysisPlugin::init()
 {
-    _settings = std::make_unique<TsneSettingsWidget>(*this);
+    setOutputDataset(_core->createDerivedData("tsne_embedding", getInputDataset(), getInputDataset()));
 
-    connect(_settings.get(), &TsneSettingsWidget::dataSetPicked, this, &TsneAnalysisPlugin::dataSetPicked);
-    connect(&_tsne, &TsneAnalysis::finished, _settings.get(), &TsneSettingsWidget::onComputationStopped);
-    connect(&_tsne, &TsneAnalysis::embeddingUpdate, this, &TsneAnalysisPlugin::onNewEmbedding);
+    // Get input/output datasets
+    auto inputDataset  = getInputDataset<Points>();
+    auto outputDataset = getOutputDataset<Points>();
+
+    outputDataset->setGuiName("HSNE Embedding");
+
+    std::vector<float> initialData;
+
+    const auto numEmbeddingDimensions = 2;
+
+    initialData.resize(inputDataset->getNumPoints() * numEmbeddingDimensions);
+
+    outputDataset->setGuiName("TSNE Embedding");
+
+    outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
+
+    outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
+    outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
+    outputDataset->addAction(_dimensionSelectionAction);
+    outputDataset->addAction(_tsneSettingsAction.getComputationAction());
+
+    outputDataset->getDataHierarchyItem().select();
+
+    auto& computationAction = _tsneSettingsAction.getComputationAction();
+
+    const auto updateComputationAction = [this, &computationAction]() {
+        const auto isRunning = computationAction.getRunningAction().isChecked();
+        
+        computationAction.getStartComputationAction().setEnabled(!isRunning);
+        computationAction.getContinueComputationAction().setEnabled(!isRunning && _tsneAnalysis.canContinue());
+        computationAction.getStopComputationAction().setEnabled(isRunning);
+    };
+
+    connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
+        if (getTaskStatus() == DataHierarchyItem::TaskStatus::Aborted)
+            return;
+
+        setTaskProgress(percentage);
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
+        if (getTaskStatus() == DataHierarchyItem::TaskStatus::Aborted)
+            return;
+
+        setTaskDescription(section);
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this, &computationAction]() {
+        setTaskFinished();
+        
+        computationAction.getRunningAction().setChecked(false);
+
+        _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(false);
+        _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(false);
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::aborted, this, [this, &computationAction, updateComputationAction]() {
+        setTaskAborted();
+
+        updateComputationAction();
+
+        computationAction.getRunningAction().setChecked(false);
+
+        _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(false);
+        _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(false);
+    });
+
+    connect(&computationAction.getStartComputationAction(), &TriggerAction::triggered, this, [this, &computationAction]() {
+        _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(true);
+        _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(true);
+
+        startComputation();
+    });
+
+    connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
+        _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(true);
+        _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(true);
+
+        continueComputation();
+    });
+
+    connect(&computationAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
+        setTaskDescription("Aborting TSNE");
+
+        qApp->processEvents();
+
+        stopComputation();
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData tsneData) {
+
+        // Update the output points dataset with new data from the TSNE analysis
+        getOutputDataset<Points>()->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
+
+        // Notify others that the embedding data changed
+        _core->notifyDataChanged(getOutputDataset());
+    });
+
+    _dimensionSelectionAction.getPickerAction().setPointsDataset(inputDataset);
+
+    connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction, updateComputationAction](bool toggled) {
+        _dimensionSelectionAction.setEnabled(!toggled);
+
+        updateComputationAction();
+    });
+
+    updateComputationAction();
 
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
+
+    setTaskName("TSNE");
 }
 
 void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
-    if (dataEvent->getType() == EventType::DataAdded)
-        _settings->addDataItem(static_cast<DataAddedEvent*>(dataEvent)->dataSetName);
-
-    if (dataEvent->getType() == EventType::DataRemoved)
-        _settings->removeDataItem(static_cast<DataRemovedEvent*>(dataEvent)->dataSetName);
-
     if (dataEvent->getType() == EventType::DataChanged)
     {
-        auto dataChangedEvent = static_cast<DataChangedEvent*>(dataEvent);
-
-        // If we are not looking at the changed dataset, ignore it
-        if (dataChangedEvent->dataSetName != _settings->getCurrentDataItem())
-            return;
-
-        // Passes changes to the current dataset to the dimension selection widget
-        Points& points = _core->requestData<Points>(dataChangedEvent->dataSetName);
-
-        _settings->getDimensionSelectionWidget().dataChanged(points);
+        if (dataEvent->getDataset() == getInputDataset())
+            _dimensionSelectionAction.getPickerAction().setPointsDataset(dataEvent->getDataset<Points>());
     }
-}
-
-hdps::DataTypes TsneAnalysisPlugin::supportedDataTypes() const
-{
-    DataTypes supportedTypes;
-    supportedTypes.append(PointType);
-    return supportedTypes;
-}
-
-hdps::gui::SettingsWidget* const TsneAnalysisPlugin::getSettings()
-{
-    return _settings.get();
-}
-
-void TsneAnalysisPlugin::dataSetPicked(const QString& name)
-{
-    Points& points = _core->requestData<Points>(name);
-
-    auto analyses = points.getProperty("Analyses", QVariantList()).toList();
-
-    analyses.push_back(getName());
-
-    points.setProperty("Analyses", analyses);
-
-    _settings->getDimensionSelectionWidget().dataChanged(points);
-
-    _settings->setTitle(QString("%1: %2").arg(getGuiName(), name));
 }
 
 void TsneAnalysisPlugin::startComputation()
 {
-    _settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("play"));
-    _settings->setSubtitle("Initializing A-tSNE...");
+    setTaskRunning();
+    setTaskProgress(0.0f);
+    setTaskDescription("Preparing data");
 
-    qApp->processEvents();
-
-    TsneParameters parameters = _settings->getTsneParameters();
-
-    // Prepare the data
-    QString setName = _settings->getCurrentDataItem();
-    const Points& points = _core->requestData<Points>(setName);
-
-    unsigned int numDimensions = points.getNumDimensions();
+    auto inputPoints = getInputDataset<Points>();
 
     // Create list of data from the enabled dimensions
     std::vector<float> data;
     std::vector<unsigned int> indices;
 
     // Extract the enabled dimensions from the data
-    std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
-    unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
-    data.resize((points.isFull() ? points.getNumPoints() : points.indices.size()) * numEnabledDimensions);
-    for (int i = 0; i < points.getNumDimensions(); i++)
-        if (enabledDimensions[i]) indices.push_back(i);
+    std::vector<bool> enabledDimensions = _dimensionSelectionAction.getPickerAction().getEnabledDimensions();
 
-    points.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
+    const auto numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 
-    // Create new data set for the embedding
-    _embeddingName = _core->createDerivedData(_settings->getEmbeddingName(), points.getName());
+    data.resize((inputPoints->isFull() ? inputPoints->getNumPoints() : inputPoints->indices.size()) * numEnabledDimensions);
 
-    Points& embedding = _core->requestData<Points>(_embeddingName);
-    embedding.setData(nullptr, 0, 2);
-    _core->notifyDataAdded(_embeddingName);
+    for (int i = 0; i < inputPoints->getNumDimensions(); i++)
+        if (enabledDimensions[i])
+            indices.push_back(i);
 
-    _tsne.startComputation(parameters, data, numEnabledDimensions);
+    inputPoints->populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
+
+    _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
+
+    _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), data, numEnabledDimensions);
 }
 
-void TsneAnalysisPlugin::onNewEmbedding(const TsneData tsneData) {
-    Points& embedding = _core->requestData<Points>(_embeddingName);
-
-    embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
-
-    _core->notifyDataChanged(_embeddingName);
-}
-
-void TsneAnalysisPlugin::stopComputation() {
-    _settings->setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("stop"));
-    _settings->setSubtitle("Stopping computation...");
-
-    _tsne.stopComputation();
-    qDebug() << "tSNE computation stopped.";
-}
-
-QMenu* TsneAnalysisPlugin::contextMenu(const QVariant& context)
+void TsneAnalysisPlugin::continueComputation()
 {
-    auto menu = new QMenu(getGuiName());
-    
-    auto startComputationAction = new QAction("Start computation");
-    auto stopComputationAction = new QAction("Stop computation");
+    setTaskRunning();
+    setTaskProgress(0.0f);
 
-    connect(startComputationAction, &QAction::triggered, [this]() { startComputation(); });
-    connect(stopComputationAction, &QAction::triggered, [this]() { stopComputation(); });
+    _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
 
-    menu->addAction(startComputationAction);
-    menu->addAction(stopComputationAction);
-
-    return menu;
+    _tsneAnalysis.continueComputation(_tsneSettingsAction.getTsneParameters().getNumIterations());
 }
 
-// =============================================================================
-// Factory
-// =============================================================================
+void TsneAnalysisPlugin::stopComputation()
+{
+    _tsneAnalysis.stopComputation();
+}
+
+QIcon TsneAnalysisPluginFactory::getIcon() const
+{
+    const auto margin       = 3;
+    const auto pixmapSize   = QSize(100, 100);
+    const auto pixmapRect   = QRect(QPoint(), pixmapSize).marginsRemoved(QMargins(margin, margin, margin, margin));
+    const auto halfSize     = pixmapRect.size() / 2;
+
+    // Create pixmap
+    QPixmap pixmap(pixmapSize);
+
+    // Fill with a transparent background
+    pixmap.fill(Qt::transparent);
+
+    // Create a painter to draw in the pixmap
+    QPainter painter(&pixmap);
+
+    // Enable anti-aliasing
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // Get the text color from the application
+    const auto textColor = QApplication::palette().text().color();
+
+    // Configure painter
+    painter.setPen(QPen(textColor, 1, Qt::SolidLine, Qt::SquareCap, Qt::SvgMiterJoin));
+    painter.setFont(QFont("Arial", 38, 250));
+
+    const auto textOption = QTextOption(Qt::AlignCenter);
+
+    // Do the painting
+    painter.drawText(QRect(pixmapRect.topLeft(), halfSize), "T", textOption);
+    painter.drawText(QRect(QPoint(halfSize.width(), pixmapRect.top()), halfSize), "S", textOption);
+    painter.drawText(QRect(QPoint(pixmapRect.left(), halfSize.height()), halfSize), "N", textOption);
+    painter.drawText(QRect(QPoint(halfSize.width(), halfSize.height()), halfSize), "E", textOption);
+
+    return QIcon(pixmap);
+}
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
 {
-    return new TsneAnalysisPlugin();
+    return new TsneAnalysisPlugin(this);
+}
+
+hdps::DataTypes TsneAnalysisPluginFactory::supportedDataTypes() const
+{
+    DataTypes supportedTypes;
+    supportedTypes.append(PointType);
+    return supportedTypes;
 }

@@ -1,325 +1,246 @@
 #include "HsneAnalysisPlugin.h"
+#include "HsneParameters.h"
+#include "HsneScaleAction.h"
 
 #include "PointData.h"
-#include "HsneParameters.h"
 
-#include <QtCore>
-#include <QtDebug>
+#include <QDebug>
+#include <QPainter>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
+
 #ifdef _WIN32
-#include <windows.h>
+    #include <windows.h>
 #endif
-
-#include <set>
-
-#include <QMenu>
-
-// =============================================================================
-// View
-// =============================================================================
 
 using namespace hdps;
 
-HsneAnalysisPlugin::HsneAnalysisPlugin() :
-    AnalysisPlugin("H-SNE Analysis")
-{
-
-}
-
-HsneAnalysisPlugin::~HsneAnalysisPlugin(void)
+HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
+    AnalysisPlugin(factory),
+    _hierarchy(),
+    _tsneAnalysis(),
+    _hsneSettingsAction(nullptr)
 {
     
 }
 
+HsneAnalysisPlugin::~HsneAnalysisPlugin()
+{
+}
+
 void HsneAnalysisPlugin::init()
 {
-    // Create a new settings widget which allows users to change the parameters given to the HSNE analysis
-    _settings = std::make_unique<HsneSettingsWidget>(*this);
+    HsneScaleAction::core = _core;
 
-    // If a different input dataset is picked in the settings widget update the dimension widget
-    connect(_settings.get(), &HsneSettingsWidget::dataSetPicked, this, &HsneAnalysisPlugin::dataSetPicked);
-    // If the start computation button is pressed, run the HSNE algorithm
-    connect(_settings.get(), &HsneSettingsWidget::startComputation, this, &HsneAnalysisPlugin::startComputation);
+    // Created derived dataset for embedding
+    setOutputDataset(_core->createDerivedData("hsne_embedding", getInputDataset(), getInputDataset()));
 
-    registerDataEventByType(PointType, std::bind(&HsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
+    // Create new HSNE settings actions
+    _hsneSettingsAction = new HsneSettingsAction(this);
 
-    //connect(_settings.get(), &HsneSettingsWidget::stopComputation, this, &HsneAnalysisPlugin::stopComputation);
-    connect(&_tsne, &TsneAnalysis::finished, _settings.get(), &HsneSettingsWidget::onComputationStopped);
-    connect(&_tsne, &TsneAnalysis::embeddingUpdate, this, &HsneAnalysisPlugin::onNewEmbedding);
-    //connect(&_tsne, SIGNAL(newEmbedding()), this, SLOT(onNewEmbedding()));
-}
+    // Collapse the TSNE settings by default
+    _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().collapse();
 
-void HsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
-{
-    switch (dataEvent->getType())
+    // Get input/output datasets
+    auto inputDataset  = getInputDataset<Points>();
+    auto outputDataset = getOutputDataset<Points>();
+
+    // Set the default number of hierarchy scales based on number of points
+    int numHierarchyScales = std::max(1L, std::lround(log10(inputDataset->getNumPoints())) - 2);
+    _hsneSettingsAction->getGeneralHsneSettingsAction().getNumScalesAction().setValue(numHierarchyScales);
+    _hsneSettingsAction->getGeneralHsneSettingsAction().getNumScalesAction().setDefaultValue(numHierarchyScales);
+
+    std::vector<float> initialData;
+
+    const auto numEmbeddingDimensions = 2;
+
+    initialData.resize(inputDataset->getNumPoints() * numEmbeddingDimensions);
+
+    outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
+
+    auto& tsneSettingsAction = _hsneSettingsAction->getTsneSettingsAction();
+    
+    outputDataset->addAction(_hsneSettingsAction->getGeneralHsneSettingsAction());
+    outputDataset->addAction(_hsneSettingsAction->getAdvancedHsneSettingsAction());
+    outputDataset->addAction(_hsneSettingsAction->getTopLevelScaleAction());
+    outputDataset->addAction(tsneSettingsAction.getGeneralTsneSettingsAction());
+    outputDataset->addAction(tsneSettingsAction.getAdvancedTsneSettingsAction());
+    outputDataset->addAction(_hsneSettingsAction->getDimensionSelectionAction());
+
+    outputDataset->setGuiName("hsne_embedding");
+    outputDataset->getDataHierarchyItem().select();
+
+    connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
+        setTaskProgress(percentage);
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
+        setTaskDescription(section);
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
+        setTaskFinished();
+
+        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setEnabled(false);
+        _hsneSettingsAction->setReadOnly(false);
+    });
+
+    connect(&_hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
+        _hsneSettingsAction->setReadOnly(true);
+        
+        setTaskRunning();
+        setTaskProgress(0.0f);
+        setTaskDescription("Initializing HSNE hierarchy");
+
+        qApp->processEvents();
+
+        std::vector<bool> enabledDimensions = _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().getEnabledDimensions();
+
+        // Initialize the HSNE algorithm with the given parameters
+        _hierarchy.initialize(_core, *getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
+
+        setTaskDescription("Computing top-level embedding");
+
+        qApp->processEvents();
+
+        computeTopLevelEmbedding();
+    });
+
+    registerDataEventByType(PointType, [this](hdps::DataEvent* dataEvent)
     {
-    case EventType::DataAdded:
-    {
-        _settings->addDataItem(dataEvent->dataSetName);
-        break;
-    }
-    case EventType::DataChanged:
-    {
-        // If we are not looking at the changed dataset, ignore it
-        if (dataEvent->dataSetName != _settings->getCurrentDataItem()) {
-            break;
+        switch (dataEvent->getType())
+        {
+            case EventType::DataChanged:
+            {
+                // If we are not looking at the changed dataset, ignore it
+                if (dataEvent->getDataset() != getInputDataset())
+                    break;
+
+                // Update dimension selection with new data
+                _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().setPointsDataset(dataEvent->getDataset<Points>());
+
+                break;
+            }
+
+            case EventType::DataAdded:
+            case EventType::DataAboutToBeRemoved:
+                break;
         }
+    });
 
-        // Passes changes to the current dataset to the dimension selection widget
-        Points& points = _core->requestData<Points>(dataEvent->dataSetName);
+    _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().setPointsDataset(inputDataset);
 
-        _settings->getDimensionSelectionWidget().dataChanged(points);
-        break;
-    }
-    case EventType::DataRemoved:
-    {
-        _settings->removeDataItem(dataEvent->dataSetName);
-        break;
-    }
-    }
-}
+    connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
+        auto embedding = getOutputDataset<Points>();
 
-hdps::DataTypes HsneAnalysisPlugin::supportedDataTypes() const
-{
-    DataTypes supportedTypes;
-    supportedTypes.append(PointType);
-    return supportedTypes;
-}
+        embedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
-SettingsWidget* const HsneAnalysisPlugin::getSettings()
-{
-    return _settings.get();
-}
+        _core->notifyDataChanged(getOutputDataset());
+    });
 
-// If a different input dataset is picked in the settings widget update the dimension widget
-void HsneAnalysisPlugin::dataSetPicked(const QString& name)
-{
-    Points& points = _core->requestData<Points>(name);
-
-    auto analyses = points.getProperty("Analyses", QVariantList()).toList();
-    analyses.push_back(getName());
-    points.setProperty("Analyses", analyses);
-
-    _settings->getDimensionSelectionWidget().dataChanged(points);
-}
-
-void HsneAnalysisPlugin::startComputation()
-{
-    //initializeTsne();
-
-    /********************/
-    /* Prepare the data */
-    /********************/
-    // Obtain a reference to the the input dataset
-    QString setName = _settings->getCurrentDataItem();
-    const Points& inputData = _core->requestData<Points>(setName);
-
-    // Get the HSNE parameters from the settings widget
-    HsneParameters parameters = _settings->getHsneParameters();
-
-    std::vector<bool> enabledDimensions = _settings->getDimensionSelectionWidget().getEnabledDimensions();
-
-    // Initialize the HSNE algorithm with the given parameters
-    _hierarchy.initialize(_core, inputData, enabledDimensions, parameters);
-
-    _embeddingNameBase = _settings->getEmbeddingName();
-    _inputDataName = setName;
-    computeTopLevelEmbedding();
-}
-
-void HsneAnalysisPlugin::onNewEmbedding(const TsneData& tsneData) {
-    Points& embedding = _core->requestData<Points>(_embeddingName);
-
-    embedding.setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
-
-    _core->notifyDataChanged(_embeddingName);
-}
-
-QString HsneAnalysisPlugin::createEmptyDerivedEmbedding(QString name, QString dataType, QString sourceName)
-{
-    QString embeddingName = _core->createDerivedData(name, sourceName);
-    Points& embedding = _core->requestData<Points>(embeddingName);
-    embedding.setData(nullptr, 0, 2);
-
-    auto analyses = embedding.getProperty("Analyses", QVariantList()).toList();
-    analyses.push_back(getName());
-    embedding.setProperty("Analyses", analyses);
-
-    _core->notifyDataAdded(embeddingName);
-    return embeddingName;
+    setTaskName("HSNE");
 }
 
 void HsneAnalysisPlugin::computeTopLevelEmbedding()
 {
     // Get the top scale of the HSNE hierarchy
     int topScaleIndex = _hierarchy.getTopScale();
+
     Hsne::scale_type& topScale = _hierarchy.getScale(topScaleIndex);
+    
     int numLandmarks = topScale.size();
 
     // Create a subset of the points corresponding to the top level HSNE landmarks,
     // Then create an empty embedding derived from this subset
-    {
-        Points& inputData = _core->requestData<Points>(_inputDataName);
-        Points& selection = static_cast<Points&>(inputData.getSelection());
+    auto inputDataset       = getInputDataset<Points>();
+    auto selectionDataset   = inputDataset->getSelection<Points>();
 
-        // Select the appropriate points to create a subset from
-        selection.indices.resize(numLandmarks);
-        for (int i = 0; i < numLandmarks; i++)
-            selection.indices[i] = topScale._landmark_to_original_data_idx[i];
+    // Select the appropriate points to create a subset from
+    selectionDataset->indices.resize(numLandmarks);
 
-        // Create the subset and clear the selection
-        QString subsetName = inputData.createSubset();
-        selection.indices.clear();
+    for (int i = 0; i < numLandmarks; i++)
+        selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
 
-        // Create an empty embedding derived from the subset
-        Points& subset = _core->requestData<Points>(subsetName);
-        _embeddingName = createEmptyDerivedEmbedding(_embeddingNameBase + "_scale_" + QString::number(topScaleIndex), "Points", subsetName);
-    }
-    
-    Points& embedding = _core->requestData<Points>(_embeddingName);
-    embedding.setProperty("scale", topScaleIndex);
-    embedding.setProperty("landmarkMap", qVariantFromValue(_hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex]));
-    
+    // Create the subset and clear the selection
+    auto subset = inputDataset->createSubset(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
+
+    selectionDataset->indices.clear();
+
+    auto embeddingDataset = getOutputDataset<Points>();
+
+    embeddingDataset->setSourceDataSet(subset);
+    _hsneSettingsAction->getTopLevelScaleAction().setScale(topScaleIndex);
+
     _hierarchy.printScaleInfo();
 
     // Set t-SNE parameters
-    HsneParameters hsneParameters = _settings->getHsneParameters();
-    TsneParameters tsneParameters = _settings->getTsneParameters();
+    HsneParameters hsneParameters = _hsneSettingsAction->getHsneParameters();
+    TsneParameters tsneParameters = _hsneSettingsAction->getTsneSettingsAction().getTsneParameters();
+
+    // Add linked selection between the upper embedding and the bottom layer
+    {
+        LandmarkMap& landmarkMap = _hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex];
+        
+        hdps::SelectionMap mapping;
+        for (int i = 0; i < landmarkMap.size(); i++)
+        {
+            int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
+            mapping[bottomLevelIdx] = landmarkMap[i];
+        }
+
+        embeddingDataset->addLinkedSelection(embeddingDataset, mapping);
+    }
 
     // Embed data
-    _tsne.stopComputation();
-    _tsne.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
+    _tsneAnalysis.stopComputation();
+    _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
 }
 
-void HsneAnalysisPlugin::onDrillIn()
+QIcon HsneAnalysisPluginFactory::getIcon() const
 {
-    //_hsne.drillIn("Temp");
+    const auto margin       = 3;
+    const auto pixmapSize   = QSize(100, 100);
+    const auto pixmapRect   = QRect(QPoint(), pixmapSize).marginsRemoved(QMargins(margin, margin, margin, margin));
+    const auto halfSize     = pixmapRect.size() / 2;
+
+    // Create pixmap
+    QPixmap pixmap(pixmapSize);
+
+    // Fill with a transparent background
+    pixmap.fill(Qt::transparent);
+
+    // Create a painter to draw in the pixmap
+    QPainter painter(&pixmap);
+
+    // Enable anti-aliasing
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // Get the text color from the application
+    const auto textColor = QApplication::palette().text().color();
+
+    // Configure painter
+    painter.setPen(QPen(textColor, 1, Qt::SolidLine, Qt::SquareCap, Qt::SvgMiterJoin));
+    painter.setFont(QFont("Arial", 38, 250));
+
+    const auto textOption = QTextOption(Qt::AlignCenter);
+
+    // Do the painting
+    painter.drawText(QRect(pixmapRect.topLeft(), halfSize), "H", textOption);
+    painter.drawText(QRect(QPoint(halfSize.width(), pixmapRect.top()), halfSize), "S", textOption);
+    painter.drawText(QRect(QPoint(pixmapRect.left(), halfSize.height()), halfSize), "N", textOption);
+    painter.drawText(QRect(QPoint(halfSize.width(), halfSize.height()), halfSize), "E", textOption);
+
+    return QIcon(pixmap);
 }
-
-void HsneAnalysisPlugin::drillIn(QString embeddingName)
-{
-    // Request the embedding from the core and find out the source data from which it derives
-    Points& embedding = _core->requestData<Points>(embeddingName);
-    Points& source = hdps::DataSet::getSourceData<Points>(embedding);
-
-    // Get associated selection with embedding
-    Points& selection = static_cast<Points&>(embedding.getSelection());
-
-    // Scale the embedding is a part of
-    int currentScale = embedding.getProperty("scale").value<int>();
-    int drillScale = currentScale - 1;
-
-    // Find proper selection indices
-    std::vector<bool> pointsSelected;
-    embedding.selectedLocalIndices(selection.indices, pointsSelected);
-
-    std::vector<unsigned int> selectionIndices;
-    if (embedding.hasProperty("drill_indices"))
-    {
-        QList<uint32_t> drillIndices = embedding.getProperty("drill_indices").value<QList<uint32_t>>();
-        
-        for (int i = 0; i < pointsSelected.size(); i++)
-        {
-            if (pointsSelected[i])
-            {
-                selectionIndices.push_back(drillIndices[i]);
-            }
-        }
-    }
-    else
-    {
-        //selectionIndices = selection.indices;
-        for (int i = 0; i < pointsSelected.size(); i++)
-        {
-            if (pointsSelected[i])
-            {
-                selectionIndices.push_back(i);
-            }
-        }
-    }
-
-    // Find the points in the previous level corresponding to selected landmarks
-    std::map<uint32_t, float> neighbors;
-    _hierarchy.getInfluencedLandmarksInPreviousScale(currentScale, selectionIndices, neighbors);
-
-    // Threshold neighbours with enough influence
-    std::vector<uint32_t> nextLevelIdxs;
-    nextLevelIdxs.clear();
-    for (auto n : neighbors) {
-        if (n.second > 0.5) //QUICKPAPER
-        {
-            nextLevelIdxs.push_back(n.first);
-        }
-    }
-    std::cout << "#selected indices: " << selectionIndices.size() << std::endl;
-    std::cout << "#landmarks at previous scale: " << neighbors.size() << std::endl;
-    std::cout << "#thresholded at previous scale: " << nextLevelIdxs.size() << std::endl;
-    std::cout << "Drilling in" << std::endl;
-
-    // Compute the transition matrix for the landmarks above the threshold
-    HsneMatrix transitionMatrix;
-    _hierarchy.getTransitionMatrixForSelection(currentScale, transitionMatrix, nextLevelIdxs);
-
-    // Create a new data set for the embedding
-    {
-        Points& inputData = _core->requestData<Points>(_inputDataName);
-        Points& selection = static_cast<Points&>(inputData.getSelection());
-        Hsne::scale_type& dScale = _hierarchy.getScale(drillScale);
-
-        //std::vector<unsigned int> dataIndices;
-        selection.indices.clear();
-        for (int i = 0; i < nextLevelIdxs.size(); i++)
-        {
-            selection.indices.push_back(dScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
-        }
-        
-        QString subsetName = inputData.createSubset();
-        Points& subset = _core->requestData<Points>(subsetName);
-
-        _embeddingName = createEmptyDerivedEmbedding("Drill Embedding", "Points", subsetName);
-    }
-
-    // Store drill indices with embedding
-    Points& drillEmbedding = _core->requestData<Points>(_embeddingName);
-    QList<uint32_t> indices(nextLevelIdxs.begin(), nextLevelIdxs.end());
-    QVariant variantIndices = QVariant::fromValue<QList<uint32_t>>(indices);
-    drillEmbedding.setProperty("drill_indices", variantIndices);
-    drillEmbedding.setProperty("scale", drillScale);
-    drillEmbedding.setProperty("landmarkMap", qVariantFromValue(_hierarchy.getInfluenceHierarchy().getMap()[drillScale]));
-    
-    // Set t-SNE parameters
-    TsneParameters tsneParameters = _settings->getTsneParameters();
-    
-    // Embed data
-    _tsne.stopComputation();
-    _tsne.startComputation(tsneParameters, transitionMatrix, nextLevelIdxs.size(), _hierarchy.getNumDimensions());
-}
-
-QMenu* HsneAnalysisPlugin::contextMenu(const QVariant& context)
-{
-    auto menu = new QMenu(getGuiName());
-
-    auto startComputationAction = new QAction("Start computation");
-    auto drillInAction = new QAction("Drill in");
-
-    QMap contextMap = context.value<QMap<QString, QString>>();
-    QString currentDataSetName = contextMap["CurrentDataset"];
-
-    connect(startComputationAction, &QAction::triggered, [this]() { startComputation(); });
-    connect(drillInAction, &QAction::triggered, [this, currentDataSetName]() { drillIn(currentDataSetName); });
-
-    menu->addAction(startComputationAction);
-    menu->addAction(drillInAction);
-
-    return menu;
-}
-
-// =============================================================================
-// Factory
-// =============================================================================
 
 AnalysisPlugin* HsneAnalysisPluginFactory::produce()
 {
-    return new HsneAnalysisPlugin();
+    return new HsneAnalysisPlugin(this);
+}
+
+hdps::DataTypes HsneAnalysisPluginFactory::supportedDataTypes() const
+{
+    DataTypes supportedTypes;
+    supportedTypes.append(PointType);
+    return supportedTypes;
 }

@@ -8,7 +8,22 @@ set(HSNE_PLUGIN_SOURCES
     ${DIR}/HsneHierarchy.cpp
     ${DIR}/HsneParameters.h
     ${DIR}/HsneParameters.cpp
-    ${DIR}/HsneSettingsWidget.h
-    ${DIR}/HsneSettingsWidget.cpp
+    PARENT_SCOPE
+)
+
+set(HSNE_ACTIONS_SOURCES
+    ${DIR}/HsneSettingsAction.h
+    ${DIR}/HsneSettingsAction.cpp
+    ${DIR}/GeneralHsneSettingsAction.h
+    ${DIR}/GeneralHsneSettingsAction.cpp
+    ${DIR}/AdvancedHsneSettingsAction.h
+    ${DIR}/AdvancedHsneSettingsAction.cpp
+	${DIR}/HsneScaleAction.h
+    ${DIR}/HsneScaleAction.cpp
+	PARENT_SCOPE
+)
+
+set(HSNE_RESOURCES
+    ${DIR}/../res/resources.qrc
     PARENT_SCOPE
 )

@@ -102,15 +102,8 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
 {
     _core = core;
 
-    // TEMP temporary connection to call the newScale slot when embedding is finished
-    //connect(&_tsne, &TsneAnalysis::computationStopped, this, &HsneHierarchy::newScale);
-    //connect(&_tsne, &TsneAnalysis::newEmbedding, this, &HsneHierarchy::onNewEmbedding);
-
     // Convert our own HSNE parameters to the HDI parameters
     Hsne::Parameters internalParams = setParameters(parameters);
-
-    // Prepare data
-    _inputDataName = inputData.getName();
 
     // Create list of data from the enabled dimensions
     std::vector<float> data;
@@ -124,7 +117,7 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
 
     inputData.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
-    _numScales = 3; // FIXME Should be some param
+    _numScales = parameters.getNumScales();
     _numPoints = inputData.getNumPoints();
     _numDimensions = numEnabledDimensions;
 
@@ -148,36 +141,4 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
     }
 
     _influenceHierarchy.initialize(*this);
-
-    // Initialize t-SNE
-    //_tsne.initWithProbDist(data, numDimensions, _hsne->scale(4)._transition_matrix);
-
-    // New hd prob matrix, new embedding, empty transition matrix
-    // Set scale, clear embedding, set transition matrix
-    //for (int i = 0; i < numPoints; i++)
-    //{
-    //    for (int j = 0; j < numPoints; j++)
-    //    {
-    //        if (_hsne->scale(0)._transition_matrix[i][j] != 0)
-    //            std::cout << _hsne->scale(0)._transition_matrix[i][j] << std::endl;
-    //    }
-    //}
 }
-
-void HsneHierarchy::newScale() {
-    //scale++; std::cout << "New scale!" << std::endl;
-
-    //if (scale < 3)
-    //{
-    //    computeEmbedding();
-    //}
-}
-
-//void HsneHierarchy::onNewEmbedding() {
-//    const TsneData& outputData = _tsne.output();
-//    Points& embedding = _core->requestData<Points>(_embeddingName);
-//
-//    embedding.setData(outputData.getData().data(), outputData.getNumPoints(), 2);
-//
-//    _core->notifyDataChanged(_embeddingName);
-//}

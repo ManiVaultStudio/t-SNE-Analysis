@@ -1,50 +1,84 @@
-# Hsne Plugin
+# -----------------------------------------------------------------------------
+# HSNE Plugin Target
+# -----------------------------------------------------------------------------
 set(HSNE_PLUGIN "HsneAnalysisPlugin")
 
-project(${HSNE_PLUGIN})
-
+# -----------------------------------------------------------------------------
+# Source files
+# -----------------------------------------------------------------------------
 add_subdirectory(HSNE/src)
-# Normalize the incoming install path
-#file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} INSTALL_DIR)
 
-source_group( DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
-source_group( Hsne FILES ${HSNE_PLUGIN_SOURCES})
-find_package(OpenGL REQUIRED)
+source_group(Common//DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
+source_group(Common//Actions FILES ${DIMENSION_SELECTION_ACTION_SOURCES} ${TSNE_ACTIONS_SOURCES})
+source_group(Actions FILES ${HSNE_ACTIONS_SOURCES})
+source_group(Hsne FILES ${HSNE_PLUGIN_SOURCES})
+source_group(Resources FILES ${HSNE_RESOURCES})
 
-QT5_WRAP_UI(UI_HEADERS ${UI_FILES})
-if(NOT WIN32)
-    find_package(Threads)
-endif()
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
+# -----------------------------------------------------------------------------
+# CMake Target
+# -----------------------------------------------------------------------------
 add_library(${HSNE_PLUGIN} SHARED
     ${DIMENSION_SELECTION_SOURCES}
+    ${HSNE_ACTIONS_SOURCES}
+    ${TSNE_ACTIONS_SOURCES}
+    ${DIMENSION_SELECTION_ACTION_SOURCES}
     ${TSNE_COMMON_SOURCES}
     ${HSNE_PLUGIN_SOURCES}
-    ${UI_FILES}
+	${HSNE_RESOURCES}
 )
-include_directories("${INSTALL_DIR}/$<CONFIGURATION>/include/")
-set_HDILib_project_includes()
-include_directories("Common")
-set_flann_project_includes()
 
+# -----------------------------------------------------------------------------
+# Target include directories
+# -----------------------------------------------------------------------------
+# For inclusion of Qt generated ui_DimensionSelectionWidget.h
+target_include_directories(${HSNE_PLUGIN} PRIVATE ${PROJECT_BINARY_DIR})
+
+# Include HDPS core headers
+target_include_directories(${HSNE_PLUGIN} PRIVATE "${INSTALL_DIR}/$<CONFIGURATION>/include/")
+
+target_include_directories(${HSNE_PLUGIN} PRIVATE "Common")
+
+set_HDILib_project_includes(${HSNE_PLUGIN})
+set_flann_project_includes(${HSNE_PLUGIN})
+set_lz4_project_includes(${HSNE_PLUGIN})
+
+
+# -----------------------------------------------------------------------------
+# Target properties
+# -----------------------------------------------------------------------------
 # Request C++17, in order to use std::for_each_n with std::execution::par_unseq.
-set_property(TARGET ${HSNE_PLUGIN} PROPERTY CXX_STANDARD 17)
+set_target_properties(${HSNE_PLUGIN} PROPERTIES CXX_STANDARD 17)
 
 target_compile_definitions(${HSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 
+# -----------------------------------------------------------------------------
+# Target library linking
+# -----------------------------------------------------------------------------
 target_link_libraries(${HSNE_PLUGIN} Qt5::Widgets)
 target_link_libraries(${HSNE_PLUGIN} Qt5::WebEngineWidgets)
 if(MSVC)
-	set(LIB_SUFFIX "${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set(LIB_SUFFIX "${CMAKE_STATIC_LIBRARY_SUFFIX}")
 else()
-	set(LIB_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(LIB_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}")
 endif()
 target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}HDPS_Public${LIB_SUFFIX}")
 target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}PointData${LIB_SUFFIX}")
 target_link_libraries(${HSNE_PLUGIN} ${OPENGL_LIBRARIES})
-set_flann_project_link_libraries()
-set_HDILib_project_link_libraries()
+set_flann_project_link_libraries(${HSNE_PLUGIN})
+set_HDILib_project_link_libraries(${HSNE_PLUGIN})
+set_lz4_project_link_libraries(${HSNE_PLUGIN}) 
+if(UNIX)
+    message(STATUS "pThreads for Linux")
+    find_package(Threads REQUIRED)
+endif(UNIX)
 
+# -----------------------------------------------------------------------------
+# Target installation
+# -----------------------------------------------------------------------------
 install(TARGETS ${HSNE_PLUGIN}
    RUNTIME DESTINATION "${INSTALL_DIR}/$<CONFIGURATION>/Plugins" COMPONENT HSNE_SHAREDLIB
 )
