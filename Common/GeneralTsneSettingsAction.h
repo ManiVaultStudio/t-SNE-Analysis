@@ -34,7 +34,6 @@ public: // Action getters
     IntegralAction& getNumIterationsAction() { return _numIterationsAction; };
     IntegralAction& getPerplexityAction() { return _perplexityAction; };
     TsneComputationAction& getComputationAction() { return _computationAction; }
-    TriggerAction& getResetAction() { return _resetAction; };
 
 protected:
     TsneSettingsAction&     _tsneSettingsAction;            /** Reference to parent tSNE settings action */
@@ -43,7 +42,6 @@ protected:
     IntegralAction          _numIterationsAction;           /** Number of iterations action */
     IntegralAction          _perplexityAction;              /** Perplexity action */
     TsneComputationAction   _computationAction;             /** Computation action */
-    TriggerAction           _resetAction;                   /** Reset all input to defaults */
 
     friend class Widget;
 };

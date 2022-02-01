@@ -14,10 +14,10 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _distanceMetricAction(this, "Distance metric"),
     _numIterationsAction(this, "Number of iterations"),
     _perplexityAction(this, "Perplexity"),
-    _computationAction(this),
-    _resetAction(this, "Reset all")
+    _computationAction(this)
 {
     setText("TSNE");
+    setName("General");
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
@@ -86,10 +86,6 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         return false;
     };
 
-    const auto updateReset = [this, isResettable]() -> void {
-        _resetAction.setEnabled(isResettable());
-    };
-
     const auto updateReadOnly = [this]() -> void {
         const auto enable = !isReadOnly();
 
@@ -97,34 +93,22 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _distanceMetricAction.setEnabled(enable);
         _numIterationsAction.setEnabled(enable);
         _perplexityAction.setEnabled(enable);
-        _resetAction.setEnabled(enable);
     };
 
-    connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric, updateReset](const std::int32_t& currentIndex) {
+    connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric](const std::int32_t& currentIndex) {
         updateDistanceMetric();
-        updateReset();
     });
 
-    connect(&_distanceMetricAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric, updateReset](const std::int32_t& currentIndex) {
+    connect(&_distanceMetricAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric](const std::int32_t& currentIndex) {
         updateDistanceMetric();
-        updateReset();
     });
 
-    connect(&_numIterationsAction, &IntegralAction::valueChanged, this, [this, updateNumIterations, updateReset](const std::int32_t& value) {
+    connect(&_numIterationsAction, &IntegralAction::valueChanged, this, [this, updateNumIterations](const std::int32_t& value) {
         updateNumIterations();
-        updateReset();
     });
 
-    connect(&_perplexityAction, &IntegralAction::valueChanged, this, [this, updatePerplexity, updateReset](const std::int32_t& value) {
+    connect(&_perplexityAction, &IntegralAction::valueChanged, this, [this, updatePerplexity](const std::int32_t& value) {
         updatePerplexity();
-        updateReset();
-    });
-
-    connect(&_resetAction, &TriggerAction::triggered, this, [this](const std::int32_t& value) {
-        _knnTypeAction.reset();
-        _distanceMetricAction.reset();
-        _numIterationsAction.reset();
-        _perplexityAction.reset();
     });
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
@@ -135,6 +119,5 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     updateDistanceMetric();
     updateNumIterations();
     updatePerplexity();
-    updateReset();
     updateReadOnly();
 }

@@ -9,6 +9,7 @@ TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     _advancedTsneSettingsAction(*this)
 {
     setText("TSNE");
+    setName("TSNE/Settings");
 
     const auto updateReadOnly = [this]() -> void {
         _generalTsneSettingsAction.setReadOnly(isReadOnly());

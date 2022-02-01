@@ -13,6 +13,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _startAction(this, "Start")
 {
     setText("HSNE");
+    setName("General");
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 

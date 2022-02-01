@@ -142,6 +142,9 @@ void TsneAnalysisPlugin::init()
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 
     setTaskName("TSNE");
+    
+    _tsneSettingsAction.loadDefault();
+    _dimensionSelectionAction.loadDefault();
 }
 
 void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)

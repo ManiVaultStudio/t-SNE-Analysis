@@ -15,6 +15,7 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _dimensionSelectionAction(this)
 {
     setText("HSNE");
+    setName("HSNE/Settings");
 
     const auto updateReadOnly = [this]() -> void {
         _generalHsneSettingsAction.setReadOnly(isReadOnly());
