@@ -6,10 +6,11 @@ TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     GroupAction(parent),
     _tsneParameters(),
     _generalTsneSettingsAction(*this),
-    _advancedTsneSettingsAction(*this)
+    _advancedTsneSettingsAction(*this),
+    _dimensionSelectionAction(this)
 {
     setText("TSNE");
-    setName("TSNE/Settings");
+    setObjectName("Settings");
 
     const auto updateReadOnly = [this]() -> void {
         _generalTsneSettingsAction.setReadOnly(isReadOnly());

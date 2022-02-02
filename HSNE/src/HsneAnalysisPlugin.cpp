@@ -17,11 +17,12 @@ using namespace hdps;
 
 HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
+    WidgetAction(nullptr),
     _hierarchy(),
     _tsneAnalysis(),
     _hsneSettingsAction(nullptr)
 {
-    
+    setObjectName("HSNE");
 }
 
 HsneAnalysisPlugin::~HsneAnalysisPlugin()
@@ -139,6 +140,8 @@ void HsneAnalysisPlugin::init()
     });
 
     setTaskName("HSNE");
+
+    _hsneSettingsAction->loadDefault();
 }
 
 void HsneAnalysisPlugin::computeTopLevelEmbedding()

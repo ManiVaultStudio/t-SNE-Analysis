@@ -17,9 +17,11 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _computationAction(this)
 {
     setText("TSNE");
-    setName("General");
+    setObjectName("General");
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
+
+    _computationAction.setSerializable(false);
 
     _knnTypeAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _distanceMetricAction.setDefaultWidgetFlags(OptionAction::ComboBox);
