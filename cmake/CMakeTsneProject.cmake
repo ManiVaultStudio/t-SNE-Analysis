@@ -85,7 +85,7 @@ install(TARGETS ${TSNE_PLUGIN}
 if (NOT DEFINED ENV{CI})
     add_custom_command(TARGET ${TSNE_PLUGIN} POST_BUILD
         COMMAND "${CMAKE_COMMAND}"
-        --install ${CMAKE_BINARY_DIR}
+        --install ${PROJECT_BINARY_DIR}
         --config $<CONFIGURATION>
         --component TSNE_SHAREDLIB
         --prefix ${INSTALL_DIR}/$<CONFIGURATION>

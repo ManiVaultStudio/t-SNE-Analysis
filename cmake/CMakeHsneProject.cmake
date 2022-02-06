@@ -86,7 +86,7 @@ install(TARGETS ${HSNE_PLUGIN}
 if (NOT DEFINED ENV{CI})
     add_custom_command(TARGET ${HSNE_PLUGIN} POST_BUILD
         COMMAND "${CMAKE_COMMAND}"
-        --install ${CMAKE_BINARY_DIR}
+        --install ${PROJECT_BINARY_DIR}
         --config $<CONFIGURATION>
         --component HSNE_SHAREDLIB
         --prefix ${INSTALL_DIR}/$<CONFIGURATION>
