@@ -4,6 +4,7 @@
 #include "DataHierarchyItem.h"
 
 #include <QGridLayout>
+#include <QMenu>
 
 using namespace hdps;
 using namespace hdps::gui;

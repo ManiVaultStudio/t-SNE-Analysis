@@ -16,11 +16,10 @@ using namespace hdps::gui;
 
 TsneAnalysisPlugin::TsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
-    WidgetAction(nullptr),
     _tsneAnalysis(),
     _tsneSettingsAction(this)
 {
-    setText("TSNE");
+    setObjectName("TSNE");
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)

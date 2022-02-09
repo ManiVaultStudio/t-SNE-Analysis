@@ -2,6 +2,7 @@
 #include "TsneSettingsAction.h"
 
 #include <QHBoxLayout>
+#include <QMenu>
 
 using namespace hdps::gui;
 

@@ -1,5 +1,7 @@
 #include "TsneSettingsAction.h"
 
+#include <QMenu>
+
 using namespace hdps::gui;
 
 TsneSettingsAction::TsneSettingsAction(QObject* parent) :

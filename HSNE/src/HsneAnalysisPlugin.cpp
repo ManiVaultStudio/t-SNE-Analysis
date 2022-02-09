@@ -17,7 +17,6 @@ using namespace hdps;
 
 HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
-    WidgetAction(nullptr),
     _hierarchy(),
     _tsneAnalysis(),
     _hsneSettingsAction(nullptr)

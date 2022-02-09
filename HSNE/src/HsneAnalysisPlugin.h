@@ -1,7 +1,5 @@
 #pragma once
 
-#include <actions/WidgetAction.h>
-
 #include <AnalysisPlugin.h>
 
 #include "HsneHierarchy.h"
@@ -20,7 +18,7 @@ class HsneScaleAction;
  *
  * @author Julian Thijssen
  */
-class HsneAnalysisPlugin : public WidgetAction, public AnalysisPlugin
+class HsneAnalysisPlugin : public AnalysisPlugin
 {
     Q_OBJECT
 public:
