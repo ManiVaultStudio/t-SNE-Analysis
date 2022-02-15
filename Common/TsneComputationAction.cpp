@@ -35,7 +35,7 @@ TsneComputationAction::Widget::Widget(QWidget* parent, TsneComputationAction* ts
 {
     auto layout = new QHBoxLayout();
 
-    layout->setMargin(0);
+    layout->setContentsMargins(0,0,0,0);
 
     layout->addWidget(tsneComputationAction->getStartComputationAction().createWidget(this));
     layout->addWidget(tsneComputationAction->getContinueComputationAction().createWidget(this));

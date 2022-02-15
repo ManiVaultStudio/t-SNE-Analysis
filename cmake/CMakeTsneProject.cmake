@@ -56,8 +56,8 @@ target_compile_definitions(${TSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 # -----------------------------------------------------------------------------
 # Target library linking
 # -----------------------------------------------------------------------------
-target_link_libraries(${TSNE_PLUGIN} Qt5::Widgets)
-target_link_libraries(${TSNE_PLUGIN} Qt5::WebEngineWidgets)
+target_link_libraries(${TSNE_PLUGIN} Qt6::Widgets)
+target_link_libraries(${TSNE_PLUGIN} Qt6::WebEngineWidgets)
 if(MSVC)
     set(LIB_SUFFIX "${CMAKE_STATIC_LIBRARY_SUFFIX}")
 else()

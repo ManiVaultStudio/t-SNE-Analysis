@@ -71,7 +71,7 @@ endif(MSVC)
 # Qt library and flags
 # -----------------------------------------------------------------------------
 # Find Qt library
-find_package(Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+find_package(Qt6 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
 # Enables Qt auto-moc to run for all target projects
 set(CMAKE_AUTOMOC ON)
