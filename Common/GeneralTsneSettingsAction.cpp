@@ -17,7 +17,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _computationAction(this)
 {
     setText("TSNE");
-    setObjectName("General");
+    setObjectName("General TSNE");
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 

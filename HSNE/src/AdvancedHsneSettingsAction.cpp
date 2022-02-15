@@ -15,7 +15,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _useOutOfCoreComputationAction(this, "Out-of-core computation")
 {
     setText("Advanced HSNE");
-    setObjectName("Advanced");
+    setObjectName("Advanced HSNE");
 
     _numWalksForLandmarkSelectionAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numWalksForLandmarkSelectionThresholdAction.setDefaultWidgetFlags(IntegralAction::SpinBox);

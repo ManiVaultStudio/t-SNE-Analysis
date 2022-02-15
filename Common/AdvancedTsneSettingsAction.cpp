@@ -14,7 +14,7 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
     _numChecksAction(this, "Number of checks")
 {
     setText("Advanced TSNE");
-    setObjectName("Advanced");
+    setObjectName("Advanced TSNE");
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
