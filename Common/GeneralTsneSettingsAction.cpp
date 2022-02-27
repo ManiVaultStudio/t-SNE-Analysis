@@ -13,6 +13,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _knnTypeAction(this, "KNN Type"),
     _distanceMetricAction(this, "Distance metric"),
     _numIterationsAction(this, "Number of iterations"),
+    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0, 0),
     _perplexityAction(this, "Perplexity"),
     _computationAction(this)
 {
@@ -21,11 +22,12 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
-    _computationAction.setSerializable(false);
+    _numberOfComputatedIterationsAction.setEnabled(false);
 
     _knnTypeAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _distanceMetricAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _numberOfComputatedIterationsAction.setDefaultWidgetFlags(IntegralAction::LineEdit);
     _perplexityAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
     _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");

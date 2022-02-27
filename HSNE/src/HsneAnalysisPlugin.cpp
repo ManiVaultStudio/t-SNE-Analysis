@@ -33,7 +33,7 @@ void HsneAnalysisPlugin::init()
     HsneScaleAction::core = _core;
 
     // Created derived dataset for embedding
-    setOutputDataset(_core->createDerivedData("hsne_embedding", getInputDataset(), getInputDataset()));
+    setOutputDataset(_core->createDerivedData("HSNE Embedding", getInputDataset(), getInputDataset()));
 
     // Create new HSNE settings actions
     _hsneSettingsAction = new HsneSettingsAction(this);
@@ -58,16 +58,13 @@ void HsneAnalysisPlugin::init()
 
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
-    auto& tsneSettingsAction = _hsneSettingsAction->getTsneSettingsAction();
-    
     outputDataset->addAction(_hsneSettingsAction->getGeneralHsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getAdvancedHsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getTopLevelScaleAction());
-    outputDataset->addAction(tsneSettingsAction.getGeneralTsneSettingsAction());
-    outputDataset->addAction(tsneSettingsAction.getAdvancedTsneSettingsAction());
+    outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction());
+    outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getAdvancedTsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getDimensionSelectionAction());
 
-    outputDataset->setGuiName("hsne_embedding");
     outputDataset->getDataHierarchyItem().select();
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
@@ -134,6 +131,10 @@ void HsneAnalysisPlugin::init()
         auto embedding = getOutputDataset<Points>();
 
         embedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
+
+        _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
+
+        QCoreApplication::processEvents();
 
         _core->notifyDataChanged(getOutputDataset());
     });

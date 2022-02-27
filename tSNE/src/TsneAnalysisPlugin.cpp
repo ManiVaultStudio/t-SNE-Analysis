@@ -29,13 +29,11 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    setOutputDataset(_core->createDerivedData("tsne_embedding", getInputDataset(), getInputDataset()));
+    setOutputDataset(_core->createDerivedData("TSNE Embedding", getInputDataset(), getInputDataset()));
 
     // Get input/output datasets
     auto inputDataset  = getInputDataset<Points>();
     auto outputDataset = getOutputDataset<Points>();
-
-    outputDataset->setGuiName("HSNE Embedding");
 
     std::vector<float> initialData;
 
@@ -43,14 +41,11 @@ void TsneAnalysisPlugin::init()
 
     initialData.resize(inputDataset->getNumPoints() * numEmbeddingDimensions);
 
-    outputDataset->setGuiName("TSNE Embedding");
-
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
     outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getDimensionSelectionAction());
-    outputDataset->addAction(_tsneSettingsAction.getComputationAction());
 
     outputDataset->getDataHierarchyItem().select();
 
@@ -58,7 +53,7 @@ void TsneAnalysisPlugin::init()
 
     const auto updateComputationAction = [this, &computationAction]() {
         const auto isRunning = computationAction.getRunningAction().isChecked();
-        
+
         computationAction.getStartComputationAction().setEnabled(!isRunning);
         computationAction.getContinueComputationAction().setEnabled(!isRunning && _tsneAnalysis.canContinue());
         computationAction.getStopComputationAction().setEnabled(isRunning);
@@ -125,6 +120,10 @@ void TsneAnalysisPlugin::init()
         // Update the output points dataset with new data from the TSNE analysis
         getOutputDataset<Points>()->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
+        _tsneSettingsAction.getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
+
+        QCoreApplication::processEvents();
+
         // Notify others that the embedding data changed
         _core->notifyDataChanged(getOutputDataset());
     });
@@ -143,7 +142,7 @@ void TsneAnalysisPlugin::init()
 
     setTaskName("TSNE");
  
-    _tsneSettingsAction.loadDefault();
+    //_tsneSettingsAction.loadDefault();
 }
 
 void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
@@ -160,6 +159,8 @@ void TsneAnalysisPlugin::startComputation()
     setTaskRunning();
     setTaskProgress(0.0f);
     setTaskDescription("Preparing data");
+
+    _tsneSettingsAction.getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().reset();
 
     auto inputPoints = getInputDataset<Points>();
 

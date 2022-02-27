@@ -62,10 +62,10 @@ public: // Action getters
     ToggleAction& getRunningAction() { return _runningAction; }
 
 protected:
-    TriggerAction           _startComputationAction;        /** Start computation action */
-    TriggerAction           _continueComputationAction;     /** Continue computation action */
-    TriggerAction           _stopComputationAction;         /** Stop computation action */
-    ToggleAction            _runningAction;                 /** Running action */
+    TriggerAction   _startComputationAction;        /** Start computation action */
+    TriggerAction   _continueComputationAction;     /** Continue computation action */
+    TriggerAction   _stopComputationAction;         /** Stop computation action */
+    ToggleAction    _runningAction;                 /** Running action */
 
     friend class Widget;
 };

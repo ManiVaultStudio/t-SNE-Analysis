@@ -27,7 +27,6 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _seedAction.initialize(-1000, 1000, hsneParameters.getSeed(), hsneParameters.getSeed());
     _useMonteCarloSamplingAction.initialize(hsneParameters.useMonteCarloSampling(), hsneParameters.useMonteCarloSampling());
 
-    _startAction.setSerializable(false);
     _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 
     const auto updateKnnAlgorithm = [this]() -> void {

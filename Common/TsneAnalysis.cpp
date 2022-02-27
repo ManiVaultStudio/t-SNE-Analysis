@@ -273,6 +273,11 @@ bool TsneAnalysis::canContinue() const
     return _tsneWorker->getNumIterations() >= 1;
 }
 
+int TsneAnalysis::getNumIterations() const
+{
+    return _tsneWorker->getNumIterations();
+}
+
 void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
 {
     emit progressPercentage(0.0f);
