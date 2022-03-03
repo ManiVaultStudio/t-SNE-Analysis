@@ -140,8 +140,6 @@ void HsneAnalysisPlugin::init()
     });
 
     setTaskName("HSNE");
-
-    _hsneSettingsAction->loadDefault();
 }
 
 void HsneAnalysisPlugin::computeTopLevelEmbedding()
