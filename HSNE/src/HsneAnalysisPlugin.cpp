@@ -33,7 +33,7 @@ void HsneAnalysisPlugin::init()
     HsneScaleAction::core = _core;
 
     // Created derived dataset for embedding
-    setOutputDataset(_core->createDerivedData("HSNE Embedding", getInputDataset(), getInputDataset()));
+    setOutputDataset(_core->createDerivedDataset("HSNE Embedding", getInputDataset(), getInputDataset()));
 
     // Create new HSNE settings actions
     _hsneSettingsAction = new HsneSettingsAction(this);
@@ -136,7 +136,7 @@ void HsneAnalysisPlugin::init()
 
         QCoreApplication::processEvents();
 
-        _core->notifyDataChanged(getOutputDataset());
+        _core->notifyDatasetChanged(getOutputDataset());
     });
 
     setTaskName("HSNE");
@@ -163,7 +163,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
 
     // Create the subset and clear the selection
-    auto subset = inputDataset->createSubset(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
+    auto subset = inputDataset->createSubsetFromSelection(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
 
     selectionDataset->indices.clear();
 

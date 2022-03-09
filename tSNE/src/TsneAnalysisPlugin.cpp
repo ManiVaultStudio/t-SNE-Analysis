@@ -29,7 +29,7 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    setOutputDataset(_core->createDerivedData("TSNE Embedding", getInputDataset(), getInputDataset()));
+    setOutputDataset(_core->createDerivedDataset("TSNE Embedding", getInputDataset(), getInputDataset()));
 
     // Get input/output datasets
     auto inputDataset  = getInputDataset<Points>();
@@ -125,7 +125,7 @@ void TsneAnalysisPlugin::init()
         QCoreApplication::processEvents();
 
         // Notify others that the embedding data changed
-        _core->notifyDataChanged(getOutputDataset());
+        _core->notifyDatasetChanged(getOutputDataset());
     });
 
     _tsneSettingsAction.getDimensionSelectionAction().getPickerAction().setPointsDataset(inputDataset);
