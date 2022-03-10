@@ -17,9 +17,9 @@ using namespace hdps::gui;
 TsneAnalysisPlugin::TsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
     _tsneAnalysis(),
-    _tsneSettingsAction(this),
-    _dimensionSelectionAction(this)
+    _tsneSettingsAction(this)
 {
+    setObjectName("TSNE");
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
@@ -29,13 +29,11 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    setOutputDataset(_core->createDerivedData("tsne_embedding", getInputDataset(), getInputDataset()));
+    setOutputDataset(_core->createDerivedDataset("TSNE Embedding", getInputDataset(), getInputDataset()));
 
     // Get input/output datasets
     auto inputDataset  = getInputDataset<Points>();
     auto outputDataset = getOutputDataset<Points>();
-
-    outputDataset->setGuiName("HSNE Embedding");
 
     std::vector<float> initialData;
 
@@ -43,14 +41,11 @@ void TsneAnalysisPlugin::init()
 
     initialData.resize(inputDataset->getNumPoints() * numEmbeddingDimensions);
 
-    outputDataset->setGuiName("TSNE Embedding");
-
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
     outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
-    outputDataset->addAction(_dimensionSelectionAction);
-    outputDataset->addAction(_tsneSettingsAction.getComputationAction());
+    outputDataset->addAction(_tsneSettingsAction.getDimensionSelectionAction());
 
     outputDataset->getDataHierarchyItem().select();
 
@@ -58,7 +53,7 @@ void TsneAnalysisPlugin::init()
 
     const auto updateComputationAction = [this, &computationAction]() {
         const auto isRunning = computationAction.getRunningAction().isChecked();
-        
+
         computationAction.getStartComputationAction().setEnabled(!isRunning);
         computationAction.getContinueComputationAction().setEnabled(!isRunning && _tsneAnalysis.canContinue());
         computationAction.getStopComputationAction().setEnabled(isRunning);
@@ -125,14 +120,18 @@ void TsneAnalysisPlugin::init()
         // Update the output points dataset with new data from the TSNE analysis
         getOutputDataset<Points>()->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
+        _tsneSettingsAction.getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
+
+        QCoreApplication::processEvents();
+
         // Notify others that the embedding data changed
-        _core->notifyDataChanged(getOutputDataset());
+        _core->notifyDatasetChanged(getOutputDataset());
     });
 
-    _dimensionSelectionAction.getPickerAction().setPointsDataset(inputDataset);
+    _tsneSettingsAction.getDimensionSelectionAction().getPickerAction().setPointsDataset(inputDataset);
 
     connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction, updateComputationAction](bool toggled) {
-        _dimensionSelectionAction.setEnabled(!toggled);
+        _tsneSettingsAction.getDimensionSelectionAction().setEnabled(!toggled);
 
         updateComputationAction();
     });
@@ -142,6 +141,8 @@ void TsneAnalysisPlugin::init()
     registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
 
     setTaskName("TSNE");
+ 
+    //_tsneSettingsAction.loadDefault();
 }
 
 void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
@@ -149,7 +150,7 @@ void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     if (dataEvent->getType() == EventType::DataChanged)
     {
         if (dataEvent->getDataset() == getInputDataset())
-            _dimensionSelectionAction.getPickerAction().setPointsDataset(dataEvent->getDataset<Points>());
+            _tsneSettingsAction.getDimensionSelectionAction().getPickerAction().setPointsDataset(dataEvent->getDataset<Points>());
     }
 }
 
@@ -159,6 +160,8 @@ void TsneAnalysisPlugin::startComputation()
     setTaskProgress(0.0f);
     setTaskDescription("Preparing data");
 
+    _tsneSettingsAction.getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().reset();
+
     auto inputPoints = getInputDataset<Points>();
 
     // Create list of data from the enabled dimensions
@@ -166,7 +169,7 @@ void TsneAnalysisPlugin::startComputation()
     std::vector<unsigned int> indices;
 
     // Extract the enabled dimensions from the data
-    std::vector<bool> enabledDimensions = _dimensionSelectionAction.getPickerAction().getEnabledDimensions();
+    std::vector<bool> enabledDimensions = _tsneSettingsAction.getDimensionSelectionAction().getPickerAction().getEnabledDimensions();
 
     const auto numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 

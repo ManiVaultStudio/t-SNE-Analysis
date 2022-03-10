@@ -6,15 +6,16 @@ using namespace hdps::gui;
 AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
     GroupAction(&hsneSettingsAction),
     _hsneSettingsAction(hsneSettingsAction),
-    _numWalksForLandmarkSelectionAction(this, "No. walks for landmark sel."),
-    _numWalksForLandmarkSelectionThresholdAction(this, "No. walks for landmark sel. thres."),
+    _numWalksForLandmarkSelectionAction(this, "#walks for landmark sel."),
+    _numWalksForLandmarkSelectionThresholdAction(this, "#walks for landmark sel. thres."),
     _randomWalkLengthAction(this, "Random walk length"),
-    _numWalksForAreaOfInfluenceAction(this, "No. walks for aoi"),
-    _minWalksRequiredAction(this, "Minimum no. walks required"),
+    _numWalksForAreaOfInfluenceAction(this, "#walks for aoi"),
+    _minWalksRequiredAction(this, "Minimum #walks required"),
     _numChecksAknnAction(this, "No. KNN checks"),
     _useOutOfCoreComputationAction(this, "Out-of-core computation")
 {
     setText("Advanced HSNE");
+    setObjectName("Advanced HSNE");
 
     _numWalksForLandmarkSelectionAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numWalksForLandmarkSelectionThresholdAction.setDefaultWidgetFlags(IntegralAction::SpinBox);

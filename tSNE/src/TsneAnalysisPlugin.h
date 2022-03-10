@@ -2,15 +2,17 @@
 
 #define no_init_all deprecated
 
+#include <actions/WidgetAction.h>
+
 #include <AnalysisPlugin.h>
 
 #include "TsneAnalysis.h"
 #include "TsneSettingsAction.h"
-#include "DimensionSelectionAction.h"
 
 using namespace hdps::plugin;
+using namespace hdps::gui;
 
-class TsneAnalysisPlugin : public QObject, public AnalysisPlugin
+class TsneAnalysisPlugin : public AnalysisPlugin
 {
     Q_OBJECT
 public:
@@ -27,13 +29,11 @@ public:
 
 public: // Action getters
 
-    TsneSettingsAction& getGeneralSettingsAction() { return _tsneSettingsAction; }
-    DimensionSelectionAction& getDimensionSelectionAction() { return _dimensionSelectionAction; }
+    TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
 
 protected:
-    TsneAnalysis                _tsneAnalysis;                  /** TSNE analysis */
-    TsneSettingsAction          _tsneSettingsAction;            /** TSNE settings action */
-    DimensionSelectionAction    _dimensionSelectionAction;      /** Dimension selection settings action */
+    TsneAnalysis        _tsneAnalysis;          /** TSNE analysis */
+    TsneSettingsAction  _tsneSettingsAction;    /** TSNE settings action */
 };
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory

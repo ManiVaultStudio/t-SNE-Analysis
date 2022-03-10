@@ -21,7 +21,7 @@ HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     _tsneAnalysis(),
     _hsneSettingsAction(nullptr)
 {
-    
+    setObjectName("HSNE");
 }
 
 HsneAnalysisPlugin::~HsneAnalysisPlugin()
@@ -33,7 +33,7 @@ void HsneAnalysisPlugin::init()
     HsneScaleAction::core = _core;
 
     // Created derived dataset for embedding
-    setOutputDataset(_core->createDerivedData("hsne_embedding", getInputDataset(), getInputDataset()));
+    setOutputDataset(_core->createDerivedDataset("HSNE Embedding", getInputDataset(), getInputDataset()));
 
     // Create new HSNE settings actions
     _hsneSettingsAction = new HsneSettingsAction(this);
@@ -58,16 +58,13 @@ void HsneAnalysisPlugin::init()
 
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
-    auto& tsneSettingsAction = _hsneSettingsAction->getTsneSettingsAction();
-    
     outputDataset->addAction(_hsneSettingsAction->getGeneralHsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getAdvancedHsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getTopLevelScaleAction());
-    outputDataset->addAction(tsneSettingsAction.getGeneralTsneSettingsAction());
-    outputDataset->addAction(tsneSettingsAction.getAdvancedTsneSettingsAction());
+    outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction());
+    outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getAdvancedTsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getDimensionSelectionAction());
 
-    outputDataset->setGuiName("hsne_embedding");
     outputDataset->getDataHierarchyItem().select();
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
@@ -135,7 +132,11 @@ void HsneAnalysisPlugin::init()
 
         embedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
-        _core->notifyDataChanged(getOutputDataset());
+        _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
+
+        QCoreApplication::processEvents();
+
+        _core->notifyDatasetChanged(getOutputDataset());
     });
 
     setTaskName("HSNE");
@@ -162,7 +163,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
 
     // Create the subset and clear the selection
-    auto subset = inputDataset->createSubset(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
+    auto subset = inputDataset->createSubsetFromSelection(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
 
     selectionDataset->indices.clear();
 

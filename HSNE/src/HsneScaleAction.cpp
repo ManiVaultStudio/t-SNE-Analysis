@@ -4,6 +4,7 @@
 #include "DataHierarchyItem.h"
 
 #include <QGridLayout>
+#include <QMenu>
 
 using namespace hdps;
 using namespace hdps::gui;
@@ -127,10 +128,10 @@ void HsneScaleAction::refine()
             selection->indices.push_back(refinedScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
 
         // Create HSNE scale subset
-        auto hsneScaleSubset = _input->createSubset("hsne_scale", _input, false);
+        auto hsneScaleSubset = _input->createSubsetFromSelection("hsne_scale", _input, false);
 
         // And the derived data for the embedding
-        _refineEmbedding = core->createDerivedData<Points>(QString("%1_embedding").arg(_input->getGuiName()), hsneScaleSubset, _embedding);
+        _refineEmbedding = core->createDerivedDataset<Points>(QString("%1_embedding").arg(_input->getGuiName()), hsneScaleSubset, _embedding);
 
         _refineEmbedding->setGuiName("HSNE Scale");
     }
@@ -147,7 +148,7 @@ void HsneScaleAction::refine()
         _refineEmbedding->addAction(*hsneScaleAction);
     }
 
-    core->notifyDataAdded(_refineEmbedding);
+    core->notifyDatasetAdded(_refineEmbedding);
 
     // Add linked selection between the upper embedding and the refined embedding
     {
@@ -185,7 +186,7 @@ void HsneScaleAction::refine()
         _refineEmbedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
         // Notify others that the embedding points have changed
-        core->notifyDataChanged(_refineEmbedding);
+        core->notifyDatasetChanged(_refineEmbedding);
     });
 
     // Start the embedding process
