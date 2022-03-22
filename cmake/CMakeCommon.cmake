@@ -10,17 +10,6 @@ set(TSNE_COMMON_SOURCES
     ${DIR}/OffscreenBuffer.cpp
 )
 
-set(DIMENSION_SELECTION_SOURCES
-    ${DIR}/ModelResetter.h
-    ${DIR}/ModelResetter.cpp
-    ${DIR}/DimensionSelectionHolder.h
-    ${DIR}/DimensionSelectionHolder.cpp
-    ${DIR}/DimensionSelectionItemModel.h
-    ${DIR}/DimensionSelectionItemModel.cpp
-    ${DIR}/DimensionSelectionProxyModel.h
-    ${DIR}/DimensionSelectionProxyModel.cpp
-)
-
 set(TSNE_ACTIONS_SOURCES
 	${DIR}/TsneComputationAction.h
     ${DIR}/TsneComputationAction.cpp

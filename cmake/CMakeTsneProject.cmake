@@ -8,7 +8,6 @@ set(TSNE_PLUGIN "TsneAnalysisPlugin")
 # -----------------------------------------------------------------------------
 add_subdirectory(tSNE/src)
 
-source_group(Common\\DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
 source_group(Common\\Actions FILES ${TSNE_ACTIONS_SOURCES} ${DIMENSION_SELECTION_ACTION_SOURCES})
 source_group(Tsne FILES ${TSNE_PLUGIN_SOURCES})
 source_group(Resources FILES ${TSNE_RESOURCES})
