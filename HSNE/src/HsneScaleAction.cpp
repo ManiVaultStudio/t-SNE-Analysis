@@ -161,6 +161,7 @@ void HsneScaleAction::refine()
     core->notifyDatasetAdded(_refineEmbedding);
 
     // Add linked selection between the upper embedding and the refined embedding
+    if (refinedScaleLevel > 0)
     {
         LandmarkMap& landmarkMap = _hsneHierarchy.getInfluenceHierarchy().getMap()[_currentScaleLevel];
 
