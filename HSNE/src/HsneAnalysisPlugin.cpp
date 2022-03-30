@@ -134,7 +134,8 @@ void HsneAnalysisPlugin::init()
 
         _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
 
-        QCoreApplication::processEvents();
+        // NOTE: Commented out because it causes a stack overflow after a couple of iterations
+        //QCoreApplication::processEvents();
 
         _core->notifyDatasetChanged(getOutputDataset());
     });
@@ -159,8 +160,18 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     // Select the appropriate points to create a subset from
     selectionDataset->indices.resize(numLandmarks);
 
-    for (int i = 0; i < numLandmarks; i++)
-        selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
+    if (inputDataset->isFull())
+    {
+        for (int i = 0; i < numLandmarks; i++)
+            selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
+    }
+    else
+    {
+        std::vector<unsigned int> globalIndices;
+        inputDataset->getGlobalIndices(globalIndices);
+        for (int i = 0; i < numLandmarks; i++)
+            selectionDataset->indices[i] = globalIndices[topScale._landmark_to_original_data_idx[i]];
+    }
 
     // Create the subset and clear the selection
     auto subset = inputDataset->createSubsetFromSelection(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
@@ -168,7 +179,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     selectionDataset->indices.clear();
 
     auto embeddingDataset = getOutputDataset<Points>();
-
+    
     embeddingDataset->setSourceDataSet(subset);
     _hsneSettingsAction->getTopLevelScaleAction().setScale(topScaleIndex);
 
@@ -183,10 +194,29 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         LandmarkMap& landmarkMap = _hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex];
         
         hdps::SelectionMap mapping;
-        for (int i = 0; i < landmarkMap.size(); i++)
+
+        if (inputDataset->isFull())
         {
-            int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
-            mapping[bottomLevelIdx] = landmarkMap[i];
+            for (int i = 0; i < landmarkMap.size(); i++)
+            {
+                int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
+                mapping[bottomLevelIdx] = landmarkMap[i];
+            }
+        }
+        else
+        {
+            std::vector<unsigned int> globalIndices;
+            inputDataset->getGlobalIndices(globalIndices);
+            for (int i = 0; i < landmarkMap.size(); i++)
+            {
+                std::vector<unsigned int> bottomMap = landmarkMap[i];
+                for (int j = 0; j < bottomMap.size(); j++)
+                {
+                    bottomMap[j] = globalIndices[bottomMap[j]];
+                }
+                int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
+                mapping[globalIndices[bottomLevelIdx]] = bottomMap;
+            }
         }
 
         embeddingDataset->addLinkedSelection(embeddingDataset, mapping);

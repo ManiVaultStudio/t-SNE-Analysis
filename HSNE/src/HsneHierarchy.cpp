@@ -25,10 +25,14 @@ namespace
     }
 }
 
+/**
+ * Compute for every scale except the bottom scale, which landmark influences which bottom scale point
+ */
 void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
 {
     _influenceMap.resize(hierarchy.getNumScales());
 
+    // For every scale except the bottom scale resize the landmark map to the number of landmarks
     for (int scale = 1; scale < hierarchy.getNumScales(); scale++)
     {
         int numLandmarks = hierarchy.getScale(scale).size();
