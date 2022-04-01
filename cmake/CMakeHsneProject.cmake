@@ -64,6 +64,13 @@ if(MSVC)
 else()
     set(LIB_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}")
 endif()
+
+# Add OpenMP for faster hierarchy initialization
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(${HSNE_PLUGIN} OpenMP::OpenMP_CXX)
+endif()
+
 target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}HDPS_Public${LIB_SUFFIX}")
 target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}PointData${LIB_SUFFIX}")
 target_link_libraries(${HSNE_PLUGIN} ${OPENGL_LIBRARIES})
