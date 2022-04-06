@@ -5,13 +5,13 @@ cmake_minimum_required(VERSION 3.15.0)
 # -----------------------------------------------------------------------------
 set(VERBOSE TRUE)
 
-# Set the directory where CMake include files are to be found
+# Set the directory where CMake include files are to be foundLIBRA
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # -----------------------------------------------------------------------------
 # Library versions
 # -----------------------------------------------------------------------------
-set(HDILib_VERSION latest)
+set(HDILib_VERSION 1.2.5)
 set(flann_VERSION 1.8.5)
 set(lz4_VERSION 1.9.3)
 if(APPLE)
@@ -81,8 +81,10 @@ set(CMAKE_AUTOMOC ON)
 # -----------------------------------------------------------------------------
 set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
 
+
 include(InstallArtifactoryPackage)
-if (USE_ARTIFACTORY_LIBS AND NOT ARTIFACTORY_LIBS_INSTALLED)
+if (USE_ARTIFACTORY_LIBS AND NOT ARTIFACTORY_LIBS_INSTALLED) 
+    message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
     # Both HDILib and flann are available prebuilt in the lkeb-artifactory as combined Debug/Release packages
     # lz4 is also available in the lkb-artifactory in separate Debug and |Release packages
     install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) 
