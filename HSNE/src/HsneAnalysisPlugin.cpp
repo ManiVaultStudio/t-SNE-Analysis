@@ -35,6 +35,8 @@ void HsneAnalysisPlugin::init()
     // Created derived dataset for embedding
     setOutputDataset(_core->createDerivedDataset("HSNE Embedding", getInputDataset(), getInputDataset()));
 
+    getOutputDataset()->getDataHierarchyItem().select();
+
     // Create new HSNE settings actions
     _hsneSettingsAction = new HsneSettingsAction(this);
 
