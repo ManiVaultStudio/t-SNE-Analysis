@@ -144,6 +144,7 @@ void HsneScaleAction::refine()
         _refineEmbedding = core->createDerivedDataset<Points>(QString("%1_embedding").arg(_input->getGuiName()), hsneScaleSubset, _embedding);
 
         _refineEmbedding->setGuiName("HSNE Scale");
+        _refineEmbedding->getDataHierarchyItem().select();
     }
 
     _refineEmbedding->setData(nullptr, 0, 2);
