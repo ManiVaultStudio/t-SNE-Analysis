@@ -27,10 +27,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: Windows-msvc2017
-            os: windows-2016
-            compiler: msvc-2017
-            build-cversion: 15
+          - name: Windows-msvc2019
+            os: windows-2019
+            compiler: msvc-2019
+            build-cversion: 16
             build-runtime: MD
             build-config: Release
 
@@ -42,13 +42,13 @@ jobs:
           #   build-os: Linux
           #   build-libcxx: libstdc++
 
-          - name: Macos_xcode10.3s
-            os: macos-10.14
+          - name: Macos_xcode12.4
+            os: macos-11
             build-compiler: apple-clang
-            build-cversion: "10.0"
+            build-cversion: "12.0"
             build-config: Release
             build-os: Macos
-            build-xcode-version: 10.3
+            build-xcode-version: 12.4
             build-libcxx: libc++
 
     steps:
@@ -69,7 +69,7 @@ jobs:
 
       # windows-2016 need the SSHAgentFeature added
       - name: Start ssh key agent
-        if: matrix.os == 'windows-2016'
+        if: matrix.os == 'windows-2019'
         run: |
           choco install --no-progress -my openssh --params '"/SSHAgentFeature"'
           refreshenv

@@ -88,6 +88,7 @@ public:
     void continueComputation(int iterations);
     void stopComputation();
     bool canContinue() const;
+    int getNumIterations() const;
 
 private:
     void startComputation(TsneWorker* tsneWorker);

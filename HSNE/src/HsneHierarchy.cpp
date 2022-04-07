@@ -25,10 +25,14 @@ namespace
     }
 }
 
+/**
+ * Compute for every scale except the bottom scale, which landmark influences which bottom scale point
+ */
 void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
 {
     _influenceMap.resize(hierarchy.getNumScales());
 
+    // For every scale except the bottom scale resize the landmark map to the number of landmarks
     for (int scale = 1; scale < hierarchy.getNumScales(); scale++)
     {
         int numLandmarks = hierarchy.getScale(scale).size();
@@ -40,14 +44,14 @@ void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
 
     int numDataPoints = bottomScale.size();
 
-    std::vector<std::unordered_map<unsigned int, float>> influence;
+#pragma omp parallel for
     for (int i = 0; i < numDataPoints; i++)
     {
-        influence.clear();
+        std::vector<std::unordered_map<unsigned int, float>> influence;
 
         float thresh = 0.01f;
-        hierarchy.getInfluenceOnDataPoint(i, influence, thresh, false);
 
+        hierarchy.getInfluenceOnDataPoint(i, influence, thresh, false);
         ///////
         int redo = 1;
         int tries = 0;
@@ -93,7 +97,10 @@ void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
                 continue;
             }
 
-            _influenceMap[scale][topInfluencingLandmark].push_back(i);
+            #pragma omp critical
+            {
+                _influenceMap[scale][topInfluencingLandmark].push_back(i);
+            }
         }
     }
 }

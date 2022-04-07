@@ -18,7 +18,7 @@ class HsneScaleAction;
  *
  * @author Julian Thijssen
  */
-class HsneAnalysisPlugin : public QObject, public AnalysisPlugin
+class HsneAnalysisPlugin : public AnalysisPlugin
 {
     Q_OBJECT
 public:

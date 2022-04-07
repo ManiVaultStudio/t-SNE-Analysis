@@ -8,7 +8,6 @@ set(TSNE_PLUGIN "TsneAnalysisPlugin")
 # -----------------------------------------------------------------------------
 add_subdirectory(tSNE/src)
 
-source_group(Common\\DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
 source_group(Common\\Actions FILES ${TSNE_ACTIONS_SOURCES} ${DIMENSION_SELECTION_ACTION_SOURCES})
 source_group(Tsne FILES ${TSNE_PLUGIN_SOURCES})
 source_group(Resources FILES ${TSNE_RESOURCES})
@@ -85,7 +84,7 @@ install(TARGETS ${TSNE_PLUGIN}
 if (NOT DEFINED ENV{CI})
     add_custom_command(TARGET ${TSNE_PLUGIN} POST_BUILD
         COMMAND "${CMAKE_COMMAND}"
-        --install ${CMAKE_BINARY_DIR}
+        --install ${PROJECT_BINARY_DIR}
         --config $<CONFIGURATION>
         --component TSNE_SHAREDLIB
         --prefix ${INSTALL_DIR}/$<CONFIGURATION>

@@ -11,10 +11,10 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
     _exaggerationAction(this, "Exaggeration"),
     _exponentialDecayAction(this, "Exponential decay"),
     _numTreesAction(this, "Number of trees"),
-    _numChecksAction(this, "Number of checks"),
-    _resetAction(this, "Reset all")
+    _numChecksAction(this, "Number of checks")
 {
     setText("Advanced TSNE");
+    setObjectName("Advanced TSNE");
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
@@ -60,10 +60,6 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
         return false;
     };
 
-    const auto updateReset = [this, isResettable]() -> void {
-        _resetAction.setEnabled(isResettable());
-    };
-
     const auto updateReadOnly = [this, isResettable]() -> void {
         const auto enable = !isReadOnly();
 
@@ -71,34 +67,22 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
         _exponentialDecayAction.setEnabled(enable);
         _numTreesAction.setEnabled(enable);
         _numChecksAction.setEnabled(enable);
-        _resetAction.setEnabled(enable);
     };
 
-    connect(&_exaggerationAction, &IntegralAction::valueChanged, this, [this, updateExaggeration, updateReset](const std::int32_t& value) {
+    connect(&_exaggerationAction, &IntegralAction::valueChanged, this, [this, updateExaggeration](const std::int32_t& value) {
         updateExaggeration();
-        updateReset();
     });
 
-    connect(&_exponentialDecayAction, &IntegralAction::valueChanged, this, [this, updateExponentialDecay, updateReset](const std::int32_t& value) {
+    connect(&_exponentialDecayAction, &IntegralAction::valueChanged, this, [this, updateExponentialDecay](const std::int32_t& value) {
         updateExponentialDecay();
-        updateReset();
     });
 
-    connect(&_numTreesAction, &IntegralAction::valueChanged, this, [this, updateNumTrees, updateReset](const std::int32_t& value) {
+    connect(&_numTreesAction, &IntegralAction::valueChanged, this, [this, updateNumTrees](const std::int32_t& value) {
         updateNumTrees();
-        updateReset();
     });
 
-    connect(&_numChecksAction, &IntegralAction::valueChanged, this, [this, updateNumChecks, updateReset](const std::int32_t& value) {
+    connect(&_numChecksAction, &IntegralAction::valueChanged, this, [this, updateNumChecks](const std::int32_t& value) {
         updateNumChecks();
-        updateReset();
-    });
-
-    connect(&_resetAction, &TriggerAction::triggered, this, [this](const std::int32_t& value) {
-        _exaggerationAction.reset();
-        _exponentialDecayAction.reset();
-        _numTreesAction.reset();
-        _numChecksAction.reset();
     });
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
@@ -109,6 +93,5 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
     updateExponentialDecay();
     updateNumTrees();
     updateNumChecks();
-    updateReset();
     updateReadOnly();
 }

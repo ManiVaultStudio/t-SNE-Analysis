@@ -8,7 +8,6 @@ set(HSNE_PLUGIN "HsneAnalysisPlugin")
 # -----------------------------------------------------------------------------
 add_subdirectory(HSNE/src)
 
-source_group(Common//DimensionSelection FILES ${DIMENSION_SELECTION_SOURCES})
 source_group(Common//Actions FILES ${DIMENSION_SELECTION_ACTION_SOURCES} ${TSNE_ACTIONS_SOURCES})
 source_group(Actions FILES ${HSNE_ACTIONS_SOURCES})
 source_group(Hsne FILES ${HSNE_PLUGIN_SOURCES})
@@ -65,6 +64,13 @@ if(MSVC)
 else()
     set(LIB_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}")
 endif()
+
+# Add OpenMP for faster hierarchy initialization
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(${HSNE_PLUGIN} OpenMP::OpenMP_CXX)
+endif()
+
 target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}HDPS_Public${LIB_SUFFIX}")
 target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}PointData${LIB_SUFFIX}")
 target_link_libraries(${HSNE_PLUGIN} ${OPENGL_LIBRARIES})
@@ -86,7 +92,7 @@ install(TARGETS ${HSNE_PLUGIN}
 if (NOT DEFINED ENV{CI})
     add_custom_command(TARGET ${HSNE_PLUGIN} POST_BUILD
         COMMAND "${CMAKE_COMMAND}"
-        --install ${CMAKE_BINARY_DIR}
+        --install ${PROJECT_BINARY_DIR}
         --config $<CONFIGURATION>
         --component HSNE_SHAREDLIB
         --prefix ${INSTALL_DIR}/$<CONFIGURATION>

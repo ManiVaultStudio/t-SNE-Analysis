@@ -4,21 +4,21 @@ endif()
 
 message(STATUS "Start ConanSetup")
 # Download the conan cmake macros automatically.
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+if(NOT EXISTS "${PROJECT_BINARY_DIR}/conan.cmake")
    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
    file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.15/conan.cmake"
-                 "${CMAKE_BINARY_DIR}/cmake/conan.cmake")
+                 "${PROJECT_BINARY_DIR}/cmake/conan.cmake")
 endif()
 
-include(${CMAKE_BINARY_DIR}/cmake/conan.cmake)
+include(${PROJECT_BINARY_DIR}/cmake/conan.cmake)
 
 
-file(TIMESTAMP ${CMAKE_BINARY_DIR}/conan_install_timestamp.txt file_timestamp "%Y.%m.%d")
+file(TIMESTAMP ${PROJECT_BINARY_DIR}/conan_install_timestamp.txt file_timestamp "%Y.%m.%d")
 string(TIMESTAMP timestamp "%Y.%m.%d")
 
 # Run conan install update only once a day
 if("${file_timestamp}" VERSION_LESS ${timestamp} OR IS_CI)
-    file(WRITE ${CMAKE_BINARY_DIR}/conan_install_timestamp.txt "${timestamp}\n")
+    file(WRITE ${PROJECT_BINARY_DIR}/conan_install_timestamp.txt "${timestamp}\n")
     set(CONAN_UPDATE UPDATE)
     conan_add_remote(NAME lkeb-artifactory INDEX 0
         URL https://lkeb-artifactory.lumc.nl/artifactory/api/conan/conan-local)
