@@ -11,12 +11,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # -----------------------------------------------------------------------------
 # Library versions
 # -----------------------------------------------------------------------------
-set(HDILib_VERSION 1.2.5)
-set(flann_VERSION 1.8.5)
+set(HDILib_VERSION 1.2.6)
+set(flann_VERSION 1.9.1)
 set(lz4_VERSION 1.9.3)
-if(APPLE)
-    set(flann_VERSION 1.9.1)
-endif()
 
 # -----------------------------------------------------------------------------
 # Define the SNE Analyses project
@@ -90,6 +87,7 @@ if (USE_ARTIFACTORY_LIBS AND NOT ARTIFACTORY_LIBS_INSTALLED)
     install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) 
     install_artifactory_package(flann ${flann_VERSION} lkeb TRUE)
     install_artifactory_package(lz4 ${lz4_VERSION} _ FALSE)
+
 
     message(STATUS "module path ${CMAKE_MODULE_PATH}")
     message(STATUS "Call find_package HDILib search ${CMAKE_SOURCE_DIR}/HDILib/lib/cmake/HDILib")

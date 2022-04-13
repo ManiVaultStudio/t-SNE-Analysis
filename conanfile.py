@@ -1,5 +1,6 @@
 from conans import ConanFile, CMake
 from conans.tools import save, load
+from conans.tools import os_info, SystemPackageTool
 import os
 import shutil
 import pathlib
@@ -64,7 +65,7 @@ class SNEAnalysesConan(ConanFile):
 
     def requirements(self):
         if os.environ.get("CONAN_REQUIRE_HDILIB", None) is not None:
-            self.requires("HDILib/1.2.2@biovault/stable")
+            self.requires("HDILib/1.2.6@biovault/stable")
         branch_info = PluginBranchInfo(self.__get_git_path())
         print(f"Core requirement {branch_info.core_requirement}")
         self.requires(branch_info.core_requirement)
@@ -75,8 +76,9 @@ class SNEAnalysesConan(ConanFile):
             del self.settings.compiler.runtime
 
     def system_requirements(self):
-        #  May be needed for macOS or Linux
-        pass
+        if os_info.is_macos:
+            installer = SystemPackageTool()
+            installer.install('libomp')
 
     def config_options(self):
         if self.settings.os == "Windows":
