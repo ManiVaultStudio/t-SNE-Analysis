@@ -13,7 +13,6 @@ CoreInterface* HsneScaleAction::core = nullptr;
 
 HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
     GroupAction(parent, true),
-    EventListener(),
     _tsneSettingsAction(tsneSettingsAction),
     _tsneAnalysis(),
     _hsneHierarchy(hsneHierarchy),
@@ -31,7 +30,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         refine();
     });
 
-    setEventCore(core);
+    _eventListener.setEventCore(core);
 
     const auto updateReadOnly = [this]() -> void {
         auto selection = _input->getSelection<Points>();
@@ -43,7 +42,8 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         updateReadOnly();
     });
 
-    registerDataEventByType(PointType, [this, updateReadOnly](DataEvent* dataEvent) {
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataSelectionChanged));
+    _eventListener.registerDataEventByType(PointType, [this, updateReadOnly](DataEvent* dataEvent) {
         if (dataEvent->getDataset() == _embedding && dataEvent->getType() == EventType::DataSelectionChanged)
             updateReadOnly();
     });
