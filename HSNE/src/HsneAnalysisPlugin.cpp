@@ -105,7 +105,9 @@ void HsneAnalysisPlugin::init()
         computeTopLevelEmbedding();
     });
 
-    registerDataEventByType(PointType, [this](hdps::DataEvent* dataEvent)
+    _eventListener.setEventCore(_core);
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataChanged));
+    _eventListener.registerDataEventByType(PointType, [this](hdps::DataEvent* dataEvent)
     {
         switch (dataEvent->getType())
         {
