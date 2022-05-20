@@ -41,15 +41,33 @@ class SNEAnalysesConan(ConanFile):
         "revision": "auto"
     }
 
+    def __get_git_path(self):
+        path = load(
+            pathlib.Path(pathlib.Path(__file__).parent.resolve(), "__gitpath.txt")
+        )
+        print(f"git info from {path}")
+        return path
+
+    def export(self):
+        print("In export")
+        # save the original source path to the directory used to build the package
+        save(
+            pathlib.Path(self.export_folder, "__gitpath.txt"),
+            str(pathlib.Path(__file__).parent.resolve()),
+        )
+
     def set_version(self):
+        # print("In setversion")
         # Assign a version from the branch name
-        branch_info = CoreBranchInfo(self.recipe_folder)
+        branch_info = PluginBranchInfo(self.recipe_folder)
         self.version = branch_info.version
 
-    # Remove runtime and use always default (MD/MDd)
-    def configure(self):
-        if self.settings.compiler == "Visual Studio":
-            del self.settings.compiler.runtime
+    def requirements(self):
+        if os.environ.get("CONAN_REQUIRE_HDILIB", None) is not None:
+            self.requires("HDILib/1.2.6@biovault/stable")
+        branch_info = PluginBranchInfo(self.__get_git_path())
+        print(f"Core requirement {branch_info.core_requirement}")
+        self.requires(branch_info.core_requirement)
 
     def system_requirements(self):
         #  May be needed for macOS or Linux
