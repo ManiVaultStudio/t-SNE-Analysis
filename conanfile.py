@@ -31,8 +31,7 @@ class SNEAnalysesConan(ConanFile):
     default_options = {"shared": True, "fPIC": True}
 
     requires = (
-        "qt/5.15.1@lkeb/stable",
-        "hdps-core/latest@lkeb/stable"
+        "hdps-core/0.2@lkeb/stable"
     )
 
     scm = {
