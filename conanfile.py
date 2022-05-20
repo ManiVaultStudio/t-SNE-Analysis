@@ -1,9 +1,11 @@
 from conans import ConanFile, CMake
+from conans.tools import save, load
+from conans.tools import os_info, SystemPackageTool
 import os
 import shutil
 import pathlib
 import subprocess
-from rules_support import CoreBranchInfo
+from rules_support import PluginBranchInfo
 
 
 class SNEAnalysesConan(ConanFile):
