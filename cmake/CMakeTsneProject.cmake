@@ -78,7 +78,7 @@ endif(UNIX)
 # -----------------------------------------------------------------------------
 # Target installation
 # -----------------------------------------------------------------------------
-install(TARGETS ${PROJECT}
+install(TARGETS ${TSNE_PLUGIN}
    RUNTIME DESTINATION Plugins COMPONENT SHAREDLIB
    LIBRARY DESTINATION Plugins COMPONENT LINKLIB
    ARCHIVE DESTINATION lib COMPONENT LINKLIB
