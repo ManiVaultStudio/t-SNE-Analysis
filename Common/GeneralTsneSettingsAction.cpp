@@ -20,6 +20,8 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     setText("TSNE");
     setObjectName("General TSNE");
 
+    setLabelWidthFixed(250);
+
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
     _numberOfComputatedIterationsAction.setEnabled(false);

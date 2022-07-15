@@ -15,6 +15,7 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 {
     setText("Advanced TSNE");
     setObjectName("Advanced TSNE");
+    setLabelWidthPercentage(50);
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
