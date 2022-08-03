@@ -248,22 +248,17 @@ QList<TriggerAction*> HsneAnalysisPluginFactory::getProducers(const hdps::Datase
 {
     QList<TriggerAction*> producerActions;
 
-    const auto getPluginInstance = [this]() -> AnalysisPlugin* {
-        return dynamic_cast<AnalysisPlugin*>(Application::core()->requestPlugin(getKind()));
+    const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> AnalysisPlugin* {
+        return dynamic_cast<AnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
     };
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, "Points")) {
         if (datasets.count() >= 1 && datasets.first()->getDataType().getTypeString() == "Points") {
-            auto producerAction = createProducerAction("HSNE", "Perform HSNE analysis on dataset");
+            auto producerAction = createProducerAction("HSNE analysis", "Perform HSNE analysis on dataset");
 
             connect(producerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
-                for (auto dataset : datasets) {
-                    auto pluginInstance = getPluginInstance();
-
-                    pluginInstance->setInputDataset({ dataset });
-
-                    dataset->setAnalysis(pluginInstance);
-                }
+                for (auto dataset : datasets)
+                    getPluginInstance(dataset);
             });
 
             producerActions << producerAction;
