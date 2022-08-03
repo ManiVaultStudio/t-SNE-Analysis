@@ -1,6 +1,8 @@
 #include "TsneAnalysisPlugin.h"
 
-#include "PointData.h"
+#include <PointData.h>
+
+#include <util/Icon.h>
 
 #include <QtCore>
 #include <QtDebug>
@@ -12,7 +14,7 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 #include <set>
 
 using namespace hdps;
-using namespace hdps::gui;
+using namespace hdps::util;
 
 TsneAnalysisPlugin::TsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
@@ -203,41 +205,9 @@ void TsneAnalysisPlugin::stopComputation()
     _tsneAnalysis.stopComputation();
 }
 
-QIcon TsneAnalysisPluginFactory::getIcon() const
+QIcon TsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) const
 {
-    const auto margin       = 3;
-    const auto pixmapSize   = QSize(100, 100);
-    const auto pixmapRect   = QRect(QPoint(), pixmapSize).marginsRemoved(QMargins(margin, margin, margin, margin));
-    const auto halfSize     = pixmapRect.size() / 2;
-
-    // Create pixmap
-    QPixmap pixmap(pixmapSize);
-
-    // Fill with a transparent background
-    pixmap.fill(Qt::transparent);
-
-    // Create a painter to draw in the pixmap
-    QPainter painter(&pixmap);
-
-    // Enable anti-aliasing
-    painter.setRenderHint(QPainter::Antialiasing);
-
-    // Get the text color from the application
-    const auto textColor = QApplication::palette().text().color();
-
-    // Configure painter
-    painter.setPen(QPen(textColor, 1, Qt::SolidLine, Qt::SquareCap, Qt::SvgMiterJoin));
-    painter.setFont(QFont("Arial", 38, 250));
-
-    const auto textOption = QTextOption(Qt::AlignCenter);
-
-    // Do the painting
-    painter.drawText(QRect(pixmapRect.topLeft(), halfSize), "T", textOption);
-    painter.drawText(QRect(QPoint(halfSize.width(), pixmapRect.top()), halfSize), "S", textOption);
-    painter.drawText(QRect(QPoint(pixmapRect.left(), halfSize.height()), halfSize), "N", textOption);
-    painter.drawText(QRect(QPoint(halfSize.width(), halfSize.height()), halfSize), "E", textOption);
-
-    return QIcon(pixmap);
+    return createPluginIcon("TSNE");
 }
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
@@ -245,9 +215,32 @@ AnalysisPlugin* TsneAnalysisPluginFactory::produce()
     return new TsneAnalysisPlugin(this);
 }
 
-hdps::DataTypes TsneAnalysisPluginFactory::supportedDataTypes() const
+QList<TriggerAction*> TsneAnalysisPluginFactory::getProducers(const hdps::Datasets& datasets) const
 {
-    DataTypes supportedTypes;
-    supportedTypes.append(PointType);
-    return supportedTypes;
+    QList<TriggerAction*> producerActions;
+
+    const auto getPluginInstance = [this]() -> AnalysisPlugin* {
+        return dynamic_cast<AnalysisPlugin*>(Application::core()->requestPlugin(getKind()));
+    };
+
+    if (PluginFactory::areAllDatasetsOfTheSameType(datasets, "Points")) {
+        if (datasets.count() >= 1 && datasets.first()->getDataType().getTypeString() == "Points") {
+            auto producerAction = createProducerAction("TSNE", "Perform TSNE analysis on dataset");
+
+            connect(producerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+                for (auto dataset : datasets) {
+                    auto pluginInstance = getPluginInstance();
+
+                    pluginInstance->setInputDataset({ dataset });
+
+                    dataset->setAnalysis(pluginInstance);
+                }
+                });
+
+            producerActions << producerAction;
+        }
+    }
+
+    return producerActions;
 }
+
