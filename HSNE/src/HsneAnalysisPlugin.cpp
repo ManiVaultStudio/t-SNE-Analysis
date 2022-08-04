@@ -256,7 +256,7 @@ QList<PluginTriggerAction*> HsneAnalysisPluginFactory::getPluginTriggerActions(c
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, "Points")) {
         if (datasets.count() >= 1 && datasets.first()->getDataType().getTypeString() == "Points") {
-            auto pluginTriggerAction = createPluginTriggerAction("HSNE analysis", "Perform HSNE analysis on dataset", datasets);
+            auto pluginTriggerAction = createPluginTriggerAction("HSNE analysis", "Perform HSNE analysis on selected datasets", datasets);
 
             connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
                 for (auto dataset : datasets)
