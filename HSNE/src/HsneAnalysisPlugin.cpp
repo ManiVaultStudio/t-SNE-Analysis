@@ -246,9 +246,9 @@ AnalysisPlugin* HsneAnalysisPluginFactory::produce()
     return new HsneAnalysisPlugin(this);
 }
 
-QList<PluginTriggerAction*> HsneAnalysisPluginFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
+PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
 {
-    QList<PluginTriggerAction*> pluginTriggerActions;
+    PluginTriggerActions pluginTriggerActions;
 
     const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> HsneAnalysisPlugin* {
         return dynamic_cast<HsneAnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
