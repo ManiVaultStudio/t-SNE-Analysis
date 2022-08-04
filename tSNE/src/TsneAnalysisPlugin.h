@@ -61,9 +61,9 @@ public:
     AnalysisPlugin* produce() override;
 
     /**
-     * Get a list of producer actions given a sequence of input datasets
-     * @param datasets Sequence of input datasets (order in which they were selected in the data hierarchy)
-     * @return List of producer actions with which one (or more) plugins can be triggered
+     * Get a list of plugin trigger actions given a vector of input datasets
+     * @param datasets Vector of input datasets
+     * @return List of plugin trigger actions
      */
-    QList<TriggerAction*> getProducers(const hdps::Datasets& datasets) const override;
+    QList<PluginTriggerAction*> getPluginTriggerActions(const hdps::Datasets& datasets) const override;
 };

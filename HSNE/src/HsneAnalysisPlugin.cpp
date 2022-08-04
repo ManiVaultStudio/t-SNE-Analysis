@@ -6,6 +6,8 @@
 
 #include <util/Icon.h>
 
+#include <actions/PluginTriggerAction.h>
+
 #include <QDebug>
 #include <QPainter>
 
@@ -244,26 +246,26 @@ AnalysisPlugin* HsneAnalysisPluginFactory::produce()
     return new HsneAnalysisPlugin(this);
 }
 
-QList<TriggerAction*> HsneAnalysisPluginFactory::getProducers(const hdps::Datasets& datasets) const
+QList<PluginTriggerAction*> HsneAnalysisPluginFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
 {
-    QList<TriggerAction*> producerActions;
+    QList<PluginTriggerAction*> pluginTriggerActions;
 
-    const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> AnalysisPlugin* {
-        return dynamic_cast<AnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
+    const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> HsneAnalysisPlugin* {
+        return dynamic_cast<HsneAnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
     };
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, "Points")) {
         if (datasets.count() >= 1 && datasets.first()->getDataType().getTypeString() == "Points") {
-            auto producerAction = createProducerAction("HSNE analysis", "Perform HSNE analysis on dataset");
+            auto pluginTriggerAction = createPluginTriggerAction("HSNE analysis", "Perform HSNE analysis on dataset", datasets);
 
-            connect(producerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
                 for (auto dataset : datasets)
                     getPluginInstance(dataset);
             });
 
-            producerActions << producerAction;
+            pluginTriggerActions << pluginTriggerAction;
         }
     }
 
-    return producerActions;
+    return pluginTriggerActions;
 }

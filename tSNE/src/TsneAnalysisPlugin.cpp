@@ -4,6 +4,8 @@
 
 #include <util/Icon.h>
 
+#include <actions/PluginTriggerAction.h>
+
 #include <QtCore>
 #include <QtDebug>
 #include <QMenu>
@@ -215,27 +217,27 @@ AnalysisPlugin* TsneAnalysisPluginFactory::produce()
     return new TsneAnalysisPlugin(this);
 }
 
-QList<TriggerAction*> TsneAnalysisPluginFactory::getProducers(const hdps::Datasets& datasets) const
+QList<PluginTriggerAction*> TsneAnalysisPluginFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
 {
-    QList<TriggerAction*> producerActions;
+    QList<PluginTriggerAction*> pluginTriggerActions;
 
-    const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> AnalysisPlugin* {
-        return dynamic_cast<AnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
+    const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> TsneAnalysisPlugin* {
+        return dynamic_cast<TsneAnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
     };
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, "Points")) {
         if (datasets.count() >= 1 && datasets.first()->getDataType().getTypeString() == "Points") {
-            auto producerAction = createProducerAction("TSNE analysis", "Perform TSNE analysis on dataset");
+            auto pluginTriggerAction = createPluginTriggerAction("TSNE analysis", "Perform TSNE analysis on dataset", datasets);
 
-            connect(producerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
                 for (auto dataset : datasets)
                     getPluginInstance(dataset);
             });
 
-            producerActions << producerAction;
+            pluginTriggerActions << pluginTriggerAction;
         }
     }
 
-    return producerActions;
+    return pluginTriggerActions;
 }
 
