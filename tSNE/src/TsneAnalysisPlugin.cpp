@@ -225,8 +225,8 @@ PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const hd
         return dynamic_cast<TsneAnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
     };
 
-    if (PluginFactory::areAllDatasetsOfTheSameType(datasets, "Points")) {
-        if (datasets.count() >= 1 && datasets.first()->getDataType().getTypeString() == "Points") {
+    if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
+        if (datasets.count() >= 1 && datasets.first()->getDataType() == PointType) {
             auto pluginTriggerAction = createPluginTriggerAction("TSNE analysis", "Perform TSNE analysis on selected datasets", datasets);
 
             connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {

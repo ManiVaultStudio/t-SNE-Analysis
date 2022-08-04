@@ -254,8 +254,8 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hd
         return dynamic_cast<HsneAnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
     };
 
-    if (PluginFactory::areAllDatasetsOfTheSameType(datasets, "Points")) {
-        if (datasets.count() >= 1 && datasets.first()->getDataType().getTypeString() == "Points") {
+    if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
+        if (datasets.count() >= 1 && datasets.first()->getDataType() == PointType) {
             auto pluginTriggerAction = createPluginTriggerAction("HSNE analysis", "Perform HSNE analysis on selected datasets", datasets);
 
             connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
