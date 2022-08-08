@@ -47,6 +47,8 @@ void TsneAnalysisPlugin::init()
 
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
+    _core->notifyDatasetChanged(outputDataset);
+
     outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getDimensionSelectionAction());
