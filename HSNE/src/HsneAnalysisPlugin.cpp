@@ -255,12 +255,22 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hd
     };
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
-        if (datasets.count() >= 1 && datasets.first()->getDataType() == PointType) {
+        if (datasets.count() >= 1) {
             auto pluginTriggerAction = createPluginTriggerAction("HSNE analysis", "Perform HSNE analysis on selected datasets", datasets);
 
             connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
                 for (auto dataset : datasets)
                     getPluginInstance(dataset);
+            });
+
+            pluginTriggerActions << pluginTriggerAction;
+        }
+
+        if (datasets.count() >= 2) {
+            auto pluginTriggerAction = createPluginTriggerAction("Group + HSNE analysis", "Group datasets and perform HSNE analysis on it", datasets);
+
+            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+                getPluginInstance(Application::core()->groupDatasets(datasets));
             });
 
             pluginTriggerActions << pluginTriggerAction;
