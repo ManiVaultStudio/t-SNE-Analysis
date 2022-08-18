@@ -228,7 +228,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
             }
         }
 
-        embeddingDataset->addLinkedData(embeddingDataset, mapping);
+        embeddingDataset->addLinkedData(inputDataset, mapping);
     }
 
     // Embed data

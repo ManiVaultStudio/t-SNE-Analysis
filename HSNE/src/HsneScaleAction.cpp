@@ -204,7 +204,7 @@ void HsneScaleAction::refine()
             }
         }
 
-        _refineEmbedding->addLinkedData(_refineEmbedding, mapping);
+        _refineEmbedding->addLinkedData(_input, mapping);
     }
 
     _refineEmbedding->getDataHierarchyItem().setTaskName("HSNE scale");
