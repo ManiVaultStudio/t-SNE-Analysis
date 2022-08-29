@@ -238,7 +238,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
 QIcon HsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) const
 {
-    return createPluginIcon("HSNE");
+    return createPluginIcon("HSNE", color);
 }
 
 AnalysisPlugin* HsneAnalysisPluginFactory::produce()

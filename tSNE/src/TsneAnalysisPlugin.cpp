@@ -211,7 +211,7 @@ void TsneAnalysisPlugin::stopComputation()
 
 QIcon TsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) const
 {
-    return createPluginIcon("TSNE");
+    return createPluginIcon("TSNE", color);
 }
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
