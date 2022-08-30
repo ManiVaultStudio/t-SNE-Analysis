@@ -23,6 +23,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _isTopScale(true)
 {
     setText("HSNE scale");
+    setShowLabels(false);
 
     _refineAction.setToolTip("Refine the selected landmarks");
 
