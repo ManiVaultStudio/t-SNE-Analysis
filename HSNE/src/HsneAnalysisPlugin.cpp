@@ -2,7 +2,11 @@
 #include "HsneParameters.h"
 #include "HsneScaleAction.h"
 
-#include "PointData.h"
+#include <PointData.h>
+
+#include <util/Icon.h>
+
+#include <actions/PluginTriggerAction.h>
 
 #include <QDebug>
 #include <QPainter>
@@ -14,6 +18,7 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
 #endif
 
 using namespace hdps;
+using namespace hdps::util;
 
 HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
@@ -231,41 +236,9 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
 }
 
-QIcon HsneAnalysisPluginFactory::getIcon() const
+QIcon HsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) const
 {
-    const auto margin       = 3;
-    const auto pixmapSize   = QSize(100, 100);
-    const auto pixmapRect   = QRect(QPoint(), pixmapSize).marginsRemoved(QMargins(margin, margin, margin, margin));
-    const auto halfSize     = pixmapRect.size() / 2;
-
-    // Create pixmap
-    QPixmap pixmap(pixmapSize);
-
-    // Fill with a transparent background
-    pixmap.fill(Qt::transparent);
-
-    // Create a painter to draw in the pixmap
-    QPainter painter(&pixmap);
-
-    // Enable anti-aliasing
-    painter.setRenderHint(QPainter::Antialiasing);
-
-    // Get the text color from the application
-    const auto textColor = QApplication::palette().text().color();
-
-    // Configure painter
-    painter.setPen(QPen(textColor, 1, Qt::SolidLine, Qt::SquareCap, Qt::SvgMiterJoin));
-    painter.setFont(QFont("Arial", 38, 250));
-
-    const auto textOption = QTextOption(Qt::AlignCenter);
-
-    // Do the painting
-    painter.drawText(QRect(pixmapRect.topLeft(), halfSize), "H", textOption);
-    painter.drawText(QRect(QPoint(halfSize.width(), pixmapRect.top()), halfSize), "S", textOption);
-    painter.drawText(QRect(QPoint(pixmapRect.left(), halfSize.height()), halfSize), "N", textOption);
-    painter.drawText(QRect(QPoint(halfSize.width(), halfSize.height()), halfSize), "E", textOption);
-
-    return QIcon(pixmap);
+    return createPluginIcon("HSNE", color);
 }
 
 AnalysisPlugin* HsneAnalysisPluginFactory::produce()
@@ -273,9 +246,36 @@ AnalysisPlugin* HsneAnalysisPluginFactory::produce()
     return new HsneAnalysisPlugin(this);
 }
 
-hdps::DataTypes HsneAnalysisPluginFactory::supportedDataTypes() const
+PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
 {
-    DataTypes supportedTypes;
-    supportedTypes.append(PointType);
-    return supportedTypes;
+    PluginTriggerActions pluginTriggerActions;
+
+    const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> HsneAnalysisPlugin* {
+        return dynamic_cast<HsneAnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
+    };
+
+    if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
+        if (datasets.count() >= 1) {
+            auto pluginTriggerAction = createPluginTriggerAction("HSNE analysis", "Perform HSNE analysis on selected datasets", datasets);
+
+            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+                for (auto dataset : datasets)
+                    getPluginInstance(dataset);
+            });
+
+            pluginTriggerActions << pluginTriggerAction;
+        }
+
+        if (datasets.count() >= 2) {
+            auto pluginTriggerAction = createPluginTriggerAction("Group + HSNE analysis", "Group datasets and perform HSNE analysis on it", datasets);
+
+            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+                getPluginInstance(Application::core()->groupDatasets(datasets));
+            });
+
+            pluginTriggerActions << pluginTriggerAction;
+        }
+    }
+
+    return pluginTriggerActions;
 }

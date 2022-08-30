@@ -1,6 +1,10 @@
 #include "TsneAnalysisPlugin.h"
 
-#include "PointData.h"
+#include <PointData.h>
+
+#include <util/Icon.h>
+
+#include <actions/PluginTriggerAction.h>
 
 #include <QtCore>
 #include <QtDebug>
@@ -12,7 +16,7 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 #include <set>
 
 using namespace hdps;
-using namespace hdps::gui;
+using namespace hdps::util;
 
 TsneAnalysisPlugin::TsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
@@ -42,6 +46,8 @@ void TsneAnalysisPlugin::init()
     initialData.resize(inputDataset->getNumPoints() * numEmbeddingDimensions);
 
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
+
+    _core->notifyDatasetChanged(outputDataset);
 
     outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
@@ -203,41 +209,9 @@ void TsneAnalysisPlugin::stopComputation()
     _tsneAnalysis.stopComputation();
 }
 
-QIcon TsneAnalysisPluginFactory::getIcon() const
+QIcon TsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) const
 {
-    const auto margin       = 3;
-    const auto pixmapSize   = QSize(100, 100);
-    const auto pixmapRect   = QRect(QPoint(), pixmapSize).marginsRemoved(QMargins(margin, margin, margin, margin));
-    const auto halfSize     = pixmapRect.size() / 2;
-
-    // Create pixmap
-    QPixmap pixmap(pixmapSize);
-
-    // Fill with a transparent background
-    pixmap.fill(Qt::transparent);
-
-    // Create a painter to draw in the pixmap
-    QPainter painter(&pixmap);
-
-    // Enable anti-aliasing
-    painter.setRenderHint(QPainter::Antialiasing);
-
-    // Get the text color from the application
-    const auto textColor = QApplication::palette().text().color();
-
-    // Configure painter
-    painter.setPen(QPen(textColor, 1, Qt::SolidLine, Qt::SquareCap, Qt::SvgMiterJoin));
-    painter.setFont(QFont("Arial", 38, 250));
-
-    const auto textOption = QTextOption(Qt::AlignCenter);
-
-    // Do the painting
-    painter.drawText(QRect(pixmapRect.topLeft(), halfSize), "T", textOption);
-    painter.drawText(QRect(QPoint(halfSize.width(), pixmapRect.top()), halfSize), "S", textOption);
-    painter.drawText(QRect(QPoint(pixmapRect.left(), halfSize.height()), halfSize), "N", textOption);
-    painter.drawText(QRect(QPoint(halfSize.width(), halfSize.height()), halfSize), "E", textOption);
-
-    return QIcon(pixmap);
+    return createPluginIcon("TSNE", color);
 }
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
@@ -245,9 +219,37 @@ AnalysisPlugin* TsneAnalysisPluginFactory::produce()
     return new TsneAnalysisPlugin(this);
 }
 
-hdps::DataTypes TsneAnalysisPluginFactory::supportedDataTypes() const
+PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
 {
-    DataTypes supportedTypes;
-    supportedTypes.append(PointType);
-    return supportedTypes;
+    PluginTriggerActions pluginTriggerActions;
+
+    const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> TsneAnalysisPlugin* {
+        return dynamic_cast<TsneAnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
+    };
+
+    if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
+        if (datasets.count() >= 1) {
+            auto pluginTriggerAction = createPluginTriggerAction("TSNE analysis", "Perform TSNE analysis on selected datasets", datasets);
+
+            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+                for (auto dataset : datasets)
+                    getPluginInstance(dataset);
+            });
+
+            pluginTriggerActions << pluginTriggerAction;
+        }
+
+        if (datasets.count() >= 2) {
+            auto pluginTriggerAction = createPluginTriggerAction("Group + TSNE analysis", "Group datasets and perform TSNE analysis on it", datasets);
+
+            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+                getPluginInstance(Application::core()->groupDatasets(datasets));
+            });
+
+            pluginTriggerActions << pluginTriggerAction;
+        }
+    }
+
+    return pluginTriggerActions;
 }
+
