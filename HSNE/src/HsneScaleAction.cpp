@@ -165,42 +165,44 @@ void HsneScaleAction::refine()
     // Add linked selection between the upper embedding and the refined embedding
     if (refinedScaleLevel > 0)
     {
-        LandmarkMap& landmarkMap = _hsneHierarchy.getInfluenceHierarchy().getMap()[_currentScaleLevel];
+        LandmarkMap& landmarkMap = _hsneHierarchy.getInfluenceHierarchy().getMap()[refinedScaleLevel];
 
-        auto selection = _embedding->getSelection<Points>();
+        //hdps::Dataset<Points> selection = _refineEmbedding;
 
-        std::vector<unsigned int> localSelectionIndices;
-        _embedding->getLocalSelectionIndices(localSelectionIndices);
+        std::vector<unsigned int> localSelectionIndices(nextLevelIdxs.size());
+        std::iota(localSelectionIndices.begin(), localSelectionIndices.end(), 0);
+        //_embedding->getLocalSelectionIndices(localSelectionIndices);
 
         // Transmute local indices by drill indices specifying relation to full hierarchy scale
         if (!_isTopScale)
         {
-            for (int i = 0; i < localSelectionIndices.size(); i++)
-                localSelectionIndices[i] = _drillIndices[localSelectionIndices[i]];
+            for (unsigned int& localIndex : localSelectionIndices)
+                localIndex = _drillIndices[localIndex];
         }
 
         hdps::SelectionMap mapping;
 
         if (_input->isFull())
         {
-            for (const unsigned int& selectionIndex : localSelectionIndices)
+            for (const unsigned int& scaleIndex : localSelectionIndices)
             {
-                int bottomLevelIdx = _hsneHierarchy.getScale(_currentScaleLevel)._landmark_to_original_data_idx[selectionIndex];
-                mapping[bottomLevelIdx] = landmarkMap[selectionIndex];
+                int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
+                mapping[bottomLevelIdx] = landmarkMap[scaleIndex];
             }
         }
         else
         {
             std::vector<unsigned int> globalIndices;
             _input->getGlobalIndices(globalIndices);
-            for (const unsigned int& selectionIndex : localSelectionIndices)
+            for (const unsigned int& scaleIndex : localSelectionIndices)
             {
-                std::vector<unsigned int> bottomMap = landmarkMap[selectionIndex];
+                std::vector<unsigned int> bottomMap = landmarkMap[scaleIndex];
+                // Transform bottom level indices to the global full set indices
                 for (int j = 0; j < bottomMap.size(); j++)
                 {
                     bottomMap[j] = globalIndices[bottomMap[j]];
                 }
-                int bottomLevelIdx = _hsneHierarchy.getScale(_currentScaleLevel)._landmark_to_original_data_idx[selectionIndex];
+                int bottomLevelIdx = _hsneHierarchy.getScale(_currentScaleLevel)._landmark_to_original_data_idx[scaleIndex];
                 mapping[globalIndices[bottomLevelIdx]] = bottomMap;
             }
         }
