@@ -150,6 +150,8 @@ void HsneScaleAction::refine()
 
     _refineEmbedding->setData(nullptr, 0, 2);
 
+    auto hsneScaleSubset = _refineEmbedding->getSourceDataset<Points>();
+
     // Only add a new scale action if the drill scale is higher than data level
     if (refinedScaleLevel > 0)
     {
@@ -162,8 +164,8 @@ void HsneScaleAction::refine()
 
     core->notifyDatasetAdded(_refineEmbedding);
 
-    // Add linked selection between the upper embedding and the refined embedding
-    if (refinedScaleLevel > 0)
+    // Add linked selection between the refined embedding and the bottom level points
+    if (refinedScaleLevel > 0) // Only add a linked selection if it's not the bottom level already
     {
         LandmarkMap& landmarkMap = _hsneHierarchy.getInfluenceHierarchy().getMap()[refinedScaleLevel];
 
@@ -174,11 +176,8 @@ void HsneScaleAction::refine()
         //_embedding->getLocalSelectionIndices(localSelectionIndices);
 
         // Transmute local indices by drill indices specifying relation to full hierarchy scale
-        if (!_isTopScale)
-        {
             for (unsigned int& localIndex : localSelectionIndices)
-                localIndex = _drillIndices[localIndex];
-        }
+                localIndex = nextLevelIdxs[localIndex];
 
         hdps::SelectionMap mapping;
 
