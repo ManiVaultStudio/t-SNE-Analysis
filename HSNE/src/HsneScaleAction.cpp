@@ -169,15 +169,13 @@ void HsneScaleAction::refine()
     {
         LandmarkMap& landmarkMap = _hsneHierarchy.getInfluenceHierarchy().getMap()[refinedScaleLevel];
 
-        //hdps::Dataset<Points> selection = _refineEmbedding;
-
+        // FIXME Clean this up, don't need the new vector, can just use nextLevelIdxs, but needs renaming
         std::vector<unsigned int> localSelectionIndices(nextLevelIdxs.size());
         std::iota(localSelectionIndices.begin(), localSelectionIndices.end(), 0);
-        //_embedding->getLocalSelectionIndices(localSelectionIndices);
 
         // Transmute local indices by drill indices specifying relation to full hierarchy scale
-            for (unsigned int& localIndex : localSelectionIndices)
-                localIndex = nextLevelIdxs[localIndex];
+        for (unsigned int& localIndex : localSelectionIndices)
+            localIndex = nextLevelIdxs[localIndex];
 
         hdps::SelectionMap mapping;
 
@@ -201,7 +199,7 @@ void HsneScaleAction::refine()
                 {
                     bottomMap[j] = globalIndices[bottomMap[j]];
                 }
-                int bottomLevelIdx = _hsneHierarchy.getScale(_currentScaleLevel)._landmark_to_original_data_idx[scaleIndex];
+                int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
                 mapping[globalIndices[bottomLevelIdx]] = bottomMap;
             }
         }
