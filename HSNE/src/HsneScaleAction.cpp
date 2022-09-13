@@ -51,14 +51,17 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
 
     updateReadOnly();
 
+    // Connect the progress percentage of the t-SNE process to the data hierarchy item associated with this embedding
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
         _refineEmbedding->getDataHierarchyItem().setTaskProgress(percentage);
     });
 
+    // Connect the progress description of the t-SNE process to the data hierarchy item associated with this embedding
     connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
         _refineEmbedding->getDataHierarchyItem().setTaskDescription(section);
     });
 
+    // Connect the finishing of the t-SNE process to the data hierarchy item associated with this embedding
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
         _refineEmbedding->getDataHierarchyItem().setTaskFinished();
     });
@@ -75,10 +78,10 @@ QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
 
 void HsneScaleAction::refine()
 {
-    // Get associated points selection with embedding
+    // Get the selection of points that are to be refined
     auto selection = _embedding->getSelection<Points>();
 
-    // Get the refined scale level
+    // Set the scale of the refined embedding to be one below the current scale
     const auto refinedScaleLevel = _currentScaleLevel - 1;
 
     // Find proper selection indices
@@ -86,36 +89,40 @@ void HsneScaleAction::refine()
     _embedding->selectedLocalIndices(selection->indices, selectedLocalIndices);
 
     // Transform local indices to scale relative indices
-    std::vector<unsigned int> selectionIndices; // Selected indices relative to scale
+    std::vector<unsigned int> selectedLandmarks; // Selected indices relative to scale
     for (int i = 0; i < selectedLocalIndices.size(); i++)
     {
         if (selectedLocalIndices[i])
         {
-            selectionIndices.push_back(_isTopScale ? i : _drillIndices[i]);
+            selectedLandmarks.push_back(_isTopScale ? i : _drillIndices[i]);
         }
     }
     
     // Find the points in the previous level corresponding to selected landmarks
     std::map<uint32_t, float> neighbors;
-    _hsneHierarchy.getInfluencedLandmarksInPreviousScale(_currentScaleLevel, selectionIndices, neighbors);
+    _hsneHierarchy.getInfluencedLandmarksInPreviousScale(_currentScaleLevel, selectedLandmarks, neighbors);
 
-    // Threshold neighbours with enough influence
-    std::vector<uint32_t> nextLevelIdxs; // Scale-relative indices
-    nextLevelIdxs.clear();
+    // Threshold neighbours with enough influence, these represent the indices of the refined points relative to their HSNE scale
+    std::vector<uint32_t> refinedLandmarks; // Scale-relative indices
+    refinedLandmarks.clear();
     for (auto n : neighbors) {
         if (n.second > 0.5) //QUICKPAPER
         {
-            nextLevelIdxs.push_back(n.first);
+            refinedLandmarks.push_back(n.first);
         }
     }
-    std::cout << "#selected indices: " << selectionIndices.size() << std::endl;
-    std::cout << "#landmarks at previous scale: " << neighbors.size() << std::endl;
-    std::cout << "#thresholded at previous scale: " << nextLevelIdxs.size() << std::endl;
+    std::cout << "#selected landmarks: " << selectedLandmarks.size() << std::endl;
+    std::cout << "#landmarks at refined scale: " << neighbors.size() << std::endl;
+    std::cout << "#thresholded landmarks at refined scale: " << refinedLandmarks.size() << std::endl;
     std::cout << "Refining embedding.." << std::endl;
+    
+    ////////////////////////////
+    // Create refined dataset //
+    ////////////////////////////
     
     // Compute the transition matrix for the landmarks above the threshold
     HsneMatrix transitionMatrix;
-    _hsneHierarchy.getTransitionMatrixForSelection(_currentScaleLevel, transitionMatrix, nextLevelIdxs);
+    _hsneHierarchy.getTransitionMatrixForSelection(_currentScaleLevel, transitionMatrix, refinedLandmarks);
 
     // Create a new data set for the embedding
     {
@@ -127,15 +134,15 @@ void HsneScaleAction::refine()
 
         if (_input->isFull())
         {
-            for (int i = 0; i < nextLevelIdxs.size(); i++)
-                selection->indices.push_back(refinedScale._landmark_to_original_data_idx[nextLevelIdxs[i]]);
+            for (int i = 0; i < refinedLandmarks.size(); i++)
+                selection->indices.push_back(refinedScale._landmark_to_original_data_idx[refinedLandmarks[i]]);
         }
         else
         {
             std::vector<unsigned int> globalIndices;
             _input->getGlobalIndices(globalIndices);
-            for (int i = 0; i < nextLevelIdxs.size(); i++)
-                selection->indices.push_back(globalIndices[refinedScale._landmark_to_original_data_idx[nextLevelIdxs[i]]]);
+            for (int i = 0; i < refinedLandmarks.size(); i++)
+                selection->indices.push_back(globalIndices[refinedScale._landmark_to_original_data_idx[refinedLandmarks[i]]]);
         }
 
         // Create HSNE scale subset
@@ -156,7 +163,7 @@ void HsneScaleAction::refine()
     if (refinedScaleLevel > 0)
     {
         auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, _input, _refineEmbedding);
-        hsneScaleAction->setDrillIndices(nextLevelIdxs);
+        hsneScaleAction->setDrillIndices(refinedLandmarks);
         hsneScaleAction->setScale(refinedScaleLevel);
 
         _refineEmbedding->addAction(*hsneScaleAction);
@@ -164,24 +171,20 @@ void HsneScaleAction::refine()
 
     core->notifyDatasetAdded(_refineEmbedding);
 
+    ///////////////////////////////////
+    // Connect scales by linked data //
+    ///////////////////////////////////
+    
     // Add linked selection between the refined embedding and the bottom level points
     if (refinedScaleLevel > 0) // Only add a linked selection if it's not the bottom level already
     {
         LandmarkMap& landmarkMap = _hsneHierarchy.getInfluenceHierarchy().getMap()[refinedScaleLevel];
 
-        // FIXME Clean this up, don't need the new vector, can just use nextLevelIdxs, but needs renaming
-        std::vector<unsigned int> localSelectionIndices(nextLevelIdxs.size());
-        std::iota(localSelectionIndices.begin(), localSelectionIndices.end(), 0);
-
-        // Transmute local indices by drill indices specifying relation to full hierarchy scale
-        for (unsigned int& localIndex : localSelectionIndices)
-            localIndex = nextLevelIdxs[localIndex];
-
         hdps::SelectionMap mapping;
 
         if (_input->isFull())
         {
-            for (const unsigned int& scaleIndex : localSelectionIndices)
+            for (const unsigned int& scaleIndex : refinedLandmarks)
             {
                 int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
                 mapping[bottomLevelIdx] = landmarkMap[scaleIndex];
@@ -189,9 +192,10 @@ void HsneScaleAction::refine()
         }
         else
         {
+            // Link drill-in points to bottom level indices when the original input to HSNE was a subset
             std::vector<unsigned int> globalIndices;
             _input->getGlobalIndices(globalIndices);
-            for (const unsigned int& scaleIndex : localSelectionIndices)
+            for (const unsigned int& scaleIndex : refinedLandmarks)
             {
                 std::vector<unsigned int> bottomMap = landmarkMap[scaleIndex];
                 // Transform bottom level indices to the global full set indices
@@ -221,5 +225,5 @@ void HsneScaleAction::refine()
     });
 
     // Start the embedding process
-    _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), transitionMatrix, nextLevelIdxs.size(), _hsneHierarchy.getNumDimensions());
+    _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), transitionMatrix, refinedLandmarks.size(), _hsneHierarchy.getNumDimensions());
 }
