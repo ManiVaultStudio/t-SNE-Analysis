@@ -55,7 +55,7 @@ private:
     std::vector<float> _data;
 
     /** High-dimensional probability distribution encoding point similarities */
-    hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type _jointProbabilityDistribution;
+    hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type _probabilityDistribution;
 
     /** Check if the worker was initialized with a probability distribution or data */
     bool _hasProbabilityDistribution;
