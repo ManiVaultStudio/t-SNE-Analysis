@@ -14,7 +14,7 @@
 TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions) :
     _currentIteration(0),
     _parameters(parameters),
-    _jointProbabilityDistribution(probDist),
+    _probabilityDistribution(probDist),
     _numPoints(numPoints),
     _numDimensions(numDimensions),
     _hasProbabilityDistribution(true),
@@ -74,8 +74,8 @@ void TsneWorker::computeSimilarities()
 
     emit progressSection("Calculate probability distributions");
 
-    _jointProbabilityDistribution.clear();
-    _jointProbabilityDistribution.resize(_numPoints);
+    _probabilityDistribution.clear();
+    _probabilityDistribution.resize(_numPoints);
     qDebug() << "Sparse matrix allocated.";
 
     qDebug() << "Computing high dimensional probability distributions.. Num dims: " << _numDimensions << " Num data points: " << _numPoints;
@@ -83,7 +83,7 @@ void TsneWorker::computeSimilarities()
     double t = 0.0;
     {
         hdi::utils::ScopedTimer<double> timer(t);
-        probabilityGenerator.computeJointProbabilityDistribution(_data.data(), _numDimensions, _numPoints, _jointProbabilityDistribution, probGenParams);
+        probabilityGenerator.computeProbabilityDistributions(_data.data(), _numDimensions, _numPoints, _probabilityDistribution, probGenParams);
     }
 
     emit progressSection("Probability distributions calculated");
@@ -114,7 +114,7 @@ void TsneWorker::computeGradientDescent(int iterations)
     // Initialize GPGPU-SNE
     _offscreenBuffer->bindContext();
     if (_currentIteration == 0)
-        _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_jointProbabilityDistribution, &_embedding, tsneParameters);
+        _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParameters);
 
     copyEmbeddingOutput();
     emit embeddingUpdate(_outEmbedding);
