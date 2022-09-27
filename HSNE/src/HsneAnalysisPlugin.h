@@ -51,10 +51,23 @@ public:
     HsneAnalysisPluginFactory(void) {}
     ~HsneAnalysisPluginFactory(void) override {}
 
-    /** Returns the plugin icon */
-    QIcon getIcon() const override;
+    /**
+     * Get plugin icon
+     * @param color Icon color for flat (font) icons
+     * @return Icon
+     */
+    QIcon getIcon(const QColor& color = Qt::black) const override;
 
+    /**
+     * Produces the plugin
+     * @return Pointer to the produced plugin
+     */
     AnalysisPlugin* produce() override;
 
-    hdps::DataTypes supportedDataTypes() const override;
+    /**
+     * Get plugin trigger actions given \p datasets
+     * @param datasets Vector of input datasets
+     * @return Vector of plugin trigger actions
+     */
+    PluginTriggerActions getPluginTriggerActions(const hdps::Datasets& datasets) const override;
 };

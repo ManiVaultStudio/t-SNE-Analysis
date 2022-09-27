@@ -28,7 +28,7 @@ namespace hdps {
  *
  * @author Thomas Kroes
  */
-class HsneScaleAction : public GroupAction, public EventListener
+class HsneScaleAction : public GroupAction
 {
 public:
 
@@ -78,6 +78,7 @@ protected:
     Dataset<Points>         _embedding;             /** Embedding dataset reference */
     Dataset<Points>         _refineEmbedding;       /** Refine embedding dataset reference */
     TriggerAction           _refineAction;          /** Refine action */
+    EventListener           _eventListener;         /** Listen to HDPS events */
 
 protected:
     static hdps::CoreInterface* core;      /** Pointer to the core */

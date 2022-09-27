@@ -1,5 +1,6 @@
 from conans import ConanFile, CMake
 from conans.tools import save, load
+from conans.tools import os_info, SystemPackageTool
 import os
 import shutil
 import pathlib
@@ -59,12 +60,12 @@ class SNEAnalysesConan(ConanFile):
     def set_version(self):
         # print("In setversion")
         # Assign a version from the branch name
-        branch_info = PluginBranchInfo(pathlib.Path(__file__).parent.resolve())
+        branch_info = PluginBranchInfo(self.recipe_folder)
         self.version = branch_info.version
 
     def requirements(self):
         if os.environ.get("CONAN_REQUIRE_HDILIB", None) is not None:
-            self.requires("HDILib/1.2.2@biovault/stable")
+            self.requires("HDILib/1.2.6@biovault/stable")
         branch_info = PluginBranchInfo(self.__get_git_path())
         print(f"Core requirement {branch_info.core_requirement}")
         self.requires(branch_info.core_requirement)
@@ -75,8 +76,9 @@ class SNEAnalysesConan(ConanFile):
             del self.settings.compiler.runtime
 
     def system_requirements(self):
-        #  May be needed for macOS or Linux
-        pass
+        if os_info.is_macos:
+            installer = SystemPackageTool()
+            installer.install('libomp')
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -85,7 +87,7 @@ class SNEAnalysesConan(ConanFile):
     def _configure_cmake(self, build_type):
         # locate Qt root to allow find_package to work
         qtpath = pathlib.Path(self.deps_cpp_info["qt"].rootpath)
-        qt_root = str(list(qtpath.glob("**/Qt5Config.cmake"))[0].parents[3])
+        qt_root = str(list(qtpath.glob("**/Qt6Config.cmake"))[0].parents[3])
         print("Qt root ", qt_root)
 
         cmake = CMake(self, build_type=build_type)
