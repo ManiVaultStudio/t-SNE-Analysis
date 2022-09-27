@@ -79,7 +79,9 @@ endif(UNIX)
 # Target installation
 # -----------------------------------------------------------------------------
 install(TARGETS ${TSNE_PLUGIN}
-   RUNTIME DESTINATION "${INSTALL_DIR}/$<CONFIGURATION>/Plugins" COMPONENT TSNE_SHAREDLIB
+   RUNTIME DESTINATION Plugin COMPONENT TSNE_SHAREDLIB #.dll
+   LIBRARY DESTINATION Plugins COMPONENT LINKLIB #.so .dylib
+   ARCHIVE DESTINATION lib COMPONENT LINKLIB       # .lib .a
 )
 
 if (NOT DEFINED ENV{CI})
