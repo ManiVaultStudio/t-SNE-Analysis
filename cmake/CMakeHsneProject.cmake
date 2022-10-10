@@ -12,6 +12,7 @@ source_group(Common//Actions FILES ${DIMENSION_SELECTION_ACTION_SOURCES} ${TSNE_
 source_group(Actions FILES ${HSNE_ACTIONS_SOURCES})
 source_group(Hsne FILES ${HSNE_PLUGIN_SOURCES})
 source_group(Resources FILES ${HSNE_RESOURCES})
+source_group(Utils FILES ${THIRD_PARTY_JSON})
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -28,6 +29,7 @@ add_library(${HSNE_PLUGIN} SHARED
     ${TSNE_COMMON_SOURCES}
     ${HSNE_PLUGIN_SOURCES}
 	${HSNE_RESOURCES}
+	${THIRD_PARTY_JSON}
 )
 
 # -----------------------------------------------------------------------------
@@ -40,6 +42,7 @@ target_include_directories(${HSNE_PLUGIN} PRIVATE ${PROJECT_BINARY_DIR})
 target_include_directories(${HSNE_PLUGIN} PRIVATE "${INSTALL_DIR}/$<CONFIGURATION>/include/")
 
 target_include_directories(${HSNE_PLUGIN} PRIVATE "Common")
+target_include_directories(${HSNE_PLUGIN} PRIVATE "third_party/json")
 
 set_HDILib_project_includes(${HSNE_PLUGIN})
 set_flann_project_includes(${HSNE_PLUGIN})
@@ -73,6 +76,8 @@ endif()
 
 target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}HDPS_Public${LIB_SUFFIX}")
 target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}PointData${LIB_SUFFIX}")
+target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}ImageData${LIB_SUFFIX}")
+
 target_link_libraries(${HSNE_PLUGIN} ${OPENGL_LIBRARIES})
 set_flann_project_link_libraries(${HSNE_PLUGIN})
 set_HDILib_project_link_libraries(${HSNE_PLUGIN})

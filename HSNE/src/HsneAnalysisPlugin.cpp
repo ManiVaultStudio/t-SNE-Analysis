@@ -5,7 +5,6 @@
 #include <PointData.h>
 
 #include <util/Icon.h>
-
 #include <actions/PluginTriggerAction.h>
 
 #include <QDebug>
@@ -99,7 +98,7 @@ void HsneAnalysisPlugin::init()
         qApp->processEvents();
 
         std::vector<bool> enabledDimensions = _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().getEnabledDimensions();
-
+        
         // Initialize the HSNE algorithm with the given parameters
         _hierarchy.initialize(_core, *getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
 
