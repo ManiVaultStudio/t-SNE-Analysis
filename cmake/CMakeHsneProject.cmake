@@ -86,7 +86,7 @@ endif(UNIX)
 # Target installation
 # -----------------------------------------------------------------------------
 install(TARGETS ${HSNE_PLUGIN}
-    RUNTIME DESTINATION Plugin COMPONENT TSNE_SHAREDLIB #.dll
+    RUNTIME DESTINATION Plugins COMPONENT HSNE_SHAREDLIB #.dll
     LIBRARY DESTINATION Plugins COMPONENT LINKLIB #.so .dylib
     ARCHIVE DESTINATION lib COMPONENT LINKLIB       # .lib .a
 )
