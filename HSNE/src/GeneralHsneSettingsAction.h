@@ -24,6 +24,9 @@ public:
      */
     GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction);
 
+public slots:
+    void setPerplexity(const int32_t& perplexity);
+
 public: // Action getters
 
     HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }

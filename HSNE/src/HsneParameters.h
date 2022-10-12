@@ -44,12 +44,14 @@ public:
     void setNumWalksForAreaOfInfluence(int numWalks) { _numWalksForAreaOfInfluence = numWalks; }
     void setMinWalksRequired(int minWalks) { _minWalksRequired = minWalks; }
     void setNumChecksAKNN(int numChecks) { _numChecksAknn = numChecks; }
+    void setNumNearestNeighbors(int numNeighbors) { _numNeighbors = numNeighbors; }
     void useMonteCarloSampling(bool useMonteCarloSampling) { _useMonteCarloSampling = useMonteCarloSampling; }
     void useOutOfCoreComputation(bool useOutOfCoreComputation) { _useOutOfCoreComputation = useOutOfCoreComputation; }
 
     int getNumWalksForLandmarkSelection() const { return _numWalksForLandmarkSelection; }
     float getNumWalksForLandmarkSelectionThreshold() const { return _numWalksForLandmarkSelectionThreshold; }
     int getRandomWalkLength() const { return _randomWalkLength; }
+    int getNumNearestNeighbors() const { return _numNeighbors; }
     int getNumWalksForAreaOfInfluence() const { return _numWalksForAreaOfInfluence; }
     int getMinWalksRequired() const { return _minWalksRequired; }
     int getNumChecksAKNN() const { return _numChecksAknn; }
@@ -82,4 +84,7 @@ private:
     int _numChecksAknn;
     /** Preserve memory while computing the hierarchy */
     bool _useOutOfCoreComputation;
+
+    /** Number nearest neighbors. In HDI internally it'll use nn = _numNeighbors + 1 and perplexity = _numNeighbors / 3 */
+    int _numNeighbors;
 };

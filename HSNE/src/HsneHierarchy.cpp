@@ -35,6 +35,7 @@ namespace
         params._transition_matrix_prune_thresh = parameters.getMinWalksRequired();
         params._aknn_num_checks = parameters.getNumChecksAKNN();
         params._out_of_core_computation = parameters.useOutOfCoreComputation();
+        params._num_neighbors = parameters.getNumNearestNeighbors();
         return params;
     }
 }
