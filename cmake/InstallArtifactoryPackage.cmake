@@ -100,7 +100,7 @@ macro(get_artifactory_package
         find_artifactory_package()
         message(STATUS "package url ${package_url} - name ${package_name}")
         file(DOWNLOAD ${package_url} "${PROJECT_SOURCE_DIR}/${package_name}.tgz")
-        execute_process(COMMAND cmake -E make_directory "${LIBRARY_INSTALL_DIR}/${package_name}")
+        execute_process(COMMAND cmake -u hdpsreader:4ead0nlyAccess -E make_directory "${LIBRARY_INSTALL_DIR}/${package_name}")
         execute_process(COMMAND cmake -E tar xvf "${PROJECT_SOURCE_DIR}/${package_name}.tgz" WORKING_DIRECTORY "${LIBRARY_INSTALL_DIR}/${package_name}")
     else()
         # retrieve the separate Release and Debug packages  from lkeb-artifactory
@@ -118,8 +118,8 @@ macro(get_artifactory_package
         find_artifactory_package()
         message(STATUS "package url ${package_url} - name ${package_name}")
         file(DOWNLOAD ${package_url} "${PROJECT_SOURCE_DIR}/${package_name}_Release.tgz")
-        execute_process(COMMAND cmake -E make_directory "${LIBRARY_INSTALL_DIR}/${package_name}/Release")
-        execute_process(COMMAND cmake -E tar xvf "${PROJECT_SOURCE_DIR}/${package_name}_Release.tgz" WORKING_DIRECTORY "${LIBRARY_INSTALL_DIR}/${package_name}/Release")
+        execute_process(COMMAND cmake -u hdpsreader:4ead0nlyAccess -E make_directory "${LIBRARY_INSTALL_DIR}/${package_name}/Release")
+        execute_process(COMMAND cmake -u hdpsreader:4ead0nlyAccess -E tar xvf "${PROJECT_SOURCE_DIR}/${package_name}_Release.tgz" WORKING_DIRECTORY "${LIBRARY_INSTALL_DIR}/${package_name}/Release")
 
         file(REMOVE ${PROJECT_BINARY_DIR}/aql.json)
         if (os_name STREQUAL "Windows")
