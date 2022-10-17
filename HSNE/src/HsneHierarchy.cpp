@@ -197,7 +197,8 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
         _influenceHierarchy.initialize(*this);
 
         // Write HSNE hierarchy to disk
-        saveCacheHsne(internalParams); 
+        if(parameters.getSaveHierarchyToDisk())
+            saveCacheHsne(internalParams); 
     }
 }
 
