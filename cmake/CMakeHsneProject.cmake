@@ -86,7 +86,9 @@ endif(UNIX)
 # Target installation
 # -----------------------------------------------------------------------------
 install(TARGETS ${HSNE_PLUGIN}
-   RUNTIME DESTINATION "${INSTALL_DIR}/$<CONFIGURATION>/Plugins" COMPONENT HSNE_SHAREDLIB
+    RUNTIME DESTINATION Plugins COMPONENT HSNE_SHAREDLIB #.dll
+    LIBRARY DESTINATION Plugins COMPONENT LINKLIB #.so .dylib
+    ARCHIVE DESTINATION lib COMPONENT LINKLIB       # .lib .a
 )
 
 if (NOT DEFINED ENV{CI})

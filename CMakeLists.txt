@@ -54,6 +54,7 @@ else()
 endif()
 
 set(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "t-SNE-Analysis install directory")
+message(STATUS "INSTALL_DIR set to ${INSTALL_DIR}")
 
 # -----------------------------------------------------------------------------
 # Windows compiler and linker flags
