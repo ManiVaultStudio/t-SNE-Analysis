@@ -1,7 +1,8 @@
 from conans import ConanFile
 from conan.tools.cmake import CMakeDeps, CMake, CMakeToolchain
 from conans.tools import save, load
-from conans.tools import os_info, SystemPackageTool
+# from conans.tools import os_info, SystemPackageTool
+from conan.tools.system.package_manager import Brew
 import os
 import shutil
 import pathlib
@@ -79,9 +80,7 @@ class SNEAnalysesConan(ConanFile):
         pass
 
     def system_requirements(self):
-        if os_info.is_macos:
-            installer = SystemPackageTool()
-            installer.install("libomp")
+        Brew(self).install(["libomp"])
 
     def config_options(self):
         if self.settings.os == "Windows":
