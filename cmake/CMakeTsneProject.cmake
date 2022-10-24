@@ -65,7 +65,7 @@ endif()
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(${JOINT_TSNE_PLUGIN} OpenMP::OpenMP_CXX)
+    target_link_libraries(${TSNE_PLUGIN} OpenMP::OpenMP_CXX)
 endif()
 
 target_link_libraries(${TSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}HDPS_Public${LIB_SUFFIX}")
