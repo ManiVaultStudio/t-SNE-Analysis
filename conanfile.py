@@ -2,6 +2,7 @@ from conans import ConanFile
 from conan.tools.cmake import CMakeDeps, CMake, CMakeToolchain
 from conans.tools import save, load
 from conans.tools import os_info, SystemPackageTool
+#from conan.tools.system.package_manager import Brew
 import os
 import shutil
 import pathlib
@@ -66,8 +67,8 @@ class SNEAnalysesConan(ConanFile):
         self.version = branch_info.version
 
     def requirements(self):
-        if os.environ.get("CONAN_REQUIRE_HDILIB", None) is not None:
-            self.requires("HDILib/1.2.6@biovault/stable")
+        #if os.environ.get("CONAN_REQUIRE_HDILIB", None) is not None:
+        #    self.requires("HDILib/1.2.6@biovault/stable")
         branch_info = PluginBranchInfo(self.__get_git_path())
         print(f"Core requirement {branch_info.core_requirement}")
         self.requires(branch_info.core_requirement)
@@ -82,6 +83,8 @@ class SNEAnalysesConan(ConanFile):
         if os_info.is_macos:
             installer = SystemPackageTool()
             installer.install("libomp")
+            proc = subprocess.run("brew --prefix libomp",  shell=True, capture_output=True)
+            subprocess.run(f"ln {proc.stdout.decode('UTF-8').strip()}/lib/libomp.dylib /usr/local/lib/libomp.dylib", shell=True)
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -102,24 +105,12 @@ class SNEAnalysesConan(ConanFile):
             tc.variables["CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS"] = True
         if self.settings.os == "Linux" or self.settings.os == "Macos":
             tc.variables["CMAKE_CXX_STANDARD_REQUIRED"] = "ON"
-        tc.variables["CMAKE_PREFIX_PATH"] = qt_root
+        prefix_path = qt_root
+        if os_info.is_macos:
+            proc = subprocess.run("brew --prefix libomp",  shell=True, capture_output=True)
+            prefix_path = prefix_path + f";{proc.stdout.decode('UTF-8').strip()}"
+        tc.variables["CMAKE_PREFIX_PATH"] = prefix_path
         tc.generate()
-
-    # def _configure_cmake(self, build_type):
-    #     # locate Qt root to allow find_package to work
-    #     qtpath = pathlib.Path(self.deps_cpp_info["qt"].rootpath)
-    #     qt_root = str(list(qtpath.glob("**/Qt6Config.cmake"))[0].parents[3])
-    #     print("Qt root ", qt_root)
-
-    #     cmake = CMake(self, build_type=build_type)
-    #     if self.settings.os == "Windows" and self.options.shared:
-    #         cmake.definitions["CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS"] = True
-    #     if self.settings.os == "Linux" or self.settings.os == "Macos":
-    #         cmake.definitions["CMAKE_CXX_STANDARD_REQUIRED"] = "ON"
-    #     cmake.definitions["CMAKE_PREFIX_PATH"] = qt_root
-    #     cmake.configure(source_folder="hdps/t-SNE-Analysis")  # needed for scm
-    #     cmake.verbose = True
-    #     return cmake
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -147,14 +138,6 @@ class SNEAnalysesConan(ConanFile):
         # cmake_release = self._configure_cmake()
         cmake.build(build_type="Release")
         cmake.install(build_type="Release")
-
-        # cmake_debug = self._configure_cmake("Debug")
-        # print("Building Release configuration....")
-        # cmake_debug.build()
-
-        # cmake_release = self._configure_cmake("Release")
-        # print("Building Release configuration....")
-        # cmake_release.build()
 
     def package(self):
         package_dir = os.path.join(self.build_folder, "package")

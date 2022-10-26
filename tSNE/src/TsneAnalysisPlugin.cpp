@@ -229,7 +229,7 @@ PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const hd
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
-            auto pluginTriggerAction = createPluginTriggerAction("TSNE analysis", "Perform TSNE analysis on selected datasets", datasets);
+            auto pluginTriggerAction = createPluginTriggerAction("TSNE", "Perform TSNE analysis on selected datasets", datasets);
 
             connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
                 for (auto dataset : datasets)
@@ -240,7 +240,7 @@ PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const hd
         }
 
         if (datasets.count() >= 2) {
-            auto pluginTriggerAction = createPluginTriggerAction("Group + TSNE analysis", "Group datasets and perform TSNE analysis on it", datasets);
+            auto pluginTriggerAction = createPluginTriggerAction("Group/TSNE", "Group datasets and perform TSNE analysis on it", datasets);
 
             connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
                 getPluginInstance(Application::core()->groupDatasets(datasets));
