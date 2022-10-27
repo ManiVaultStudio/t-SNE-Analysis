@@ -8,6 +8,8 @@
 
 #include <actions/PluginTriggerAction.h>
 
+#include <DimensionsPickerAction.h>
+
 #include <QDebug>
 #include <QPainter>
 

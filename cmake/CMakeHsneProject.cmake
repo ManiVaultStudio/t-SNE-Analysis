@@ -8,7 +8,7 @@ set(HSNE_PLUGIN "HsneAnalysisPlugin")
 # -----------------------------------------------------------------------------
 add_subdirectory(HSNE/src)
 
-source_group(Common//Actions FILES ${DIMENSION_SELECTION_ACTION_SOURCES} ${TSNE_ACTIONS_SOURCES})
+source_group(Common//Actions FILES ${TSNE_ACTIONS_SOURCES})
 source_group(Actions FILES ${HSNE_ACTIONS_SOURCES})
 source_group(Hsne FILES ${HSNE_PLUGIN_SOURCES})
 source_group(Resources FILES ${HSNE_RESOURCES})
@@ -24,7 +24,6 @@ add_library(${HSNE_PLUGIN} SHARED
     ${DIMENSION_SELECTION_SOURCES}
     ${HSNE_ACTIONS_SOURCES}
     ${TSNE_ACTIONS_SOURCES}
-    ${DIMENSION_SELECTION_ACTION_SOURCES}
     ${TSNE_COMMON_SOURCES}
     ${HSNE_PLUGIN_SOURCES}
 	${HSNE_RESOURCES}

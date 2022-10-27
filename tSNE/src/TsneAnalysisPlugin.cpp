@@ -6,6 +6,8 @@
 
 #include <actions/PluginTriggerAction.h>
 
+#include <DimensionsPickerAction.h>
+
 #include <QtCore>
 #include <QtDebug>
 #include <QMenu>

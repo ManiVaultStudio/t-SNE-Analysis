@@ -3,7 +3,6 @@
 #include "TsneParameters.h"
 #include "GeneralTsneSettingsAction.h"
 #include "AdvancedTsneSettingsAction.h"
-#include "DimensionSelectionAction.h"
 
 using namespace hdps::gui;
 

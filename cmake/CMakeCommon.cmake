@@ -21,11 +21,6 @@ set(TSNE_ACTIONS_SOURCES
     ${DIR}/AdvancedTsneSettingsAction.cpp
 )
 
-set(DIMENSION_SELECTION_ACTION_SOURCES
-    ${DIR}/DimensionSelectionAction.h
-    ${DIR}/DimensionSelectionAction.cpp
-)
-
 # The following 4 macros are designed to support the use of user supplied
 # libraries or the PREBUILT libraries for flann and HDILib from the LKEB
 # artifactory.
