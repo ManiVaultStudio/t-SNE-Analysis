@@ -41,13 +41,11 @@ public: // Action getters
     GeneralTsneSettingsAction& getGeneralTsneSettingsAction() { return _generalTsneSettingsAction; }
     AdvancedTsneSettingsAction& getAdvancedTsneSettingsAction() { return _advancedTsneSettingsAction; }
     TsneComputationAction& getComputationAction() { return _generalTsneSettingsAction.getComputationAction(); }
-    DimensionSelectionAction& getDimensionSelectionAction() { return _dimensionSelectionAction; }
 
 protected:
     TsneParameters                  _tsneParameters;                /** TSNE parameters */
     GeneralTsneSettingsAction       _generalTsneSettingsAction;     /** General tSNE settings action */
     AdvancedTsneSettingsAction      _advancedTsneSettingsAction;    /** Advanced tSNE settings action */
-    DimensionSelectionAction        _dimensionSelectionAction;      /** Dimension selection settings action */
 
     friend class Widget;
 };

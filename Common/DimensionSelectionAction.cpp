@@ -4,6 +4,6 @@ DimensionSelectionAction::DimensionSelectionAction(QObject* parent) :
     GroupAction(parent, true),
     _pickerAction(this)
 {
-    setText("Dimensions");
+    setText("TSNE Dimensions");
     setShowLabels(false);
 }

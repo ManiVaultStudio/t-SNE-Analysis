@@ -21,8 +21,6 @@ public:
 
     void init() override;
 
-    void onDataEvent(hdps::DataEvent* dataEvent);
-
     void startComputation();
     void continueComputation();
     void stopComputation();
