@@ -54,7 +54,7 @@ void TsneAnalysisPlugin::init()
 
     auto dimensionsGroupAction = new GroupAction(this, { &inputDataset->getDimensionsPickerAction() }, true);
 
-    dimensionsGroupAction->setText(QString("Dimensions (%1)").arg(inputDataset->getGuiName()));
+    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getGuiName()));
     dimensionsGroupAction->setShowLabels(false);
 
     outputDataset->addAction(*dimensionsGroupAction);
@@ -146,10 +146,6 @@ void TsneAnalysisPlugin::init()
     });
 
     updateComputationAction();
-
-    connect(&getInputDataset<Points>()->getSmartPointer(), &Dataset<DatasetImpl>::dataChanged, this, [this]() -> void {
-        getInputDataset<Points>()->getDimensionsPickerAction().setPointsDataset(getInputDataset<Points>());
-    });
 
     setTaskName("TSNE");
  

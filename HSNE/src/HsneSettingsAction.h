@@ -6,7 +6,6 @@
 #include "AdvancedHsneSettingsAction.h"
 #include "HsneScaleAction.h"
 #include "TsneSettingsAction.h"
-#include "DimensionSelectionAction.h"
 
 using namespace hdps::gui;
 
@@ -40,7 +39,6 @@ public: // Action getters
     AdvancedHsneSettingsAction& getAdvancedHsneSettingsAction() { return _advancedHsneSettingsAction; }
     HsneScaleAction& getTopLevelScaleAction() { return _topLevelScaleAction; }
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
-    DimensionSelectionAction& getDimensionSelectionAction() { return _dimensionSelectionAction; }
 
 protected:
     HsneAnalysisPlugin*             _hsneAnalysisPlugin;            /** Pointer to HSNE analysis plugin */
@@ -50,7 +48,6 @@ protected:
     AdvancedHsneSettingsAction      _advancedHsneSettingsAction;    /** Advanced HSNE settings action */
     HsneScaleAction                 _topLevelScaleAction;           /** Top level scale action */
     TsneSettingsAction              _tsneSettingsAction;            /** TSNE settings action */
-    DimensionSelectionAction        _dimensionSelectionAction;      /** Dimension selection action */
 
     friend class Widget;
 };

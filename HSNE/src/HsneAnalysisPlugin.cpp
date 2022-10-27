@@ -70,7 +70,13 @@ void HsneAnalysisPlugin::init()
     outputDataset->addAction(_hsneSettingsAction->getTopLevelScaleAction());
     outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getAdvancedTsneSettingsAction());
-    outputDataset->addAction(_hsneSettingsAction->getDimensionSelectionAction());
+    
+    auto dimensionsGroupAction = new GroupAction(this, { &inputDataset->getDimensionsPickerAction() }, true);
+
+    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getGuiName()));
+    dimensionsGroupAction->setShowLabels(false);
+
+    outputDataset->addAction(*dimensionsGroupAction);
 
     outputDataset->getDataHierarchyItem().select();
 
@@ -98,7 +104,7 @@ void HsneAnalysisPlugin::init()
 
         qApp->processEvents();
 
-        std::vector<bool> enabledDimensions = _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().getEnabledDimensions();
+        std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
 
         // Initialize the HSNE algorithm with the given parameters
         _hierarchy.initialize(_core, *getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
@@ -109,32 +115,6 @@ void HsneAnalysisPlugin::init()
 
         computeTopLevelEmbedding();
     });
-
-    _eventListener.setEventCore(_core);
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataChanged));
-    _eventListener.registerDataEventByType(PointType, [this](hdps::DataEvent* dataEvent)
-    {
-        switch (dataEvent->getType())
-        {
-            case EventType::DataChanged:
-            {
-                // If we are not looking at the changed dataset, ignore it
-                if (dataEvent->getDataset() != getInputDataset())
-                    break;
-
-                // Update dimension selection with new data
-                _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().setPointsDataset(dataEvent->getDataset<Points>());
-
-                break;
-            }
-
-            case EventType::DataAdded:
-            case EventType::DataAboutToBeRemoved:
-                break;
-        }
-    });
-
-    _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().setPointsDataset(inputDataset);
 
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
         auto embedding = getOutputDataset<Points>();
