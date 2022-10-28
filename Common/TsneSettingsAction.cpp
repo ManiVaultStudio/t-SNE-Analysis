@@ -8,8 +8,7 @@ TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     GroupAction(parent, false),
     _tsneParameters(),
     _generalTsneSettingsAction(*this),
-    _advancedTsneSettingsAction(*this),
-    _dimensionSelectionAction(this)
+    _advancedTsneSettingsAction(*this)
 {
     setText("TSNE");
 

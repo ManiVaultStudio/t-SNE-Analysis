@@ -21,11 +21,6 @@ set(TSNE_ACTIONS_SOURCES
     ${DIR}/AdvancedTsneSettingsAction.cpp
 )
 
-set(DIMENSION_SELECTION_ACTION_SOURCES
-    ${DIR}/DimensionSelectionAction.h
-    ${DIR}/DimensionSelectionAction.cpp
-)
-
 set(THIRD_PARTY_JSON
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json/nlohmann/json.hpp
 )

@@ -7,6 +7,8 @@
 #include <util/Icon.h>
 #include <actions/PluginTriggerAction.h>
 
+#include <DimensionsPickerAction.h>
+
 #include <QDebug>
 #include <QPainter>
 
@@ -69,7 +71,13 @@ void HsneAnalysisPlugin::init()
     outputDataset->addAction(_hsneSettingsAction->getTopLevelScaleAction());
     outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getAdvancedTsneSettingsAction());
-    outputDataset->addAction(_hsneSettingsAction->getDimensionSelectionAction());
+    
+    auto dimensionsGroupAction = new GroupAction(this, { &inputDataset->getFullDataset<Points>()->getDimensionsPickerAction() }, true);
+
+    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getFullDataset<Points>()->getGuiName()));
+    dimensionsGroupAction->setShowLabels(false);
+
+    outputDataset->addAction(*dimensionsGroupAction);
 
     outputDataset->getDataHierarchyItem().select();
 
@@ -97,8 +105,8 @@ void HsneAnalysisPlugin::init()
 
         qApp->processEvents();
 
-        std::vector<bool> enabledDimensions = _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().getEnabledDimensions();
-        
+        std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
+
         // Initialize the HSNE algorithm with the given parameters
         _hierarchy.initialize(_core, *getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
 
@@ -108,32 +116,6 @@ void HsneAnalysisPlugin::init()
 
         computeTopLevelEmbedding();
     });
-
-    _eventListener.setEventCore(_core);
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataChanged));
-    _eventListener.registerDataEventByType(PointType, [this](hdps::DataEvent* dataEvent)
-    {
-        switch (dataEvent->getType())
-        {
-            case EventType::DataChanged:
-            {
-                // If we are not looking at the changed dataset, ignore it
-                if (dataEvent->getDataset() != getInputDataset())
-                    break;
-
-                // Update dimension selection with new data
-                _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().setPointsDataset(dataEvent->getDataset<Points>());
-
-                break;
-            }
-
-            case EventType::DataAdded:
-            case EventType::DataAboutToBeRemoved:
-                break;
-        }
-    });
-
-    _hsneSettingsAction->getDimensionSelectionAction().getPickerAction().setPointsDataset(inputDataset);
 
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
         auto embedding = getOutputDataset<Points>();
@@ -208,7 +190,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
             for (int i = 0; i < landmarkMap.size(); i++)
             {
                 int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
-                mapping[bottomLevelIdx] = landmarkMap[i];
+                mapping.getMap()[bottomLevelIdx] = landmarkMap[i];
             }
         }
         else
@@ -223,7 +205,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
                     bottomMap[j] = globalIndices[bottomMap[j]];
                 }
                 int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
-                mapping[globalIndices[bottomLevelIdx]] = bottomMap;
+                mapping.getMap()[globalIndices[bottomLevelIdx]] = bottomMap;
             }
         }
 
@@ -255,7 +237,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hd
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
-            auto pluginTriggerAction = createPluginTriggerAction("HSNE analysis", "Perform HSNE analysis on selected datasets", datasets);
+            auto pluginTriggerAction = createPluginTriggerAction("HSNE", "Perform HSNE analysis on selected datasets", datasets);
 
             connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
                 for (auto dataset : datasets)
@@ -266,7 +248,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hd
         }
 
         if (datasets.count() >= 2) {
-            auto pluginTriggerAction = createPluginTriggerAction("Group + HSNE analysis", "Group datasets and perform HSNE analysis on it", datasets);
+            auto pluginTriggerAction = createPluginTriggerAction("Group/HSNE", "Group datasets and perform HSNE analysis on it", datasets);
 
             connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
                 getPluginInstance(Application::core()->groupDatasets(datasets));
