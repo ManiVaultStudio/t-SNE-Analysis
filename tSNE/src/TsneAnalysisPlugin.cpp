@@ -54,9 +54,9 @@ void TsneAnalysisPlugin::init()
     outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
 
-    auto dimensionsGroupAction = new GroupAction(this, { &inputDataset->getDimensionsPickerAction() }, true);
+    auto dimensionsGroupAction = new GroupAction(this, { &inputDataset->getFullDataset<Points>()->getDimensionsPickerAction() }, true);
 
-    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getGuiName()));
+    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getFullDataset<Points>()->getGuiName()));
     dimensionsGroupAction->setShowLabels(false);
 
     outputDataset->addAction(*dimensionsGroupAction);

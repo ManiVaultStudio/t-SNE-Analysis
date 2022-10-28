@@ -73,9 +73,9 @@ void HsneAnalysisPlugin::init()
     outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getAdvancedTsneSettingsAction());
     
-    auto dimensionsGroupAction = new GroupAction(this, { &inputDataset->getDimensionsPickerAction() }, true);
+    auto dimensionsGroupAction = new GroupAction(this, { &inputDataset->getFullDataset<Points>()->getDimensionsPickerAction() }, true);
 
-    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getGuiName()));
+    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getFullDataset<Points>()->getGuiName()));
     dimensionsGroupAction->setShowLabels(false);
 
     outputDataset->addAction(*dimensionsGroupAction);
