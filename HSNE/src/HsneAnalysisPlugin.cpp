@@ -208,7 +208,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
             for (int i = 0; i < landmarkMap.size(); i++)
             {
                 int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
-                mapping[bottomLevelIdx] = landmarkMap[i];
+                mapping.getMap()[bottomLevelIdx] = landmarkMap[i];
             }
         }
         else
@@ -223,7 +223,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
                     bottomMap[j] = globalIndices[bottomMap[j]];
                 }
                 int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
-                mapping[globalIndices[bottomLevelIdx]] = bottomMap;
+                mapping.getMap()[globalIndices[bottomLevelIdx]] = bottomMap;
             }
         }
 
@@ -255,7 +255,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hd
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
-            auto pluginTriggerAction = createPluginTriggerAction("HSNE analysis", "Perform HSNE analysis on selected datasets", datasets);
+            auto pluginTriggerAction = createPluginTriggerAction("HSNE", "Perform HSNE analysis on selected datasets", datasets);
 
             connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
                 for (auto dataset : datasets)
@@ -266,7 +266,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hd
         }
 
         if (datasets.count() >= 2) {
-            auto pluginTriggerAction = createPluginTriggerAction("Group + HSNE analysis", "Group datasets and perform HSNE analysis on it", datasets);
+            auto pluginTriggerAction = createPluginTriggerAction("Group/HSNE", "Group datasets and perform HSNE analysis on it", datasets);
 
             connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
                 getPluginInstance(Application::core()->groupDatasets(datasets));

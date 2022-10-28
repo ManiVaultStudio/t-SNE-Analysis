@@ -187,7 +187,7 @@ void HsneScaleAction::refine()
             for (const unsigned int& scaleIndex : refinedLandmarks)
             {
                 int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
-                mapping[bottomLevelIdx] = landmarkMap[scaleIndex];
+                mapping.getMap()[bottomLevelIdx] = landmarkMap[scaleIndex];
             }
         }
         else
@@ -204,7 +204,7 @@ void HsneScaleAction::refine()
                     bottomMap[j] = globalIndices[bottomMap[j]];
                 }
                 int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
-                mapping[globalIndices[bottomLevelIdx]] = bottomMap;
+                mapping.getMap()[globalIndices[bottomLevelIdx]] = bottomMap;
             }
         }
 
