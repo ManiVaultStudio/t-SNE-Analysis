@@ -7,6 +7,8 @@
 #include "TsneAnalysis.h"
 #include "PointData.h"
 
+#include "DimensionsPickerAction.h"
+
 using namespace hdps;
 using namespace hdps::gui;
 using namespace hdps::util;
@@ -77,7 +79,12 @@ protected:
     Dataset<Points>         _input;                 /** Input dataset reference */
     Dataset<Points>         _embedding;             /** Embedding dataset reference */
     Dataset<Points>         _refineEmbedding;       /** Refine embedding dataset reference */
+
     TriggerAction           _refineAction;          /** Refine action */
+    DatasetPickerAction     _datasetPickerAction;   /** Dataset picker action */
+    TriggerAction           _reloadDataSets;        /** reload action */
+    TriggerAction           _setSelection;          /** set selection action */
+
     EventListener           _eventListener;         /** Listen to HDPS events */
 
 protected:
