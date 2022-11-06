@@ -35,6 +35,7 @@ namespace
         params._transition_matrix_prune_thresh = parameters.getMinWalksRequired();
         params._aknn_num_checks = parameters.getNumChecksAKNN();
         params._out_of_core_computation = parameters.useOutOfCoreComputation();
+        params._num_neighbors = parameters.getNumNearestNeighbors();
         return params;
     }
 }
@@ -126,18 +127,10 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
     // Convert our own HSNE parameters to the HDI parameters
     Hsne::Parameters internalParams = setParameters(parameters);
 
-    // Create list of data from the enabled dimensions
-    std::vector<float> data;
-    std::vector<unsigned int> indices;
-
     // Extract the enabled dimensions from the data
     unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
-    data.resize((inputData.isFull() ? inputData.getNumPoints() : inputData.indices.size()) * numEnabledDimensions);
-    for (int i = 0; i < inputData.getNumDimensions(); i++)
-        if (enabledDimensions[i]) indices.push_back(i);
 
-    inputData.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
-
+    // Get data and hierarchy info
     _numScales = parameters.getNumScales();
     _numPoints = inputData.getNumPoints();
     _numDimensions = numEnabledDimensions;
@@ -184,6 +177,15 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
         // Set the dimensionality of the data in the HSNE object
         _hsne->setDimensionality(numEnabledDimensions);
 
+        // Load data and enabled dimensions
+        std::vector<float> data;
+        std::vector<unsigned int> dimensionIndices;
+        data.resize((inputData.isFull() ? inputData.getNumPoints() : inputData.indices.size()) * numEnabledDimensions);
+        for (int i = 0; i < inputData.getNumDimensions(); i++)
+            if (enabledDimensions[i]) dimensionIndices.push_back(i);
+
+        inputData.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, dimensionIndices);
+
         // Initialize HSNE with the input data and the given parameters
         _hsne->initialize((Hsne::scalar_type*)data.data(), _numPoints, internalParams);
 
@@ -195,7 +197,8 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
         _influenceHierarchy.initialize(*this);
 
         // Write HSNE hierarchy to disk
-        saveCacheHsne(internalParams); 
+        if(parameters.getSaveHierarchyToDisk())
+            saveCacheHsne(internalParams); 
     }
 }
 

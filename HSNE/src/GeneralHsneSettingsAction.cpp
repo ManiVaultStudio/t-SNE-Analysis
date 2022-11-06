@@ -92,3 +92,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     updateUseMonteCarloSampling();
     updateReadOnly();
 }
+
+void GeneralHsneSettingsAction::setPerplexity(const int32_t& perplexity) {
+    _hsneSettingsAction.getHsneParameters().setNumNearestNeighbors(perplexity * 3);
+}
