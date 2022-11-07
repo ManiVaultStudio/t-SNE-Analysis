@@ -92,8 +92,10 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         selectionIDs.resize(selectionDataset->getNumPoints());
         selectionDataset->populateDataForDimensions < std::vector<unsigned int>, std::vector<unsigned int>>(selectionIDs, std::vector<unsigned int>{ 0 });
 
-        _embedding->setSelectionIndices(selectionIDs);
-        core->notifyDatasetSelectionChanged(_embedding);
+        //_embedding->setSelectionIndices(selectionIDs);
+        //core->notifyDatasetSelectionChanged(_embedding->getSourceDataset<Points>());
+        _input->setSelectionIndices(selectionIDs);
+        core->notifyDatasetSelectionChanged(_input->getSourceDataset<Points>());
 
         });
 
