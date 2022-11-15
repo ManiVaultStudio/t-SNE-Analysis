@@ -8,7 +8,7 @@ set(TSNE_PLUGIN "TsneAnalysisPlugin")
 # -----------------------------------------------------------------------------
 add_subdirectory(tSNE/src)
 
-source_group(Common\\Actions FILES ${TSNE_ACTIONS_SOURCES} ${DIMENSION_SELECTION_ACTION_SOURCES})
+source_group(Common\\Actions FILES ${TSNE_ACTIONS_SOURCES})
 source_group(Tsne FILES ${TSNE_PLUGIN_SOURCES})
 source_group(Resources FILES ${TSNE_RESOURCES})
 
@@ -22,7 +22,6 @@ set(CMAKE_AUTOUIC ON)
 add_library(${TSNE_PLUGIN} SHARED
     ${DIMENSION_SELECTION_SOURCES}
     ${TSNE_ACTIONS_SOURCES}
-    ${DIMENSION_SELECTION_ACTION_SOURCES}
     ${TSNE_COMMON_SOURCES}
     ${TSNE_PLUGIN_SOURCES}
 	${TSNE_RESOURCES}

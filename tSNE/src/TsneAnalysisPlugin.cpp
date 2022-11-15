@@ -6,6 +6,8 @@
 
 #include <actions/PluginTriggerAction.h>
 
+#include <DimensionsPickerAction.h>
+
 #include <QtCore>
 #include <QtDebug>
 #include <QMenu>
@@ -51,7 +53,13 @@ void TsneAnalysisPlugin::init()
 
     outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
-    outputDataset->addAction(_tsneSettingsAction.getDimensionSelectionAction());
+
+    auto dimensionsGroupAction = new GroupAction(this, { &inputDataset->getFullDataset<Points>()->getDimensionsPickerAction() }, true);
+
+    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getFullDataset<Points>()->getGuiName()));
+    dimensionsGroupAction->setShowLabels(false);
+
+    outputDataset->addAction(*dimensionsGroupAction);
 
     outputDataset->getDataHierarchyItem().select();
 
@@ -134,32 +142,16 @@ void TsneAnalysisPlugin::init()
         _core->notifyDatasetChanged(getOutputDataset());
     });
 
-    _tsneSettingsAction.getDimensionSelectionAction().getPickerAction().setPointsDataset(inputDataset);
-
     connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction, updateComputationAction](bool toggled) {
-        _tsneSettingsAction.getDimensionSelectionAction().setEnabled(!toggled);
-
+        getInputDataset<Points>()->getDimensionsPickerAction().setEnabled(!toggled);
         updateComputationAction();
     });
 
     updateComputationAction();
 
-    _eventListener.setEventCore(Application::core());
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataChanged));
-    _eventListener.registerDataEventByType(PointType, std::bind(&TsneAnalysisPlugin::onDataEvent, this, std::placeholders::_1));
-
     setTaskName("TSNE");
  
     //_tsneSettingsAction.loadDefault();
-}
-
-void TsneAnalysisPlugin::onDataEvent(hdps::DataEvent* dataEvent)
-{
-    if (dataEvent->getType() == EventType::DataChanged)
-    {
-        if (dataEvent->getDataset() == getInputDataset())
-            _tsneSettingsAction.getDimensionSelectionAction().getPickerAction().setPointsDataset(dataEvent->getDataset<Points>());
-    }
 }
 
 void TsneAnalysisPlugin::startComputation()
@@ -177,7 +169,7 @@ void TsneAnalysisPlugin::startComputation()
     std::vector<unsigned int> indices;
 
     // Extract the enabled dimensions from the data
-    std::vector<bool> enabledDimensions = _tsneSettingsAction.getDimensionSelectionAction().getPickerAction().getEnabledDimensions();
+    std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
 
     const auto numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 

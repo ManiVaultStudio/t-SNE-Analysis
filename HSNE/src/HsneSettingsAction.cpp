@@ -11,8 +11,7 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _generalHsneSettingsAction(*this),
     _advancedHsneSettingsAction(*this),
     _topLevelScaleAction(this, _tsneSettingsAction, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDataset<Points>(), hsneAnalysisPlugin->getOutputDataset<Points>()),
-    _tsneSettingsAction(this),
-    _dimensionSelectionAction(this)
+    _tsneSettingsAction(this)
 {
     setText("HSNE");
     setObjectName("Settings");
