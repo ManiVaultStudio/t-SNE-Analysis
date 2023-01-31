@@ -191,7 +191,7 @@ void HsneAnalysisPlugin::init()
         // NOTE: Commented out because it causes a stack overflow after a couple of iterations
         //QCoreApplication::processEvents();
 
-        _core->notifyDatasetChanged(getOutputDataset());
+        events().notifyDatasetChanged(getOutputDataset());
     });
 
     updateComputationAction();
@@ -308,14 +308,12 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hd
     PluginTriggerActions pluginTriggerActions;
 
     const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> HsneAnalysisPlugin* {
-        return dynamic_cast<HsneAnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
+        return dynamic_cast<HsneAnalysisPlugin*>(plugins().requestPlugin(getKind(), { dataset }));
     };
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
-            auto pluginTriggerAction = createPluginTriggerAction("HSNE", "Perform HSNE analysis on selected datasets", datasets);
-
-            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+            auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "HSNE", "Perform HSNE analysis on selected datasets", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                 for (auto dataset : datasets)
                     getPluginInstance(dataset);
             });
@@ -324,9 +322,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hd
         }
 
         if (datasets.count() >= 2) {
-            auto pluginTriggerAction = createPluginTriggerAction("Group/HSNE", "Group datasets and perform HSNE analysis on it", datasets);
-
-            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+            auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "Group/HSNE", "Group datasets and perform HSNE analysis on it", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                 getPluginInstance(Application::core()->groupDatasets(datasets));
             });
 

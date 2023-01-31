@@ -49,7 +49,7 @@ void TsneAnalysisPlugin::init()
 
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
-    _core->notifyDatasetChanged(outputDataset);
+    events().notifyDatasetChanged(outputDataset);
 
     outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
@@ -139,7 +139,7 @@ void TsneAnalysisPlugin::init()
         QCoreApplication::processEvents();
 
         // Notify others that the embedding data changed
-        _core->notifyDatasetChanged(getOutputDataset());
+        events().notifyDatasetChanged(getOutputDataset());
     });
 
     connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction, updateComputationAction](bool toggled) {
@@ -216,14 +216,12 @@ PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const hd
     PluginTriggerActions pluginTriggerActions;
 
     const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> TsneAnalysisPlugin* {
-        return dynamic_cast<TsneAnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
+        return dynamic_cast<TsneAnalysisPlugin*>(plugins().requestPlugin(getKind(), { dataset }));
     };
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
-            auto pluginTriggerAction = createPluginTriggerAction("TSNE", "Perform TSNE analysis on selected datasets", datasets);
-
-            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+            auto pluginTriggerAction = new PluginTriggerAction(const_cast<TsneAnalysisPluginFactory*>(this), this, "TSNE", "Perform TSNE analysis on selected datasets", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                 for (auto dataset : datasets)
                     getPluginInstance(dataset);
             });
@@ -232,9 +230,7 @@ PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const hd
         }
 
         if (datasets.count() >= 2) {
-            auto pluginTriggerAction = createPluginTriggerAction("Group/TSNE", "Group datasets and perform TSNE analysis on it", datasets);
-
-            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+            auto pluginTriggerAction = new PluginTriggerAction(const_cast<TsneAnalysisPluginFactory*>(this), this, "Group/TSNE", "Group datasets and perform TSNE analysis on it", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                 getPluginInstance(Application::core()->groupDatasets(datasets));
             });
 
