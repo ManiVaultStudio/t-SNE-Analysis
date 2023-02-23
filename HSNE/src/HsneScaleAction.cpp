@@ -34,8 +34,6 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         refine();
     });
 
-    _eventListener.setEventCore(core);
-
     const auto updateReadOnly = [this]() -> void {
         auto selection = _input->getSelection<Points>();
 
@@ -203,7 +201,7 @@ void HsneScaleAction::refine()
         _refineEmbedding->addAction(*hsneScaleAction);
     }
 
-    core->notifyDatasetAdded(_refineEmbedding);
+    events().notifyDatasetAdded(_refineEmbedding);
 
     ///////////////////////////////////
     // Connect scales by linked data //
@@ -255,7 +253,7 @@ void HsneScaleAction::refine()
         _refineEmbedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
         // Notify others that the embedding points have changed
-        core->notifyDatasetChanged(_refineEmbedding);
+        events().notifyDatasetChanged(_refineEmbedding);
     });
 
     // Start the embedding process

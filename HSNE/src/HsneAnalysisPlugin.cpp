@@ -79,19 +79,82 @@ void HsneAnalysisPlugin::init()
 
     outputDataset->getDataHierarchyItem().select();
 
+    auto& computationAction = _hsneSettingsAction->getTsneSettingsAction().getComputationAction();
+
+    const auto updateComputationAction = [this, &computationAction]() {
+        const auto isRunning = computationAction.getRunningAction().isChecked();
+
+        computationAction.getStartComputationAction().setEnabled(!isRunning);
+        computationAction.getContinueComputationAction().setEnabled(!isRunning && _tsneAnalysis.canContinue());
+        computationAction.getStopComputationAction().setEnabled(isRunning);
+    };
+
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
+        if (getTaskStatus() == DataHierarchyItem::TaskStatus::Aborted)
+            return;
+
         setTaskProgress(percentage);
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
+        if (getTaskStatus() == DataHierarchyItem::TaskStatus::Aborted)
+            return;
+
         setTaskDescription(section);
     });
 
-    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
+    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this, &computationAction, updateComputationAction]() {
         setTaskFinished();
+
+        computationAction.getRunningAction().setChecked(false);
 
         _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setEnabled(false);
         _hsneSettingsAction->setReadOnly(false);
+
+        updateComputationAction();
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::aborted, this, [this, &computationAction, updateComputationAction]() {
+        setTaskAborted();
+
+        updateComputationAction();
+
+        computationAction.getRunningAction().setChecked(false);
+
+        _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().setReadOnly(false);
+        _hsneSettingsAction->getTsneSettingsAction().getAdvancedTsneSettingsAction().setReadOnly(false);
+    });
+
+    connect(&computationAction.getStartComputationAction(), &TriggerAction::triggered, this, [this, &computationAction]() {
+        _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().setReadOnly(true);
+        _hsneSettingsAction->getTsneSettingsAction().getAdvancedTsneSettingsAction().setReadOnly(true);
+
+        int topScaleIndex = _hierarchy.getTopScale();
+        Hsne::scale_type& topScale = _hierarchy.getScale(topScaleIndex);
+        int numLandmarks = topScale.size();
+        TsneParameters tsneParameters = _hsneSettingsAction->getTsneSettingsAction().getTsneParameters();
+
+        _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
+    });
+
+    connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
+        _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().setReadOnly(true);
+        _hsneSettingsAction->getTsneSettingsAction().getAdvancedTsneSettingsAction().setReadOnly(true);
+
+        continueComputation();
+    });
+
+    connect(&computationAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
+        setTaskDescription("Aborting TSNE");
+
+        qApp->processEvents();
+
+        _tsneAnalysis.stopComputation();
+    });
+    
+    connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction, updateComputationAction](bool toggled) {
+        getInputDataset<Points>()->getDimensionsPickerAction().setEnabled(!toggled);
+        updateComputationAction();
     });
 
     connect(&_hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
@@ -125,8 +188,10 @@ void HsneAnalysisPlugin::init()
         // NOTE: Commented out because it causes a stack overflow after a couple of iterations
         //QCoreApplication::processEvents();
 
-        _core->notifyDatasetChanged(getOutputDataset());
+        events().notifyDatasetChanged(getOutputDataset());
     });
+
+    updateComputationAction();
 
     setTaskName("HSNE");
 }
@@ -215,6 +280,16 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
 }
 
+void HsneAnalysisPlugin::continueComputation()
+{
+    setTaskRunning();
+    setTaskProgress(0.0f);
+
+    _hsneSettingsAction->getTsneSettingsAction().getComputationAction().getRunningAction().setChecked(true);
+
+    _tsneAnalysis.continueComputation(_hsneSettingsAction->getTsneSettingsAction().getTsneParameters().getNumIterations());
+}
+
 QIcon HsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) const
 {
     return createPluginIcon("HSNE", color);
@@ -230,14 +305,12 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hd
     PluginTriggerActions pluginTriggerActions;
 
     const auto getPluginInstance = [this](const Dataset<Points>& dataset) -> HsneAnalysisPlugin* {
-        return dynamic_cast<HsneAnalysisPlugin*>(Application::core()->requestPlugin(getKind(), { dataset }));
+        return dynamic_cast<HsneAnalysisPlugin*>(plugins().requestPlugin(getKind(), { dataset }));
     };
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
-            auto pluginTriggerAction = createPluginTriggerAction("HSNE", "Perform HSNE analysis on selected datasets", datasets);
-
-            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+            auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "HSNE", "Perform HSNE analysis on selected datasets", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                 for (auto dataset : datasets)
                     getPluginInstance(dataset);
             });
@@ -246,9 +319,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hd
         }
 
         if (datasets.count() >= 2) {
-            auto pluginTriggerAction = createPluginTriggerAction("Group/HSNE", "Group datasets and perform HSNE analysis on it", datasets);
-
-            connect(pluginTriggerAction, &QAction::triggered, [this, getPluginInstance, datasets]() -> void {
+            auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "Group/HSNE", "Group datasets and perform HSNE analysis on it", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                 getPluginInstance(Application::core()->groupDatasets(datasets));
             });
 
