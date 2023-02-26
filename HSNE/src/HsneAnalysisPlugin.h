@@ -28,6 +28,7 @@ public:
     void init() override;
 
     void computeTopLevelEmbedding();
+    void continueComputation();
 
     HsneHierarchy& getHierarchy() { return _hierarchy; }
     TsneAnalysis& getTsneAnalysis() { return _tsneAnalysis; }
