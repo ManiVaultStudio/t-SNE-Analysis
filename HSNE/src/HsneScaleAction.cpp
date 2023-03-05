@@ -20,6 +20,9 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _embedding(embeddingDataset),
     _refineEmbedding(),
     _refineAction(this, "Refine..."),
+    _datasetPickerAction(this, "Selection IDs"),
+    _reloadDataSets(this, "Reload dataset"),
+    _setSelection(this, "Set selection"),
     _isTopScale(true)
 {
     setText("HSNE scale");
@@ -63,6 +66,37 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
         _refineEmbedding->getDataHierarchyItem().setTaskFinished();
     });
+
+    auto setDatasets = [this]() ->void {
+        // Get unique identifier and gui names from all point data sets in the core
+        auto dataSets = Application::core()->requestAllDataSets(QVector<hdps::DataType> {PointType});
+
+        // Assign found dataset(s)
+        _datasetPickerAction.setDatasets(dataSets);
+
+    };
+
+    setDatasets();
+
+    connect(&_reloadDataSets, &TriggerAction::triggered, this, [this, setDatasets]() {
+        setDatasets();
+        });
+
+    connect(&_setSelection, &TriggerAction::triggered, this, [this]() {
+        
+        auto selectionDataset = Dataset<Points>(_datasetPickerAction.getCurrentDataset().get<Points>());
+
+        std::vector<unsigned int> selectionIDs;
+        selectionIDs.resize(selectionDataset->getNumPoints());
+        selectionDataset->populateDataForDimensions < std::vector<unsigned int>, std::vector<unsigned int>>(selectionIDs, std::vector<unsigned int>{ 0 });
+
+        //_embedding->setSelectionIndices(selectionIDs);
+        //core->notifyDatasetSelectionChanged(_embedding->getSourceDataset<Points>());
+        _input->setSelectionIndices(selectionIDs);
+        core->notifyDatasetSelectionChanged(_input->getSourceDataset<Points>());
+
+        });
+
 }
 
 QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
