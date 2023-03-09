@@ -64,7 +64,6 @@ else()
     set(LIB_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}")
 endif()
 
-# Add OpenMP for faster hierarchy initialization
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(${HSNE_PLUGIN} OpenMP::OpenMP_CXX)
@@ -86,7 +85,7 @@ endif(UNIX)
 # -----------------------------------------------------------------------------
 install(TARGETS ${HSNE_PLUGIN}
     RUNTIME DESTINATION Plugins COMPONENT HSNE_SHAREDLIB #.dll
-    LIBRARY DESTINATION Plugins COMPONENT LINKLIB #.so .dylib
+    LIBRARY DESTINATION Plugins COMPONENT HSNE_LINKLIB #.so .dylib
     ARCHIVE DESTINATION lib COMPONENT LINKLIB       # .lib .a
 )
 
@@ -98,4 +97,15 @@ if (NOT DEFINED ENV{CI})
         --component HSNE_SHAREDLIB
         --prefix ${INSTALL_DIR}/$<CONFIGURATION>
     )
+    
+    if(UNIX AND NOT APPLE)
+        add_custom_command(TARGET ${HSNE_PLUGIN} POST_BUILD
+            COMMAND "${CMAKE_COMMAND}"
+            --install ${PROJECT_BINARY_DIR}
+            --config $<CONFIGURATION>
+            --component HSNE_LINKLIB    
+            --prefix ${INSTALL_DIR}/$<CONFIGURATION>
+        )
+    endif()
+
 endif()

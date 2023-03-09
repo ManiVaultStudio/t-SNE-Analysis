@@ -60,7 +60,7 @@ message(STATUS "INSTALL_DIR set to ${INSTALL_DIR}")
 # Windows compiler and linker flags
 # -----------------------------------------------------------------------------
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP  /permissive- /Zc:__cplusplus")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif(MSVC)
@@ -101,6 +101,16 @@ if(USE_ARTIFACTORY_LIBS AND ARTIFACTORY_LIBS_INSTALLED)
     # If the HDILib_VERSION is not a x.y.z version number 
     # omit the version argument from find package
     find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${LIBRARY_INSTALL_DIR}/HDILib" CONFIG REQUIRED)
+else()
+    if(NOT HDILIB_ROOT)
+        message(FATAL_ERROR "Define HDILIB_ROOT")
+    endif()
+    find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${HDILIB_ROOT}" CONFIG REQUIRED)
+    
+    if(HDILib_FOUND)
+        message(STATUS "HDILib found at ${HDILIB_ROOT}") 
+    endif()
+    
 endif()
 
 find_package(OpenGL REQUIRED)
