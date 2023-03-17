@@ -32,7 +32,7 @@ public:
 
 public slots:
     void setPerplexity(const int32_t& perplexity);
-    void setDistanceMetric(const hdi::dr::knn_distance_metric& metric);
+    void setDistanceMetric(const hdi::dr::knn_distance_metric metric);
 
 public: // Action getters
 
