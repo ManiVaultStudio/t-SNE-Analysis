@@ -26,6 +26,7 @@ namespace
     {
         Hsne::Parameters params;
         params._aknn_algorithm = parameters.getKnnLibrary();
+        params._aknn_metric = parameters.getKnnMetric();
         params._seed = parameters.getSeed();
         params._num_walks_per_landmark = parameters.getNumWalksForAreaOfInfluence();
         params._monte_carlo_sampling = parameters.useMonteCarloSampling();
@@ -450,7 +451,7 @@ bool HsneHierarchy::checkCacheParameters(const std::string fileName, const Hsne:
     if (!checkParam("Number of Scales", _numScales)) return false;
 
     if (!checkParam("Knn library", params._aknn_algorithm)) return false;
-    //if (!checkParam("Knn distance metric", params._aknn_metric)) return false;
+    if (!checkParam("Knn distance metric", params._aknn_metric)) return false;
     //if (!checkParam("Knn number of neighbors", params._num_neighbors)) return false;
 
     //if (!checkParam("Nr. Checks in AKNN", params._aknn_num_checks)) return false;

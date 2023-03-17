@@ -14,6 +14,7 @@ class HsneParameters
 public:
     HsneParameters() :
         _knnLibrary(hdi::dr::KNN_FLANN),
+        _aknn_metric(hdi::dr::KNN_METRIC_EUCLIDEAN),
         _numScales(3),
         _seed(-1),
         _useMonteCarloSampling(true),
@@ -24,17 +25,20 @@ public:
         _minWalksRequired(0),
         _numChecksAknn(512),
         _useOutOfCoreComputation(true),
-        _saveHierarchyToDisk(true)
+        _saveHierarchyToDisk(true),
+        _numNeighbors(90)
     {
 
     }
 
     // Basic options
     void setKnnLibrary(hdi::dr::knn_library library) { _knnLibrary = library; }
+    void setKnnMetric(hdi::dr::knn_distance_metric metric) { _aknn_metric = metric; }
     void setNumScales(unsigned int numScales) { _numScales = numScales; }
     void setSeed(int seed) { _seed = seed; }
 
     hdi::dr::knn_library getKnnLibrary() const { return _knnLibrary; }
+    hdi::dr::knn_distance_metric getKnnMetric() const { return _aknn_metric; }
     unsigned int getNumScales() const { return _numScales; }
     int getSeed() const { return _seed; }
 
@@ -65,6 +69,8 @@ private:
     // Basic
     /** Enum specifying which approximate nearest neighbour library to use for the similarity computation */
     hdi::dr::knn_library _knnLibrary;
+    /** Enum specifying which distance to compute knn with */
+    hdi::dr::knn_distance_metric _aknn_metric;
     /** Number of scales the hierarchy should consist of */
     unsigned int _numScales;
     /** Seed used for random algorithms. If a negative value is provided a time based seed is used */

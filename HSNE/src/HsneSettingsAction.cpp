@@ -25,6 +25,33 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
         _tsneSettingsAction.setReadOnly(isReadOnly());
     };
 
+    const auto updateDistanceMetric = [this]() -> void {
+        auto currentText = _tsneSettingsAction.getGeneralTsneSettingsAction().getDistanceMetricAction().getCurrentText();
+        auto metric = hdi::dr::knn_distance_metric::KNN_METRIC_EUCLIDEAN;
+
+        if (currentText == "Euclidean")
+            metric = hdi::dr::knn_distance_metric::KNN_METRIC_EUCLIDEAN;
+
+        if (currentText == "Cosine")
+            metric = hdi::dr::knn_distance_metric::KNN_METRIC_COSINE;
+
+        if (currentText == "Inner Product")
+            metric = hdi::dr::knn_distance_metric::KNN_METRIC_INNER_PRODUCT;
+
+        if (currentText == "Manhattan")
+            metric = hdi::dr::knn_distance_metric::KNN_METRIC_MANHATTAN;
+
+        if (currentText == "Hamming")
+            metric = hdi::dr::knn_distance_metric::KNN_METRIC_HAMMING;
+
+        if (currentText == "Dot")
+            metric = hdi::dr::knn_distance_metric::KNN_METRIC_DOT;
+
+        _generalHsneSettingsAction.setDistanceMetric(metric);
+
+    };
+
+
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
@@ -33,7 +60,13 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     connect(&_tsneSettingsAction.getGeneralTsneSettingsAction().getPerplexityAction(), &IntegralAction::valueChanged, &_generalHsneSettingsAction, &GeneralHsneSettingsAction::setPerplexity);
     _generalHsneSettingsAction.setPerplexity(_tsneSettingsAction.getGeneralTsneSettingsAction().getPerplexityAction().getValue());
 
+    // Use metric as set in t-SNE UI
+    connect(&_tsneSettingsAction.getGeneralTsneSettingsAction().getDistanceMetricAction(), &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric](const std::int32_t& currentIndex) {
+        updateDistanceMetric();
+        });
+
     updateReadOnly();
+    updateDistanceMetric();
 }
 
 HsneParameters& HsneSettingsAction::getHsneParameters()
