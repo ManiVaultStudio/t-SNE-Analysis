@@ -1,17 +1,12 @@
 #pragma once
 
 #include "actions/Actions.h"
+#include "hdi/dimensionality_reduction/knn_utils.h"
 
 using namespace hdps::gui;
 
 class QMenu;
 class HsneSettingsAction;
-
-namespace hdi {
-    namespace dr {
-        enum knn_distance_metric;
-    }
-}
 
 /**
  * General HSNE setting action class
