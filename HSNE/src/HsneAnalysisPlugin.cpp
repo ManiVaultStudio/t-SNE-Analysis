@@ -2,7 +2,7 @@
 #include "HsneParameters.h"
 #include "HsneScaleAction.h"
 
-#include <PointData.h>
+#include <PointData/PointData.h>
 
 #include <util/Icon.h>
 #include <actions/PluginTriggerAction.h>

@@ -1,7 +1,7 @@
 #include "HsneHierarchy.h"
 
 #include "HsneParameters.h"
-#include "PointData.h"
+#include "PointData/PointData.h"
 #include "ImageData/Images.h"
 #include "DataHierarchyItem.h"
 

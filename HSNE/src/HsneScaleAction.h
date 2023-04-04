@@ -5,9 +5,9 @@
 //#include "util/SmartDataset.h"
 
 #include "TsneAnalysis.h"
-#include "PointData.h"
 
-#include "DimensionsPickerAction.h"
+#include "PointData/PointData.h"
+#include "PointData/DimensionsPickerAction.h"
 
 using namespace hdps;
 using namespace hdps::gui;
