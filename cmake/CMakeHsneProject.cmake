@@ -61,25 +61,30 @@ target_compile_definitions(${HSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 # -----------------------------------------------------------------------------
 target_link_libraries(${HSNE_PLUGIN} Qt6::Widgets)
 target_link_libraries(${HSNE_PLUGIN} Qt6::WebEngineWidgets)
-if(MSVC)
-    set(LIB_SUFFIX "${CMAKE_STATIC_LIBRARY_SUFFIX}")
-else()
-    set(LIB_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}")
-endif()
+
+set(HDPS_LINK_PATH "${INSTALL_DIR}/$<CONFIGURATION>/lib")
+set(PLUGIN_LINK_PATH "${INSTALL_DIR}/$<CONFIGURATION>/$<IF:$<CXX_COMPILER_ID:MSVC>,lib,Plugins>")
+set(HDPS_LINK_SUFFIX $<IF:$<CXX_COMPILER_ID:MSVC>,${CMAKE_LINK_LIBRARY_SUFFIX},${CMAKE_SHARED_LIBRARY_SUFFIX}>)
+
+set(HDPS_LINK_LIBRARY "${HDPS_LINK_PATH}/${CMAKE_SHARED_LIBRARY_PREFIX}HDPS_Public${HDPS_LINK_SUFFIX}")
+set(POINTDATA_LINK_LIBRARY "${PLUGIN_LINK_PATH}/${CMAKE_SHARED_LIBRARY_PREFIX}PointData${HDPS_LINK_SUFFIX}") 
+set(IMAGEDATA_LINK_LIBRARY "${PLUGIN_LINK_PATH}/${CMAKE_SHARED_LIBRARY_PREFIX}ImageData${HDPS_LINK_SUFFIX}") 
+
+target_link_libraries(${HSNE_PLUGIN} "${HDPS_LINK_LIBRARY}")
+target_link_libraries(${HSNE_PLUGIN} "${POINTDATA_LINK_LIBRARY}")
+target_link_libraries(${HSNE_PLUGIN} "${IMAGEDATA_LINK_LIBRARY}")
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(${HSNE_PLUGIN} OpenMP::OpenMP_CXX)
 endif()
 
-target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}HDPS_Public${LIB_SUFFIX}")
-target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}PointData${LIB_SUFFIX}")
-target_link_libraries(${HSNE_PLUGIN} "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}ImageData${LIB_SUFFIX}")
-
 target_link_libraries(${HSNE_PLUGIN} ${OPENGL_LIBRARIES})
+
 set_flann_project_link_libraries(${HSNE_PLUGIN})
 set_HDILib_project_link_libraries(${HSNE_PLUGIN})
 set_lz4_project_link_libraries(${HSNE_PLUGIN}) 
+
 if(UNIX)
     message(STATUS "pThreads for Linux")
     find_package(Threads REQUIRED)
@@ -89,9 +94,8 @@ endif(UNIX)
 # Target installation
 # -----------------------------------------------------------------------------
 install(TARGETS ${HSNE_PLUGIN}
-    RUNTIME DESTINATION Plugins COMPONENT HSNE_SHAREDLIB #.dll
-    LIBRARY DESTINATION Plugins COMPONENT HSNE_LINKLIB #.so .dylib
-    ARCHIVE DESTINATION lib COMPONENT LINKLIB       # .lib .a
+    RUNTIME DESTINATION Plugins COMPONENT PLUGINS # Windows .dll
+    LIBRARY DESTINATION Plugins COMPONENT PLUGINS # Linux/Mac .so
 )
 
 if (NOT DEFINED ENV{CI})
