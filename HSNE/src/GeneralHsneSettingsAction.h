@@ -7,6 +7,12 @@ using namespace hdps::gui;
 class QMenu;
 class HsneSettingsAction;
 
+namespace hdi {
+    namespace dr {
+        enum knn_distance_metric;
+    }
+}
+
 /**
  * General HSNE setting action class
  *
@@ -23,6 +29,10 @@ public:
      * @param hsneSettingsAction Reference to HSNE settings action
      */
     GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction);
+
+public slots:
+    void setPerplexity(const int32_t& perplexity);
+    void setDistanceMetric(const hdi::dr::knn_distance_metric& metric);
 
 public: // Action getters
 

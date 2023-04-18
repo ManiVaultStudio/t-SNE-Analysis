@@ -4,6 +4,7 @@
 #include "TsneAnalysis.h"
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
 #include "hdi/utils/graph_algorithms.h"
+#include "hdi/utils/cout_log.h"
 
 #include <QString>
 #include <QDebug>
@@ -11,16 +12,23 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <filesystem>
 
 using HsneMatrix = std::vector<hdi::data::MapMemEff<uint32_t, float>>;
 using Hsne = hdi::dr::HierarchicalSNE<float, HsneMatrix>;
 
 class Points;
 class HsneParameters;
-
 class HsneHierarchy;
 
+namespace hdps {
+    namespace utils {
+        class CoutLog;
+    }
+}
+
 using LandmarkMap = std::vector<std::vector<unsigned int>>;
+using Path = std::filesystem::path;
 
 /**
  * InfluenceHierarchy
@@ -35,6 +43,7 @@ public:
     void initialize(HsneHierarchy& hierarchy);
 
     std::vector<LandmarkMap>& getMap() { return _influenceMap; }
+    const std::vector<LandmarkMap>& getMap() const { return _influenceMap; }
 
 private:
     std::vector<LandmarkMap> _influenceMap;
@@ -112,6 +121,27 @@ public:
     int getNumPoints() { return _numPoints; }
     int getNumDimensions() { return _numDimensions; }
 
+    /** Save HSNE hierarchy from this class to disk */
+    void saveCacheHsne(const Hsne::Parameters& internalParams) const;
+
+    /** Load HSNE hierarchy from disk */
+    bool loadCache(const Hsne::Parameters& internalParams, hdi::utils::CoutLog& log);
+
+private:
+    /** Save HsneHierarchy to disk */
+    void saveCacheHsneHierarchy(std::string fileName) const;
+    /** Save InfluenceHierarchy to disk */
+    void saveCacheHsneInfluenceHierarchy(std::string fileName, const std::vector<LandmarkMap>& influenceHierarchy) const;
+    /** Save HSNE parameters to disk */
+    void saveCacheParameters(std::string fileName, const Hsne::Parameters& internalParams) const;
+
+    /** Load HsneHierarchy from disk */
+    bool loadCacheHsneHierarchy(std::string fileName, hdi::utils::CoutLog& _log);
+    /** Load InfluenceHierarchy from disk */
+    bool loadCacheHsneInfluenceHierarchy(std::string fileName, std::vector<LandmarkMap>& influenceHierarchy);
+    /** Check whether HSNE parameters of the cached values on disk correspond with the current settings */
+    bool checkCacheParameters(const std::string fileName, const Hsne::Parameters& params) const;
+
 private:
     hdps::CoreInterface* _core;
 
@@ -126,4 +156,8 @@ private:
 
     unsigned int _numPoints;
     unsigned int _numDimensions;
+
+    Path _cachePath;                            /** Path for saving and loading cache */
+    Path _cachePathFileName;                    /** cachePath() + data name */
+
 };

@@ -34,6 +34,7 @@ public: // Action getters
     IntegralAction& getMinWalksRequiredAction() { return _minWalksRequiredAction; }
     IntegralAction& getNumChecksAknnAction() { return _numChecksAknnAction; }
     ToggleAction& getUseOutOfCoreComputationAction() { return _useOutOfCoreComputationAction; }
+    ToggleAction& getSaveHierarchyToDiskAction() { return _saveHierarchyToDiskAction; }
 
 protected:
     HsneSettingsAction&     _hsneSettingsAction;                                /** Reference to HSNE settings action */
@@ -44,6 +45,7 @@ protected:
     IntegralAction          _minWalksRequiredAction;                            /** Minimum number of walks required action */
     IntegralAction          _numChecksAknnAction;                               /** Number of KNN checks action */
     ToggleAction            _useOutOfCoreComputationAction;                     /** Use out of core computation action */
+    ToggleAction            _saveHierarchyToDiskAction;                         /** Save computed hierarchy to disk action */
 
     friend class Widget;
 };

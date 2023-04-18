@@ -1,12 +1,11 @@
 #include "TsneAnalysisPlugin.h"
 
-#include <PointData.h>
+#include <PointData/PointData.h>
+#include <PointData/DimensionsPickerAction.h>
 
 #include <util/Icon.h>
 
 #include <actions/PluginTriggerAction.h>
-
-#include <DimensionsPickerAction.h>
 
 #include <QtCore>
 #include <QtDebug>

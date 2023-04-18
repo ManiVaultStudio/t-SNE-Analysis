@@ -92,3 +92,11 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     updateUseMonteCarloSampling();
     updateReadOnly();
 }
+
+void GeneralHsneSettingsAction::setPerplexity(const int32_t& perplexity) {
+    _hsneSettingsAction.getHsneParameters().setNumNearestNeighbors(perplexity * 3);
+}
+
+void GeneralHsneSettingsAction::setDistanceMetric(const hdi::dr::knn_distance_metric& metric) {
+    _hsneSettingsAction.getHsneParameters().setKnnMetric(metric);
+}

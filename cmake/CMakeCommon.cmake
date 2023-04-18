@@ -21,6 +21,10 @@ set(TSNE_ACTIONS_SOURCES
     ${DIR}/AdvancedTsneSettingsAction.cpp
 )
 
+set(THIRD_PARTY_JSON
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json/nlohmann/json.hpp
+)
+
 # The following 4 macros are designed to support the use of user supplied
 # libraries or the PREBUILT libraries for flann and HDILib from the LKEB
 # artifactory.

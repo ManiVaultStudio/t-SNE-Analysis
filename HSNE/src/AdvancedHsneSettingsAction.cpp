@@ -12,7 +12,8 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _numWalksForAreaOfInfluenceAction(this, "#walks for aoi"),
     _minWalksRequiredAction(this, "Minimum #walks required"),
     _numChecksAknnAction(this, "No. KNN checks"),
-    _useOutOfCoreComputationAction(this, "Out-of-core computation")
+    _useOutOfCoreComputationAction(this, "Out-of-core computation"),
+    _saveHierarchyToDiskAction(this, "Save hierarchy to disk")
 {
     setText("Advanced HSNE");
     setObjectName("Advanced HSNE");
@@ -24,6 +25,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _minWalksRequiredAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numChecksAknnAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
     _useOutOfCoreComputationAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
+    _saveHierarchyToDiskAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
 
     _numWalksForLandmarkSelectionAction.setToolTip("Number of walks for landmark selection");
     _numWalksForLandmarkSelectionThresholdAction.setToolTip("Number of walks for landmark selection");
@@ -32,6 +34,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _minWalksRequiredAction.setToolTip("Minimum number of walks required");
     _numChecksAknnAction.setToolTip("Number of KNN checks");
     _useOutOfCoreComputationAction.setToolTip("Use out-of-core computation");
+    _saveHierarchyToDiskAction.setToolTip("Save computed hierarchy to disk");
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
@@ -42,6 +45,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _minWalksRequiredAction.initialize(0, 100, hsneParameters.getMinWalksRequired(), hsneParameters.getMinWalksRequired());
     _numChecksAknnAction.initialize(0, 1024, hsneParameters.getNumChecksAKNN(), hsneParameters.getNumChecksAKNN());
     _useOutOfCoreComputationAction.initialize(hsneParameters.useOutOfCoreComputation(), hsneParameters.useOutOfCoreComputation());
+    _saveHierarchyToDiskAction.initialize(true, true);
     
     const auto updateNumWalksForLandmarkSelectionAction = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setNumWalksForLandmarkSelection(_numWalksForLandmarkSelectionAction.getValue());
@@ -69,6 +73,10 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
 
     const auto updateUseOutOfCoreComputation = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().useOutOfCoreComputation(_useOutOfCoreComputationAction.isChecked());
+    };
+
+    const auto updateSaveHierarchyToDiskAction = [this]() -> void {
+        _hsneSettingsAction.getHsneParameters().setSaveHierarchyToDisk(_saveHierarchyToDiskAction.isChecked());
     };
 
     const auto updateReadOnly = [this]() -> void {
@@ -111,6 +119,10 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
         updateUseOutOfCoreComputation();
     });
 
+    connect(&_saveHierarchyToDiskAction, &ToggleAction::toggled, this, [this, updateSaveHierarchyToDiskAction]() {
+        updateSaveHierarchyToDiskAction();
+    });
+
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
@@ -122,5 +134,6 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     updateMinWalksRequired();
     updateNumChecksAknn();
     updateUseOutOfCoreComputation();
+    updateSaveHierarchyToDiskAction();
     updateReadOnly();
 }
