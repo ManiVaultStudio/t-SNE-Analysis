@@ -94,8 +94,8 @@ endif(UNIX)
 # Target installation
 # -----------------------------------------------------------------------------
 install(TARGETS ${HSNE_PLUGIN}
-    RUNTIME DESTINATION Plugins COMPONENT PLUGINS # Windows .dll
-    LIBRARY DESTINATION Plugins COMPONENT PLUGINS # Linux/Mac .so
+    RUNTIME DESTINATION Plugins COMPONENT PLUGIN_HSNE # Windows .dll
+    LIBRARY DESTINATION Plugins COMPONENT PLUGIN_HSNE # Linux/Mac .so
 )
 
 if (NOT DEFINED ENV{CI})
@@ -103,18 +103,8 @@ if (NOT DEFINED ENV{CI})
         COMMAND "${CMAKE_COMMAND}"
         --install ${PROJECT_BINARY_DIR}
         --config $<CONFIGURATION>
-        --component HSNE_SHAREDLIB
+        --component PLUGIN_HSNE
         --prefix ${INSTALL_DIR}/$<CONFIGURATION>
+        --verbose
     )
-    
-    if(UNIX AND NOT APPLE)
-        add_custom_command(TARGET ${HSNE_PLUGIN} POST_BUILD
-            COMMAND "${CMAKE_COMMAND}"
-            --install ${PROJECT_BINARY_DIR}
-            --config $<CONFIGURATION>
-            --component HSNE_LINKLIB    
-            --prefix ${INSTALL_DIR}/$<CONFIGURATION>
-        )
-    endif()
-
 endif()

@@ -88,8 +88,8 @@ endif(UNIX)
 # Target installation
 # -----------------------------------------------------------------------------
 install(TARGETS ${TSNE_PLUGIN}
-    RUNTIME DESTINATION Plugins COMPONENT PLUGINS # Windows .dll
-    LIBRARY DESTINATION Plugins COMPONENT PLUGINS # Linux/Mac .so
+    RUNTIME DESTINATION Plugins COMPONENT PLUGIN_TSNE # Windows .dll
+    LIBRARY DESTINATION Plugins COMPONENT PLUGIN_TSNE # Linux/Mac .so
 )
 
 if (NOT DEFINED ENV{CI})
@@ -97,19 +97,9 @@ if (NOT DEFINED ENV{CI})
         COMMAND "${CMAKE_COMMAND}"
         --install ${PROJECT_BINARY_DIR}
         --config $<CONFIGURATION>
-        --component TSNE_SHAREDLIB
+        --component PLUGIN_TSNE
         --prefix ${INSTALL_DIR}/$<CONFIGURATION>
+        --verbose
     )
-
-    if(UNIX AND NOT APPLE)
-        add_custom_command(TARGET ${TSNE_PLUGIN} POST_BUILD
-            COMMAND "${CMAKE_COMMAND}"
-            --install ${PROJECT_BINARY_DIR}
-            --config $<CONFIGURATION>
-            --component TSNE_LINKLIB    
-            --prefix ${INSTALL_DIR}/$<CONFIGURATION>
-        )
-    endif()
-
 endif()
 
