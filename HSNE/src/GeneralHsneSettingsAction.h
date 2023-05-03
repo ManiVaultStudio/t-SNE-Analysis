@@ -9,7 +9,7 @@ class HsneSettingsAction;
 
 namespace hdi {
     namespace dr {
-        enum knn_distance_metric;
+        enum knn_distance_metric : int;
     }
 }
 
