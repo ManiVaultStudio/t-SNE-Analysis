@@ -8,6 +8,7 @@ function(get_major_version full_version major_version)
         set(MSVC_140_VERSION 14)
         set(MSVC_141_VERSION 15)
         set(MSVC_142_VERSION 16)
+        set(MSVC_143_VERSION 16) # conan packages are compiled with VS2019 but fully compatible with VS2022
         set(majver "${MSVC_${MSVC_TOOLSET_VERSION}_VERSION}")
     else()
         string(REPLACE "." ";" verlist ${full_version})
