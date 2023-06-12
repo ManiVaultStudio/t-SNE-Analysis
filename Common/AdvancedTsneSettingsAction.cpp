@@ -6,7 +6,7 @@
 using namespace hdps::gui;
 
 AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
-    GroupAction(&tsneSettingsAction),
+    GroupAction(&tsneSettingsAction, "Advanced TSNE"),
     _tsneSettingsAction(tsneSettingsAction),
     _exaggerationAction(this, "Exaggeration"),
     _exponentialDecayAction(this, "Exponential decay"),
@@ -15,6 +15,11 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
 {
     setText("Advanced TSNE");
     setObjectName("Advanced TSNE");
+
+    addAction(&_exaggerationAction);
+    addAction(&_exponentialDecayAction);
+    addAction(&_numTreesAction);
+    addAction(&_numChecksAction);
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 

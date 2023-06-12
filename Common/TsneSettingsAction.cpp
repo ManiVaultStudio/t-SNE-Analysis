@@ -5,7 +5,7 @@
 using namespace hdps::gui;
 
 TsneSettingsAction::TsneSettingsAction(QObject* parent) :
-    GroupAction(parent, false),
+    GroupAction(parent, "TSNE"),
     _tsneParameters(),
     _generalTsneSettingsAction(*this),
     _advancedTsneSettingsAction(*this)

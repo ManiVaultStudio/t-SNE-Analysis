@@ -8,7 +8,7 @@
 using namespace hdps::gui;
 
 GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
-    GroupAction(&tsneSettingsAction, true),
+    GroupAction(&tsneSettingsAction, "TSNE", true),
     _tsneSettingsAction(tsneSettingsAction),
     _knnTypeAction(this, "KNN Type"),
     _distanceMetricAction(this, "Distance metric"),
@@ -19,6 +19,13 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 {
     setText("TSNE");
     setObjectName("General TSNE");
+
+    addAction(&_knnTypeAction);
+    addAction(&_distanceMetricAction);
+    addAction(&_numIterationsAction);
+    addAction(&_numberOfComputatedIterationsAction);
+    addAction(&_perplexityAction);
+    addAction(&_computationAction);
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 

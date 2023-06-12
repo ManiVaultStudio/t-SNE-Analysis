@@ -1,6 +1,8 @@
 #pragma once
 
-#include "actions/Actions.h"
+#include <actions/HorizontalGroupAction.h>
+#include <actions/TriggerAction.h>
+#include <actions/ToggleAction.h>
 
 using namespace hdps::gui;
 
@@ -14,31 +16,8 @@ class QMenu;
  *
  * @author Thomas Kroes
  */
-class TsneComputationAction : public WidgetAction
+class TsneComputationAction : public HorizontalGroupAction
 {
-protected:
-
-    /** Widget class for TSNE computation action */
-    class Widget : public WidgetActionWidget {
-    public:
-
-        /**
-         * Constructor
-         * @param parent Pointer to parent widget
-         * @param tsneComputationAction Pointer to TSNE computation action
-         */
-        Widget(QWidget* parent, TsneComputationAction* tsneComputationAction);
-    };
-
-    /**
-     * Get widget representation of the TSNE computation action
-     * @param parent Pointer to parent widget
-     * @param widgetFlags Widget flags for the configuration of the widget (type)
-     */
-    QWidget* getWidget(QWidget* parent, const std::int32_t& widgetFlags) override {
-        return new Widget(parent, this);
-    };
-
 public:
 
     /**

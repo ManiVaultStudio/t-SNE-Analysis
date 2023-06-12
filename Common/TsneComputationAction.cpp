@@ -7,13 +7,18 @@
 using namespace hdps::gui;
 
 TsneComputationAction::TsneComputationAction(QObject* parent) :
-    WidgetAction(parent),
+    HorizontalGroupAction(parent, "Group"),
     _startComputationAction(this, "Start"),
     _continueComputationAction(this, "Continue"),
     _stopComputationAction(this, "Stop"),
     _runningAction(this, "Running")
 {
     setText("Computation");
+
+    addAction(&_startComputationAction);
+    addAction(&_continueComputationAction);
+    addAction(&_stopComputationAction);
+    addAction(&_runningAction);
 
     _startComputationAction.setToolTip("Start the tSNE computation");
     _continueComputationAction.setToolTip("Continue with the tSNE computation");
@@ -29,18 +34,4 @@ QMenu* TsneComputationAction::getContextMenu(QWidget* parent /*= nullptr*/)
     menu->addAction(&_stopComputationAction);
 
     return menu;
-}
-
-TsneComputationAction::Widget::Widget(QWidget* parent, TsneComputationAction* tsneComputationAction) :
-    WidgetActionWidget(parent, tsneComputationAction)
-{
-    auto layout = new QHBoxLayout();
-
-    layout->setContentsMargins(0, 0, 0, 0);
-
-    layout->addWidget(tsneComputationAction->getStartComputationAction().createWidget(this));
-    layout->addWidget(tsneComputationAction->getContinueComputationAction().createWidget(this));
-    layout->addWidget(tsneComputationAction->getStopComputationAction().createWidget(this));
-
-    setLayout(layout);
 }

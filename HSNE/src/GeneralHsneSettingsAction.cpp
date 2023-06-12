@@ -4,7 +4,7 @@
 using namespace hdps::gui;
 
 GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
-    GroupAction(&hsneSettingsAction, true),
+    GroupAction(&hsneSettingsAction, "General HSNE", true),
     _hsneSettingsAction(hsneSettingsAction),
     _knnTypeAction(this, "KNN Type"),
     _numScalesAction(this, "Number of Hierarchy Scales"),
@@ -12,8 +12,11 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling"),
     _startAction(this, "Start")
 {
-    setText("HSNE");
-    setObjectName("General HSNE");
+    addAction(&_knnTypeAction);
+    addAction(&_numScalesAction);
+    addAction(&_seedAction);
+    addAction(&_useMonteCarloSamplingAction);
+    addAction(&_startAction);
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 

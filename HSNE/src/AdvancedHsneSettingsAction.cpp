@@ -4,7 +4,7 @@
 using namespace hdps::gui;
 
 AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
-    GroupAction(&hsneSettingsAction),
+    GroupAction(&hsneSettingsAction, "Advanced HSNE"),
     _hsneSettingsAction(hsneSettingsAction),
     _numWalksForLandmarkSelectionAction(this, "#walks for landmark sel."),
     _numWalksForLandmarkSelectionThresholdAction(this, "#walks for landmark sel. thres."),
@@ -15,8 +15,13 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _useOutOfCoreComputationAction(this, "Out-of-core computation"),
     _saveHierarchyToDiskAction(this, "Save hierarchy to disk")
 {
-    setText("Advanced HSNE");
-    setObjectName("Advanced HSNE");
+    addAction(&_numWalksForLandmarkSelectionAction);
+    addAction(&_numWalksForLandmarkSelectionThresholdAction);
+    addAction(&_randomWalkLengthAction);
+    addAction(&_numWalksForAreaOfInfluenceAction);
+    addAction(&_minWalksRequiredAction);
+    addAction(&_numChecksAknnAction);
+    addAction(&_saveHierarchyToDiskAction);
 
     _numWalksForLandmarkSelectionAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numWalksForLandmarkSelectionThresholdAction.setDefaultWidgetFlags(IntegralAction::SpinBox);

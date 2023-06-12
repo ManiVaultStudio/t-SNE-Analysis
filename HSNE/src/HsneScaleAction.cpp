@@ -12,7 +12,7 @@ using namespace hdps::gui;
 CoreInterface* HsneScaleAction::core = nullptr;
 
 HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
-    GroupAction(parent, true),
+    GroupAction(parent, "HSNE scale", true),
     _tsneSettingsAction(tsneSettingsAction),
     _tsneAnalysis(),
     _hsneHierarchy(hsneHierarchy),
@@ -21,12 +21,14 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _refineEmbedding(),
     _refineAction(this, "Refine..."),
     _datasetPickerAction(this, "Selection IDs"),
-    _reloadDataSets(this, "Reload dataset"),
-    _setSelection(this, "Set selection"),
+    _reloadDatasetsAction(this, "Reload dataset"),
+    _setSelectionAction(this, "Set selection"),
     _isTopScale(true)
 {
-    setText("HSNE scale");
-    setShowLabels(false);
+    addAction(&_refineAction);
+    addAction(&_datasetPickerAction);
+    addAction(&_reloadDatasetsAction);
+    addAction(&_setSelectionAction);
 
     _refineAction.setToolTip("Refine the selected landmarks");
 
@@ -78,11 +80,11 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
 
     setDatasets();
 
-    connect(&_reloadDataSets, &TriggerAction::triggered, this, [this, setDatasets]() {
+    connect(&_reloadDatasetsAction, &TriggerAction::triggered, this, [this, setDatasets]() {
         setDatasets();
         });
 
-    connect(&_setSelection, &TriggerAction::triggered, this, [this]() {
+    connect(&_setSelectionAction, &TriggerAction::triggered, this, [this]() {
         
         auto selectionDataset = Dataset<Points>(_datasetPickerAction.getCurrentDataset().get<Points>());
 
