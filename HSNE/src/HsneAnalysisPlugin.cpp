@@ -54,7 +54,6 @@ void HsneAnalysisPlugin::init()
     // Set the default number of hierarchy scales based on number of points
     int numHierarchyScales = std::max(1L, std::lround(log10(inputDataset->getNumPoints())) - 2);
     _hsneSettingsAction->getGeneralHsneSettingsAction().getNumScalesAction().setValue(numHierarchyScales);
-    _hsneSettingsAction->getGeneralHsneSettingsAction().getNumScalesAction().setDefaultValue(numHierarchyScales);
 
     std::vector<float> initialData;
 

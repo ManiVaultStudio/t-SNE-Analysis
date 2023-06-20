@@ -28,10 +28,10 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
     _numTreesAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numChecksAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
 
-    _exaggerationAction.initialize(1, 10000, 250, 250);
-    _exponentialDecayAction.initialize(1, 10000, 70, 70);
-    _numTreesAction.initialize(1, 10000, 4, 4);
-    _numChecksAction.initialize(1, 10000, 1024, 1024);
+    _exaggerationAction.initialize(1, 10000, 250);
+    _exponentialDecayAction.initialize(1, 10000, 70);
+    _numTreesAction.initialize(1, 10000, 4);
+    _numChecksAction.initialize(1, 10000, 1024);
 
     const auto updateExaggeration = [this]() -> void {
         _tsneSettingsAction.getTsneParameters().setExaggerationIter(_exaggerationAction.getValue());

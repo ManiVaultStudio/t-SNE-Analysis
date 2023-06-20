@@ -13,7 +13,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _knnTypeAction(this, "KNN Type"),
     _distanceMetricAction(this, "Distance metric"),
     _numIterationsAction(this, "Number of iterations"),
-    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0, 0),
+    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0),
     _perplexityAction(this, "Perplexity"),
     _computationAction(this)
 {
@@ -37,10 +37,10 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _numberOfComputatedIterationsAction.setDefaultWidgetFlags(IntegralAction::LineEdit);
     _perplexityAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
-    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
-    _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean");
-    _numIterationsAction.initialize(1, 10000, 1000, 1000);
-    _perplexityAction.initialize(2, 50, 30, 30);
+    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
+    _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
+    _numIterationsAction.initialize(1, 10000, 1000);
+    _perplexityAction.initialize(2, 50, 30);
 
     const auto updateKnnAlgorithm = [this]() -> void {
         if (_knnTypeAction.getCurrentText() == "FLANN")

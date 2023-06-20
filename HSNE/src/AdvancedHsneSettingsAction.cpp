@@ -43,14 +43,14 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
-    _numWalksForLandmarkSelectionAction.initialize(1, 1000, hsneParameters.getNumWalksForLandmarkSelection(), hsneParameters.getNumWalksForLandmarkSelection());
-    _numWalksForLandmarkSelectionThresholdAction.initialize(0, 1000, hsneParameters.getNumWalksForLandmarkSelectionThreshold(), hsneParameters.getNumWalksForLandmarkSelectionThreshold());
-    _randomWalkLengthAction.initialize(1, 100, hsneParameters.getRandomWalkLength(), hsneParameters.getRandomWalkLength());
-    _numWalksForAreaOfInfluenceAction.initialize(1, 500, hsneParameters.getNumWalksForAreaOfInfluence(), hsneParameters.getNumWalksForAreaOfInfluence());
-    _minWalksRequiredAction.initialize(0, 100, hsneParameters.getMinWalksRequired(), hsneParameters.getMinWalksRequired());
-    _numChecksAknnAction.initialize(0, 1024, hsneParameters.getNumChecksAKNN(), hsneParameters.getNumChecksAKNN());
-    _useOutOfCoreComputationAction.initialize(hsneParameters.useOutOfCoreComputation(), hsneParameters.useOutOfCoreComputation());
-    _saveHierarchyToDiskAction.initialize(true, true);
+    _numWalksForLandmarkSelectionAction.initialize(1, 1000, hsneParameters.getNumWalksForLandmarkSelection());
+    _numWalksForLandmarkSelectionThresholdAction.initialize(0, 1000, hsneParameters.getNumWalksForLandmarkSelectionThreshold());
+    _randomWalkLengthAction.initialize(1, 100, hsneParameters.getRandomWalkLength());
+    _numWalksForAreaOfInfluenceAction.initialize(1, 500, hsneParameters.getNumWalksForAreaOfInfluence());
+    _minWalksRequiredAction.initialize(0, 100, hsneParameters.getMinWalksRequired());
+    _numChecksAknnAction.initialize(0, 1024, hsneParameters.getNumChecksAKNN());
+    _useOutOfCoreComputationAction.setChecked(hsneParameters.useOutOfCoreComputation());
+    _saveHierarchyToDiskAction.setChecked(true);
     
     const auto updateNumWalksForLandmarkSelectionAction = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setNumWalksForLandmarkSelection(_numWalksForLandmarkSelectionAction.getValue());
