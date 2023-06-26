@@ -111,16 +111,22 @@ void TsneWorker::computeGradientDescent(int iterations)
     tsneParameters._exponential_decay_iter = _parameters.getExponentialDecayIter();
     tsneParameters._exaggeration_factor = 4 + _numPoints / 60000.0;
 
-    // Initialize GPGPU-SNE
+    // Initialize offscreen buffer
     double t_buffer = 0.0;
     {
         hdi::utils::ScopedTimer<double> timer(t_buffer);
-
         _offscreenBuffer->bindContext();
-        if (_currentIteration == 0)
-            _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParameters);
     }
     qDebug() << "A-tSNE: Set up offscreen buffer in " << t_buffer / 1000 << " seconds.";
+
+    // Initialize GPGPU-SNE
+    double t_init = 0.0;
+    {
+        hdi::utils::ScopedTimer<double> timer(t_init);
+        if (_currentIteration == 0)
+            _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, tsneParameters);
+    }
+    qDebug() << "A-tSNE: Init t-SNE " << t_init / 1000 << " seconds.";
 
     const auto updateEmbedding = [this](const TsneData& tsneData) -> void {
         copyEmbeddingOutput();
@@ -137,7 +143,7 @@ void TsneWorker::computeGradientDescent(int iterations)
     double elapsed = 0;
     double t_grad = 0;
     {
-        qDebug() << "A-tSNE: Computing gradient descent..\n";
+        qDebug() << "A-tSNE: Computing gradient descent..";
 
         const auto beginIteration   = _currentIteration;
         const auto endIteration     = beginIteration + iterations;
