@@ -14,7 +14,8 @@ public:
         _numChecks(1024),
         _exaggerationIter(250),
         _exponentialDecayIter(150),
-        _numDimensionsOutput(2)
+        _numDimensionsOutput(2),
+        _updateCore(10)
     {
 
     }
@@ -28,6 +29,7 @@ public:
     void setExaggerationIter(int exaggerationIter) { _exaggerationIter = exaggerationIter; }
     void setExponentialDecayIter(int exponentialDecayIter) { _exponentialDecayIter = exponentialDecayIter; }
     void setNumDimensionsOutput(int numDimensionsOutput) { _numDimensionsOutput = numDimensionsOutput; }
+    void setUpdateCore(int updateCore) { _updateCore = updateCore; }
 
     hdi::dr::knn_library getKnnAlgorithm() { return _knnLibrary; }
     hdi::dr::knn_distance_metric getKnnDistanceMetric() { return _knnDistanceMetric; }
@@ -38,6 +40,7 @@ public:
     int getExaggerationIter() { return _exaggerationIter; }
     int getExponentialDecayIter() { return _exponentialDecayIter; }
     int getNumDimensionsOutput() { return _numDimensionsOutput; }
+    int getUpdateCore() { return _updateCore; }
 
 private:
     hdi::dr::knn_library _knnLibrary;
@@ -49,4 +52,6 @@ private:
     int _exaggerationIter;
     int _exponentialDecayIter;
     int _numDimensionsOutput;
+
+    int _updateCore;
 };

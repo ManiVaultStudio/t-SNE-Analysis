@@ -15,6 +15,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _numIterationsAction(this, "Number of iterations"),
     _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0, 0),
     _perplexityAction(this, "Perplexity"),
+    _updateIterationsAction(this, "Core update every"),
     _computationAction(this)
 {
     setText("TSNE");
@@ -29,11 +30,13 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numberOfComputatedIterationsAction.setDefaultWidgetFlags(IntegralAction::LineEdit);
     _perplexityAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
+    _updateIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
     _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean");
     _numIterationsAction.initialize(1, 10000, 1000, 1000);
     _perplexityAction.initialize(2, 50, 30, 30);
+    _updateIterationsAction.initialize(0, 10000, 10, 10);
 
     const auto updateKnnAlgorithm = [this]() -> void {
         if (_knnTypeAction.getCurrentText() == "FLANN")
@@ -74,6 +77,10 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _tsneSettingsAction.getTsneParameters().setPerplexity(_perplexityAction.getValue());
     };
 
+    const auto updateCoreUpdate = [this]() -> void {
+        _tsneSettingsAction.getTsneParameters().setUpdateCore(_updateIterationsAction.getValue());
+    };
+
     const auto isResettable = [this]() -> bool {
         if (_knnTypeAction.isResettable())
             return true;
@@ -85,6 +92,9 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
             return true;
 
         if (_perplexityAction.isResettable())
+            return true;
+
+        if (_updateIterationsAction.isResettable())
             return true;
 
         return false;
@@ -115,6 +125,10 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         updatePerplexity();
     });
 
+    connect(&_updateIterationsAction, &IntegralAction::valueChanged, this, [this, updateCoreUpdate](const std::int32_t& value) {
+        updateCoreUpdate();
+    });
+
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
@@ -123,5 +137,6 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     updateDistanceMetric();
     updateNumIterations();
     updatePerplexity();
+    updateCoreUpdate();
     updateReadOnly();
 }
