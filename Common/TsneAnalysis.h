@@ -17,8 +17,10 @@ class TsneWorker : public QObject
 {
     Q_OBJECT
 public:
-    TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions);
+    // The tsne object will compute knn and a probablility distribution before starting the embedding 
     TsneWorker(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions);
+    // The tsne object expects a probDist that is not symmetrized, no knn are computed
+    TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions);
     ~TsneWorker();
     void changeThread(QThread* targetThread);
 

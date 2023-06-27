@@ -83,6 +83,7 @@ void TsneWorker::computeSimilarities()
     double t = 0.0;
     {
         hdi::utils::ScopedTimer<double> timer(t);
+        // The _probabilityDistribution is symmetrized here.
         probabilityGenerator.computeJointProbabilityDistribution(_data.data(), _numDimensions, _numPoints, _probabilityDistribution, probGenParams);
     }
 
@@ -123,8 +124,15 @@ void TsneWorker::computeGradientDescent(int iterations)
     double t_init = 0.0;
     {
         hdi::utils::ScopedTimer<double> timer(t_init);
+
         if (_currentIteration == 0)
-            _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, tsneParameters);
+        {
+            // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
+            if (_hasProbabilityDistribution)
+                _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParameters);
+            else
+                _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, tsneParameters);
+        }
     }
     qDebug() << "A-tSNE: Init t-SNE " << t_init / 1000 << " seconds.";
 
