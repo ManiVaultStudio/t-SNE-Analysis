@@ -109,6 +109,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _distanceMetricAction.setEnabled(enable);
         _numIterationsAction.setEnabled(enable);
         _perplexityAction.setEnabled(enable);
+        _updateIterationsAction.setEnabled(enable);
     };
 
     connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm](const std::int32_t& currentIndex) {
