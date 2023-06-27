@@ -53,5 +53,5 @@ private:
     int _exponentialDecayIter;
     int _numDimensionsOutput;
 
-    int _updateCore;
+    int _updateCore;        // Gradient descent iterations after which the embedding data set in ManiVault's core will be updated
 };
