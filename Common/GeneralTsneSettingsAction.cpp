@@ -38,6 +38,8 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _perplexityAction.initialize(2, 50, 30, 30);
     _updateIterationsAction.initialize(0, 10000, 10, 10);
 
+    _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
+
     const auto updateKnnAlgorithm = [this]() -> void {
         if (_knnTypeAction.getCurrentText() == "FLANN")
             _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_FLANN);

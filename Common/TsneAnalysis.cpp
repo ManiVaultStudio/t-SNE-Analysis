@@ -71,14 +71,14 @@ void TsneWorker::computeSimilarities()
     qDebug() << "tSNE initialized.";
 
     emit progressSection("tSNE initialized");
-
     emit progressSection("Calculate probability distributions");
 
     _probabilityDistribution.clear();
     _probabilityDistribution.resize(_numPoints);
-    qDebug() << "Sparse matrix allocated.";
 
+    qDebug() << "Sparse matrix allocated.";
     qDebug() << "Computing high dimensional probability distributions.. Num dims: " << _numDimensions << " Num data points: " << _numPoints;
+
     hdi::dr::HDJointProbabilityGenerator<float> probabilityGenerator;
     double t = 0.0;
     {
