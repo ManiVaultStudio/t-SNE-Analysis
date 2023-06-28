@@ -43,6 +43,7 @@ protected:
     IntegralAction          _numIterationsAction;                   /** Number of iterations action */
     IntegralAction          _numberOfComputatedIterationsAction;    /** Number of computed iterations action */
     IntegralAction          _perplexityAction;                      /** Perplexity action */
+    IntegralAction          _updateIterationsAction;                /** Number of update iterations (copying embedding to ManiVault core) */
     TsneComputationAction   _computationAction;                     /** Computation action */
 
     friend class Widget;

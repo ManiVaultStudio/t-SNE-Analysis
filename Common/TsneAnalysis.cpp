@@ -71,18 +71,19 @@ void TsneWorker::computeSimilarities()
     qDebug() << "tSNE initialized.";
 
     emit progressSection("tSNE initialized");
-
     emit progressSection("Calculate probability distributions");
 
     _probabilityDistribution.clear();
     _probabilityDistribution.resize(_numPoints);
-    qDebug() << "Sparse matrix allocated.";
 
+    qDebug() << "Sparse matrix allocated.";
     qDebug() << "Computing high dimensional probability distributions.. Num dims: " << _numDimensions << " Num data points: " << _numPoints;
+
     hdi::dr::HDJointProbabilityGenerator<float> probabilityGenerator;
     double t = 0.0;
     {
         hdi::utils::ScopedTimer<double> timer(t);
+        // The _probabilityDistribution is symmetrized here.
         probabilityGenerator.computeJointProbabilityDistribution(_data.data(), _numDimensions, _numPoints, _probabilityDistribution, probGenParams);
     }
 
@@ -111,23 +112,46 @@ void TsneWorker::computeGradientDescent(int iterations)
     tsneParameters._exponential_decay_iter = _parameters.getExponentialDecayIter();
     tsneParameters._exaggeration_factor = 4 + _numPoints / 60000.0;
 
-    // Initialize GPGPU-SNE
-    _offscreenBuffer->bindContext();
-    if (_currentIteration == 0)
-        _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParameters);
+    // Initialize offscreen buffer
+    double t_buffer = 0.0;
+    {
+        hdi::utils::ScopedTimer<double> timer(t_buffer);
+        _offscreenBuffer->bindContext();
+    }
+    qDebug() << "A-tSNE: Set up offscreen buffer in " << t_buffer / 1000 << " seconds.";
 
-    copyEmbeddingOutput();
-    emit embeddingUpdate(_outEmbedding);
-    
-    const auto emitEmbeddingUpdate = [this](const std::uint32_t& numProcessed, const std::uint32_t& numTotal) -> void {
+    // Initialize GPGPU-SNE
+    double t_init = 0.0;
+    {
+        hdi::utils::ScopedTimer<double> timer(t_init);
+
+        if (_currentIteration == 0)
+        {
+            // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
+            if (_hasProbabilityDistribution)
+                _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParameters);
+            else
+                _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, tsneParameters);
+        }
+    }
+    qDebug() << "A-tSNE: Init t-SNE " << t_init / 1000 << " seconds.";
+
+    const auto updateEmbedding = [this](const TsneData& tsneData) -> void {
+        copyEmbeddingOutput();
+        emit embeddingUpdate(tsneData);
+    };
+
+    const auto updateStatus = [this](const std::uint32_t& numProcessed, const std::uint32_t& numTotal) -> void {
         emit progressSection(QString("Embedding (step %1 of %2)").arg(QString::number(numProcessed), QString::number(numTotal)));
         emit progressPercentage(static_cast<float>(numProcessed) / static_cast<float>(numTotal));
     };
 
+    updateEmbedding(_outEmbedding);
+
     double elapsed = 0;
-    double t = 0;
+    double t_grad = 0;
     {
-        qDebug() << "A-tSNE: Computing gradient descent..\n";
+        qDebug() << "A-tSNE: Computing gradient descent..";
 
         const auto beginIteration   = _currentIteration;
         const auto endIteration     = beginIteration + iterations;
@@ -135,22 +159,21 @@ void TsneWorker::computeGradientDescent(int iterations)
         // Performs gradient descent for every iteration
         for (_currentIteration = beginIteration; _currentIteration < endIteration; ++_currentIteration)
         {
-            hdi::utils::ScopedTimer<double> timer(t);
+            hdi::utils::ScopedTimer<double> timer(t_grad);
 
             // Perform a GPGPU-SNE iteration
             _GPGPU_tSNE.doAnIteration();
 
-            if (_currentIteration > 0 && _currentIteration % 10 == 0)
+            if (_currentIteration > 0 && _parameters.getUpdateCore() > 0 && _currentIteration % _parameters.getUpdateCore() == 0)
             {
-                copyEmbeddingOutput();
-                emit embeddingUpdate(_outEmbedding);
-                emitEmbeddingUpdate(_currentIteration - beginIteration, iterations);
+                updateEmbedding(_outEmbedding);
+                updateStatus(_currentIteration - beginIteration, iterations);
             }
 
-            if (t > 1000)
-                qDebug() << "Time: " << t;
+            if (t_grad > 1000)
+                qDebug() << "Time: " << t_grad;
 
-            elapsed += t;
+            elapsed += t_grad;
 
             // React to requests to stop
             if (_shouldStop)
@@ -159,10 +182,8 @@ void TsneWorker::computeGradientDescent(int iterations)
 
         _offscreenBuffer->releaseContext();
 
-        copyEmbeddingOutput();
-
-        emit embeddingUpdate(_outEmbedding);
-        emitEmbeddingUpdate(_currentIteration - beginIteration, iterations);
+        updateEmbedding(_outEmbedding);
+        updateStatus(_currentIteration - beginIteration, iterations);
     }
 
     //emit progressSection("Finished embedding");
@@ -183,13 +204,19 @@ void TsneWorker::compute()
 {
     _shouldStop = false;
 
-    // Create a context local to this thread that shares with the global share context
-    _offscreenBuffer->initialize();
+    double t = 0.0;
+    {
+        hdi::utils::ScopedTimer<double> timer(t);
 
-    if (!_hasProbabilityDistribution)
-        computeSimilarities();
+        // Create a context local to this thread that shares with the global share context
+        _offscreenBuffer->initialize();
 
-    computeGradientDescent(_parameters.getNumIterations());
+        if (!_hasProbabilityDistribution)
+            computeSimilarities();
+
+        computeGradientDescent(_parameters.getNumIterations());
+    }
+    qDebug() << "t-SNE total compute time: " << t / 1000 << " seconds.";
 }
 
 void TsneWorker::continueComputation(int iterations)
