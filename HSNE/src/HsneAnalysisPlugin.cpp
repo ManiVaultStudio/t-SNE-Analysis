@@ -73,7 +73,7 @@ void HsneAnalysisPlugin::init()
 
     dimensionsGroupAction->addAction(&inputDataset->getFullDataset<Points>()->getDimensionsPickerAction());
 
-    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getFullDataset<Points>()->getGuiName()));
+    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getFullDataset<Points>()->text()));
     dimensionsGroupAction->setShowLabels(false);
 
     outputDataset->addAction(*dimensionsGroupAction);

@@ -46,9 +46,9 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         updateReadOnly();
     });
 
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataSelectionChanged));
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetSelectionChanged));
     _eventListener.registerDataEventByType(PointType, [this, updateReadOnly](DataEvent* dataEvent) {
-        if (dataEvent->getDataset() == _embedding && dataEvent->getType() == EventType::DataSelectionChanged)
+        if (dataEvent->getDataset() == _embedding && dataEvent->getType() == EventType::DatasetSelectionChanged)
             updateReadOnly();
     });
 
@@ -183,9 +183,9 @@ void HsneScaleAction::refine()
         auto hsneScaleSubset = _input->createSubsetFromSelection("hsne_scale", _input, false);
 
         // And the derived data for the embedding
-        _refineEmbedding = core->createDerivedDataset<Points>(QString("%1_embedding").arg(_input->getGuiName()), hsneScaleSubset, _embedding);
+        _refineEmbedding = core->createDerivedDataset<Points>(QString("%1_embedding").arg(_input->text()), hsneScaleSubset, _embedding);
 
-        _refineEmbedding->setGuiName("HSNE Scale");
+        _refineEmbedding->setText("HSNE Scale");
         _refineEmbedding->getDataHierarchyItem().select();
     }
 

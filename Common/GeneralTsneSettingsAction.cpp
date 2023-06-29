@@ -39,11 +39,11 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _perplexityAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
     _updateIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
-    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
+    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
-    _numIterationsAction.initialize(1, 10000, 1000, 1000);
-    _perplexityAction.initialize(2, 50, 30, 30);
-    _updateIterationsAction.initialize(0, 10000, 10, 10);
+    _numIterationsAction.initialize(1, 10000, 1000);
+    _perplexityAction.initialize(2, 50, 30);
+    _updateIterationsAction.initialize(0, 10000, 10);
 
     _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
 
