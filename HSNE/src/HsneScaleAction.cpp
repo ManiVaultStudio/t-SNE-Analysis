@@ -46,9 +46,9 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         updateReadOnly();
     });
 
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetSelectionChanged));
-    _eventListener.registerDataEventByType(PointType, [this, updateReadOnly](DataEvent* dataEvent) {
-        if (dataEvent->getDataset() == _embedding && dataEvent->getType() == EventType::DatasetSelectionChanged)
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetDataSelectionChanged));
+    _eventListener.registerDataEventByType(PointType, [this, updateReadOnly](DatasetEvent* dataEvent) {
+        if (dataEvent->getDataset() == _embedding && dataEvent->getType() == EventType::DatasetDataSelectionChanged)
             updateReadOnly();
     });
 
@@ -95,7 +95,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         //_embedding->setSelectionIndices(selectionIDs);
         //events().notifyDatasetSelectionChanged(_embedding->getSourceDataset<Points>());
         _input->setSelectionIndices(selectionIDs);
-        events().notifyDatasetSelectionChanged(_input->getSourceDataset<Points>());
+        events().notifyDatasetDataSelectionChanged(_input->getSourceDataset<Points>());
 
         });
 
@@ -255,7 +255,7 @@ void HsneScaleAction::refine()
         _refineEmbedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
         // Notify others that the embedding points have changed
-        events().notifyDatasetChanged(_refineEmbedding);
+        events().notifyDatasetDataChanged(_refineEmbedding);
     });
 
     // Start the embedding process

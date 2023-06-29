@@ -18,7 +18,6 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _updateIterationsAction(this, "Core update every"),
     _computationAction(this)
 {
-    setText("TSNE");
     setObjectName("General TSNE");
 
     addAction(&_knnTypeAction);

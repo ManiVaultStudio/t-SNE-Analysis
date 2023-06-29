@@ -189,7 +189,7 @@ void HsneAnalysisPlugin::init()
         // NOTE: Commented out because it causes a stack overflow after a couple of iterations
         //QCoreApplication::processEvents();
 
-        events().notifyDatasetChanged(getOutputDataset());
+        events().notifyDatasetDataChanged(getOutputDataset());
     });
 
     updateComputationAction();

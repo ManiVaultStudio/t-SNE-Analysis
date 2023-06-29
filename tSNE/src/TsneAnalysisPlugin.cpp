@@ -48,7 +48,7 @@ void TsneAnalysisPlugin::init()
 
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
-    events().notifyDatasetChanged(outputDataset);
+    events().notifyDatasetDataChanged(outputDataset);
 
     outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
@@ -139,7 +139,7 @@ void TsneAnalysisPlugin::init()
         QCoreApplication::processEvents();
 
         // Notify others that the embedding data changed
-        events().notifyDatasetChanged(getOutputDataset());
+        events().notifyDatasetDataChanged(getOutputDataset());
     });
 
     connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction, updateComputationAction](bool toggled) {
