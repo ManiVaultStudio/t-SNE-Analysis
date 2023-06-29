@@ -164,7 +164,7 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
     else
         _cachePath = std::filesystem::path(inputLoadPath) / _CACHE_SUBFOLDER_;
 
-    _inputDataName = inputData.getGuiName();
+    _inputDataName = inputData.text();
     _cachePathFileName = _cachePath / _inputDataName.toStdString();
 
     // Check of hsne data can be loaded from cache on disk, otherwise compute hsne hierarchy

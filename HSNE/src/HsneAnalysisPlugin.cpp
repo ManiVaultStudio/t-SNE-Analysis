@@ -54,7 +54,6 @@ void HsneAnalysisPlugin::init()
     // Set the default number of hierarchy scales based on number of points
     int numHierarchyScales = std::max(1L, std::lround(log10(inputDataset->getNumPoints())) - 2);
     _hsneSettingsAction->getGeneralHsneSettingsAction().getNumScalesAction().setValue(numHierarchyScales);
-    _hsneSettingsAction->getGeneralHsneSettingsAction().getNumScalesAction().setDefaultValue(numHierarchyScales);
 
     std::vector<float> initialData;
 
@@ -70,9 +69,11 @@ void HsneAnalysisPlugin::init()
     outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getTsneSettingsAction().getAdvancedTsneSettingsAction());
     
-    auto dimensionsGroupAction = new GroupAction(this, { &inputDataset->getFullDataset<Points>()->getDimensionsPickerAction() }, true);
+    auto dimensionsGroupAction = new GroupAction(this, "Dimensions", true);
 
-    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getFullDataset<Points>()->getGuiName()));
+    dimensionsGroupAction->addAction(&inputDataset->getFullDataset<Points>()->getDimensionsPickerAction());
+
+    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getFullDataset<Points>()->text()));
     dimensionsGroupAction->setShowLabels(false);
 
     outputDataset->addAction(*dimensionsGroupAction);
@@ -188,7 +189,7 @@ void HsneAnalysisPlugin::init()
         // NOTE: Commented out because it causes a stack overflow after a couple of iterations
         //QCoreApplication::processEvents();
 
-        events().notifyDatasetChanged(getOutputDataset());
+        events().notifyDatasetDataChanged(getOutputDataset());
     });
 
     updateComputationAction();

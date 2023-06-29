@@ -12,7 +12,7 @@ using namespace hdps::gui;
 CoreInterface* HsneScaleAction::core = nullptr;
 
 HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
-    GroupAction(parent, true),
+    GroupAction(parent, "HSNE scale", true),
     _tsneSettingsAction(tsneSettingsAction),
     _tsneAnalysis(),
     _hsneHierarchy(hsneHierarchy),
@@ -21,12 +21,14 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _refineEmbedding(),
     _refineAction(this, "Refine..."),
     _datasetPickerAction(this, "Selection IDs"),
-    _reloadDataSets(this, "Reload dataset"),
-    _setSelection(this, "Set selection"),
+    _reloadDatasetsAction(this, "Reload dataset"),
+    _setSelectionAction(this, "Set selection"),
     _isTopScale(true)
 {
-    setText("HSNE scale");
-    setShowLabels(false);
+    addAction(&_refineAction);
+    addAction(&_datasetPickerAction);
+    addAction(&_reloadDatasetsAction);
+    addAction(&_setSelectionAction);
 
     _refineAction.setToolTip("Refine the selected landmarks");
 
@@ -44,9 +46,9 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         updateReadOnly();
     });
 
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataSelectionChanged));
-    _eventListener.registerDataEventByType(PointType, [this, updateReadOnly](DataEvent* dataEvent) {
-        if (dataEvent->getDataset() == _embedding && dataEvent->getType() == EventType::DataSelectionChanged)
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetDataSelectionChanged));
+    _eventListener.registerDataEventByType(PointType, [this, updateReadOnly](DatasetEvent* dataEvent) {
+        if (dataEvent->getDataset() == _embedding && dataEvent->getType() == EventType::DatasetDataSelectionChanged)
             updateReadOnly();
     });
 
@@ -78,11 +80,11 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
 
     setDatasets();
 
-    connect(&_reloadDataSets, &TriggerAction::triggered, this, [this, setDatasets]() {
+    connect(&_reloadDatasetsAction, &TriggerAction::triggered, this, [this, setDatasets]() {
         setDatasets();
         });
 
-    connect(&_setSelection, &TriggerAction::triggered, this, [this]() {
+    connect(&_setSelectionAction, &TriggerAction::triggered, this, [this]() {
         
         auto selectionDataset = Dataset<Points>(_datasetPickerAction.getCurrentDataset().get<Points>());
 
@@ -93,7 +95,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         //_embedding->setSelectionIndices(selectionIDs);
         //events().notifyDatasetSelectionChanged(_embedding->getSourceDataset<Points>());
         _input->setSelectionIndices(selectionIDs);
-        events().notifyDatasetSelectionChanged(_input->getSourceDataset<Points>());
+        events().notifyDatasetDataSelectionChanged(_input->getSourceDataset<Points>());
 
         });
 
@@ -181,9 +183,9 @@ void HsneScaleAction::refine()
         auto hsneScaleSubset = _input->createSubsetFromSelection("hsne_scale", _input, false);
 
         // And the derived data for the embedding
-        _refineEmbedding = core->createDerivedDataset<Points>(QString("%1_embedding").arg(_input->getGuiName()), hsneScaleSubset, _embedding);
+        _refineEmbedding = core->createDerivedDataset<Points>(QString("%1_embedding").arg(_input->text()), hsneScaleSubset, _embedding);
 
-        _refineEmbedding->setGuiName("HSNE Scale");
+        _refineEmbedding->setText("HSNE Scale");
         _refineEmbedding->getDataHierarchyItem().select();
     }
 
@@ -253,7 +255,7 @@ void HsneScaleAction::refine()
         _refineEmbedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
         // Notify others that the embedding points have changed
-        events().notifyDatasetChanged(_refineEmbedding);
+        events().notifyDatasetDataChanged(_refineEmbedding);
     });
 
     // Start the embedding process

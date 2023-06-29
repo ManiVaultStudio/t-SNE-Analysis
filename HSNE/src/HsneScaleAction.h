@@ -82,8 +82,8 @@ protected:
 
     TriggerAction           _refineAction;          /** Refine action */
     DatasetPickerAction     _datasetPickerAction;   /** Dataset picker action */
-    TriggerAction           _reloadDataSets;        /** reload action */
-    TriggerAction           _setSelection;          /** set selection action */
+    TriggerAction           _reloadDatasetsAction;  /** Reload action */
+    TriggerAction           _setSelectionAction;    /** Set selection action */
 
     EventListener           _eventListener;         /** Listen to HDPS events */
 

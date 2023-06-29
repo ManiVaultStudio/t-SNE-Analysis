@@ -8,18 +8,24 @@
 using namespace hdps::gui;
 
 GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
-    GroupAction(&tsneSettingsAction, true),
+    GroupAction(&tsneSettingsAction, "TSNE", true),
     _tsneSettingsAction(tsneSettingsAction),
     _knnTypeAction(this, "KNN Type"),
     _distanceMetricAction(this, "Distance metric"),
     _numIterationsAction(this, "Number of iterations"),
-    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0, 0),
+    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0),
     _perplexityAction(this, "Perplexity"),
     _updateIterationsAction(this, "Core update every"),
     _computationAction(this)
 {
-    setText("TSNE");
     setObjectName("General TSNE");
+
+    addAction(&_knnTypeAction);
+    addAction(&_distanceMetricAction);
+    addAction(&_numIterationsAction);
+    addAction(&_numberOfComputatedIterationsAction);
+    addAction(&_perplexityAction);
+    addAction(&_computationAction);
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
 
@@ -32,13 +38,14 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _perplexityAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
     _updateIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
-    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
-    _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean", "Euclidean");
-    _numIterationsAction.initialize(1, 10000, 1000, 1000);
-    _perplexityAction.initialize(2, 50, 30, 30);
-    _updateIterationsAction.initialize(0, 10000, 10, 10);
+    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
+    _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
+    _numIterationsAction.initialize(1, 10000, 1000);
+    _perplexityAction.initialize(2, 50, 30);
+    _updateIterationsAction.initialize(0, 10000, 10);
 
     _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
+
 
     const auto updateKnnAlgorithm = [this]() -> void {
         if (_knnTypeAction.getCurrentText() == "FLANN")

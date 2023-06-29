@@ -48,14 +48,15 @@ void TsneAnalysisPlugin::init()
 
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
-    events().notifyDatasetChanged(outputDataset);
+    events().notifyDatasetDataChanged(outputDataset);
 
     outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
     outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
 
-    auto dimensionsGroupAction = new GroupAction(this, { &inputDataset->getFullDataset<Points>()->getDimensionsPickerAction() }, true);
+    auto dimensionsGroupAction = new GroupAction(this, "Dimensions", true);
 
-    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getFullDataset<Points>()->getGuiName()));
+    dimensionsGroupAction->addAction(&inputDataset->getFullDataset<Points>()->getDimensionsPickerAction());
+    dimensionsGroupAction->setText(QString("Input dimensions (%1)").arg(inputDataset->getFullDataset<Points>()->text()));
     dimensionsGroupAction->setShowLabels(false);
 
     outputDataset->addAction(*dimensionsGroupAction);
@@ -138,7 +139,7 @@ void TsneAnalysisPlugin::init()
         QCoreApplication::processEvents();
 
         // Notify others that the embedding data changed
-        events().notifyDatasetChanged(getOutputDataset());
+        events().notifyDatasetDataChanged(getOutputDataset());
     });
 
     connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction, updateComputationAction](bool toggled) {

@@ -4,7 +4,7 @@
 using namespace hdps::gui;
 
 GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
-    GroupAction(&hsneSettingsAction, true),
+    GroupAction(&hsneSettingsAction, "General HSNE", true),
     _hsneSettingsAction(hsneSettingsAction),
     _knnTypeAction(this, "KNN Type"),
     _numScalesAction(this, "Number of Hierarchy Scales"),
@@ -12,8 +12,11 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling"),
     _startAction(this, "Start")
 {
-    setText("HSNE");
-    setObjectName("General HSNE");
+    addAction(&_knnTypeAction);
+    addAction(&_numScalesAction);
+    addAction(&_seedAction);
+    addAction(&_useMonteCarloSamplingAction);
+    addAction(&_startAction);
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
@@ -22,10 +25,10 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _seedAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _useMonteCarloSamplingAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
 
-    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN", "FLANN");
-    _numScalesAction.initialize(1, 10, hsneParameters.getNumScales(), hsneParameters.getNumScales());
-    _seedAction.initialize(-1000, 1000, hsneParameters.getSeed(), hsneParameters.getSeed());
-    _useMonteCarloSamplingAction.initialize(hsneParameters.useMonteCarloSampling(), hsneParameters.useMonteCarloSampling());
+    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
+    _numScalesAction.initialize(1, 10, hsneParameters.getNumScales());
+    _seedAction.initialize(-1000, 1000, hsneParameters.getSeed());
+    _useMonteCarloSamplingAction.setChecked(hsneParameters.useMonteCarloSampling());
 
     _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 

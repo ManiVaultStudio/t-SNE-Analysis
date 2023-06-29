@@ -4,7 +4,7 @@
 using namespace hdps::gui;
 
 HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
-    GroupAction(hsneAnalysisPlugin, true),
+    GroupAction(hsneAnalysisPlugin, "HSNE", true),
     _hsneAnalysisPlugin(hsneAnalysisPlugin),
     _hsneParameters(),
     _tsneParameters(),

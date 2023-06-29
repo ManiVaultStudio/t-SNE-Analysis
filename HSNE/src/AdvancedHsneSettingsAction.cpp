@@ -4,7 +4,7 @@
 using namespace hdps::gui;
 
 AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
-    GroupAction(&hsneSettingsAction),
+    GroupAction(&hsneSettingsAction, "Advanced HSNE"),
     _hsneSettingsAction(hsneSettingsAction),
     _numWalksForLandmarkSelectionAction(this, "#walks for landmark sel."),
     _numWalksForLandmarkSelectionThresholdAction(this, "#walks for landmark sel. thres."),
@@ -15,8 +15,13 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _useOutOfCoreComputationAction(this, "Out-of-core computation"),
     _saveHierarchyToDiskAction(this, "Save hierarchy to disk")
 {
-    setText("Advanced HSNE");
-    setObjectName("Advanced HSNE");
+    addAction(&_numWalksForLandmarkSelectionAction);
+    addAction(&_numWalksForLandmarkSelectionThresholdAction);
+    addAction(&_randomWalkLengthAction);
+    addAction(&_numWalksForAreaOfInfluenceAction);
+    addAction(&_minWalksRequiredAction);
+    addAction(&_numChecksAknnAction);
+    addAction(&_saveHierarchyToDiskAction);
 
     _numWalksForLandmarkSelectionAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numWalksForLandmarkSelectionThresholdAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
@@ -38,14 +43,14 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
-    _numWalksForLandmarkSelectionAction.initialize(1, 1000, hsneParameters.getNumWalksForLandmarkSelection(), hsneParameters.getNumWalksForLandmarkSelection());
-    _numWalksForLandmarkSelectionThresholdAction.initialize(0, 1000, hsneParameters.getNumWalksForLandmarkSelectionThreshold(), hsneParameters.getNumWalksForLandmarkSelectionThreshold());
-    _randomWalkLengthAction.initialize(1, 100, hsneParameters.getRandomWalkLength(), hsneParameters.getRandomWalkLength());
-    _numWalksForAreaOfInfluenceAction.initialize(1, 500, hsneParameters.getNumWalksForAreaOfInfluence(), hsneParameters.getNumWalksForAreaOfInfluence());
-    _minWalksRequiredAction.initialize(0, 100, hsneParameters.getMinWalksRequired(), hsneParameters.getMinWalksRequired());
-    _numChecksAknnAction.initialize(0, 1024, hsneParameters.getNumChecksAKNN(), hsneParameters.getNumChecksAKNN());
-    _useOutOfCoreComputationAction.initialize(hsneParameters.useOutOfCoreComputation(), hsneParameters.useOutOfCoreComputation());
-    _saveHierarchyToDiskAction.initialize(true, true);
+    _numWalksForLandmarkSelectionAction.initialize(1, 1000, hsneParameters.getNumWalksForLandmarkSelection());
+    _numWalksForLandmarkSelectionThresholdAction.initialize(0, 1000, hsneParameters.getNumWalksForLandmarkSelectionThreshold());
+    _randomWalkLengthAction.initialize(1, 100, hsneParameters.getRandomWalkLength());
+    _numWalksForAreaOfInfluenceAction.initialize(1, 500, hsneParameters.getNumWalksForAreaOfInfluence());
+    _minWalksRequiredAction.initialize(0, 100, hsneParameters.getMinWalksRequired());
+    _numChecksAknnAction.initialize(0, 1024, hsneParameters.getNumChecksAKNN());
+    _useOutOfCoreComputationAction.setChecked(hsneParameters.useOutOfCoreComputation());
+    _saveHierarchyToDiskAction.setChecked(true);
     
     const auto updateNumWalksForLandmarkSelectionAction = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setNumWalksForLandmarkSelection(_numWalksForLandmarkSelectionAction.getValue());
