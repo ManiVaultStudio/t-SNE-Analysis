@@ -7,13 +7,14 @@
 using namespace hdps::gui;
 
 TsneComputationAction::TsneComputationAction(QObject* parent) :
-    HorizontalGroupAction(parent, "Group"),
+    VerticalGroupAction(parent, "Computation"),
     _startComputationAction(this, "Start"),
     _continueComputationAction(this, "Continue"),
     _stopComputationAction(this, "Stop"),
     _runningAction(this, "Running")
 {
-    setText("Computation");
+    setShowLabels(false);
+    setDefaultWidgetFlag(GroupAction::NoMargins);
 
     addAction(&_startComputationAction);
     addAction(&_continueComputationAction);

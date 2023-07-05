@@ -1,6 +1,6 @@
 #pragma once
 
-#include <actions/HorizontalGroupAction.h>
+#include <actions/VerticalGroupAction.h>
 #include <actions/TriggerAction.h>
 #include <actions/ToggleAction.h>
 
@@ -16,7 +16,7 @@ class QMenu;
  *
  * @author Thomas Kroes
  */
-class TsneComputationAction : public HorizontalGroupAction
+class TsneComputationAction : public VerticalGroupAction
 {
 public:
 
