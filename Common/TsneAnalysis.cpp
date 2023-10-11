@@ -7,9 +7,12 @@
 #include <assert.h>
 
 #include <QDebug>
+#include <QCoreApplication>
 
 #include "hdi/dimensionality_reduction/tsne_parameters.h"
 #include "hdi/utils/scoped_timers.h"
+
+using namespace hdps;
 
 TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions) :
     _currentIteration(0),
@@ -19,7 +22,8 @@ TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::M
     _numDimensions(numDimensions),
     _hasProbabilityDistribution(true),
     _offscreenBuffer(nullptr),
-    _shouldStop(false)
+    _shouldStop(false),
+    _foregroundTask(nullptr)
 {
     // Offscreen buffer must be created in the UI thread because it is a QWindow, afterwards we move it
     _offscreenBuffer = new OffscreenBuffer();
@@ -33,7 +37,8 @@ TsneWorker::TsneWorker(TsneParameters parameters, /*const*/ std::vector<float>& 
     _numDimensions(numDimensions),
     _hasProbabilityDistribution(false),
     _offscreenBuffer(nullptr),
-    _shouldStop(false)
+    _shouldStop(false),
+    _foregroundTask(nullptr)
 {
     // Offscreen buffer must be created in the UI thread because it is a QWindow, afterwards we move it
     _offscreenBuffer = new OffscreenBuffer();
@@ -56,9 +61,14 @@ int TsneWorker::getNumIterations() const
     return _currentIteration + 1;
 }
 
+void TsneWorker::setForegroundTask(ForegroundTask* foregroundTask)
+{
+    _foregroundTask = foregroundTask;
+}
+
 void TsneWorker::computeSimilarities()
 {
-    emit progressSection("Initializing tSNE");
+    _foregroundTask->setProgressDescription("Initializing tSNE");
 
     hdi::dr::HDJointProbabilityGenerator<float>::Parameters probGenParams;
     probGenParams._perplexity = _parameters.getPerplexity();
@@ -70,8 +80,8 @@ void TsneWorker::computeSimilarities()
 
     qDebug() << "tSNE initialized.";
 
-    emit progressSection("tSNE initialized");
-    emit progressSection("Calculate probability distributions");
+    _foregroundTask->setProgressDescription("tSNE initialized");
+    _foregroundTask->setProgressDescription("Calculate probability distributions");
 
     _probabilityDistribution.clear();
     _probabilityDistribution.resize(_numPoints);
@@ -87,7 +97,7 @@ void TsneWorker::computeSimilarities()
         probabilityGenerator.computeJointProbabilityDistribution(_data.data(), _numDimensions, _numPoints, _probabilityDistribution, probGenParams);
     }
 
-    emit progressSection("Probability distributions calculated");
+    _foregroundTask->setProgressDescription("Probability distributions calculated");
         
     qDebug() << "Probability distributions calculated.";
     qDebug() << "================================================================================";
@@ -100,7 +110,9 @@ void TsneWorker::computeGradientDescent(int iterations)
     if (_shouldStop)
         return;
 
-    emit progressSection("Initializing gradient descent");
+    _foregroundTask->setProgressDescription("Initializing gradient descent");
+    
+    QCoreApplication::processEvents();
 
     //_currentIteration = 0;
 
@@ -136,14 +148,11 @@ void TsneWorker::computeGradientDescent(int iterations)
     }
     qDebug() << "A-tSNE: Init t-SNE " << t_init / 1000 << " seconds.";
 
+    _foregroundTask->setProgressDescription(QString("Initialization took %1 seconds").arg(QString::number(t_init / 1000, 'f', 1)));
+
     const auto updateEmbedding = [this](const TsneData& tsneData) -> void {
         copyEmbeddingOutput();
         emit embeddingUpdate(tsneData);
-    };
-
-    const auto updateStatus = [this](const std::uint32_t& numProcessed, const std::uint32_t& numTotal) -> void {
-        emit progressSection(QString("Embedding (step %1 of %2)").arg(QString::number(numProcessed), QString::number(numTotal)));
-        emit progressPercentage(static_cast<float>(numProcessed) / static_cast<float>(numTotal));
     };
 
     updateEmbedding(_outEmbedding);
@@ -153,40 +162,50 @@ void TsneWorker::computeGradientDescent(int iterations)
     {
         qDebug() << "A-tSNE: Computing gradient descent..";
 
+        _foregroundTask->setProgressDescription("Computing gradient descent");
+
         const auto beginIteration   = _currentIteration;
         const auto endIteration     = beginIteration + iterations;
+
+        int currentStepIndex = 0;
 
         // Performs gradient descent for every iteration
         for (_currentIteration = beginIteration; _currentIteration < endIteration; ++_currentIteration)
         {
-            hdi::utils::ScopedTimer<double> timer(t_grad);
+            const auto subtask = QString("Step %1").arg(QString::number(currentStepIndex));
 
-            // Perform a GPGPU-SNE iteration
-            _GPGPU_tSNE.doAnIteration();
-
-            if (_currentIteration > 0 && _parameters.getUpdateCore() > 0 && _currentIteration % _parameters.getUpdateCore() == 0)
+            _foregroundTask->setSubtaskStarted(subtask);
             {
-                updateEmbedding(_outEmbedding);
-                updateStatus(_currentIteration - beginIteration, iterations);
+                hdi::utils::ScopedTimer<double> timer(t_grad);
+
+                // Perform a GPGPU-SNE iteration
+                _GPGPU_tSNE.doAnIteration();
+
+                if (_currentIteration > 0 && _parameters.getUpdateCore() > 0 && _currentIteration % _parameters.getUpdateCore() == 0)
+                    updateEmbedding(_outEmbedding);
+
+                if (t_grad > 1000)
+                    qDebug() << "Time: " << t_grad;
+
+                elapsed += t_grad;
+
+                // React to requests to stop
+                if (_shouldStop)
+                    break;
             }
+            _foregroundTask->setSubtaskFinished(subtask);
 
-            if (t_grad > 1000)
-                qDebug() << "Time: " << t_grad;
+            currentStepIndex++;
 
-            elapsed += t_grad;
-
-            // React to requests to stop
-            if (_shouldStop)
-                break;
+            QCoreApplication::processEvents();
         }
 
         _offscreenBuffer->releaseContext();
 
         updateEmbedding(_outEmbedding);
-        updateStatus(_currentIteration - beginIteration, iterations);
     }
 
-    //emit progressSection("Finished embedding");
+    _foregroundTask->setProgressDescription("Finished embedding");
 
     qDebug() << "--------------------------------------------------------------------------------";
     qDebug() << "A-tSNE: Finished embedding of " << "tSNE Analysis" << " in: " << elapsed / 1000 << " seconds ";
@@ -202,6 +221,18 @@ void TsneWorker::copyEmbeddingOutput()
 
 void TsneWorker::compute()
 {
+    QStringList subtasks{ "Compute similarities" };
+
+    for (int stepIndex = 0; stepIndex < _parameters.getNumIterations(); stepIndex++)
+        subtasks << QString("Step %1").arg(QString::number(stepIndex));
+    
+    _foregroundTask->setSubtasks(subtasks);
+
+    connect(_foregroundTask, &Task::requestAbort, this, [this]() -> void {
+        _shouldStop = true;
+
+        }, Qt::DirectConnection);
+
     _shouldStop = false;
 
     double t = 0.0;
@@ -211,19 +242,49 @@ void TsneWorker::compute()
         // Create a context local to this thread that shares with the global share context
         _offscreenBuffer->initialize();
 
-        if (!_hasProbabilityDistribution)
-            computeSimilarities();
+        _foregroundTask->setSubtaskStarted(subtasks.first(), "Computing similarities");
+        {
+            if (!_hasProbabilityDistribution)
+                computeSimilarities();
+        }
+        _foregroundTask->setSubtaskStarted(subtasks.first(), "Similarities computed");
+
+        QCoreApplication::processEvents();
 
         computeGradientDescent(_parameters.getNumIterations());
     }
     qDebug() << "t-SNE total compute time: " << t / 1000 << " seconds.";
+
+    if (_shouldStop)
+        _foregroundTask->setAborted();
+    else
+        _foregroundTask->setFinished(QString("t-SNE finished in: %1 seconds").arg(QString::number(t / 1000)));
 }
 
 void TsneWorker::continueComputation(int iterations)
 {
+    QStringList subtasks;
+
+    for (int stepIndex = 0; stepIndex < _parameters.getNumIterations(); stepIndex++)
+        subtasks << QString("Step %1").arg(QString::number(stepIndex));
+
+    _foregroundTask->setSubtasks(subtasks);
+    _foregroundTask->setRunning();
+
+    connect(_foregroundTask, &Task::requestAbort, this, [this]() -> void {
+        _shouldStop = true;
+
+    }, Qt::DirectConnection);
+
     _shouldStop = false;
 
-    computeGradientDescent(iterations);
+    double t = 0.0;
+    {
+        hdi::utils::ScopedTimer<double> timer(t);
+        computeGradientDescent(iterations);
+    }
+
+    _foregroundTask->setFinished(QString("t-SNE finished in: %1 seconds").arg(QString::number(t / 1000)));
 }
 
 void TsneWorker::stop()
@@ -232,11 +293,15 @@ void TsneWorker::stop()
 }
 
 TsneAnalysis::TsneAnalysis() :
-    _tsneWorker(nullptr)
+    _tsneWorker(nullptr),
+    _foregroundTask(this, "TSNE computation")
 {
     qRegisterMetaType<TsneData>();
 
     //_workerThread.start();
+
+    _foregroundTask.setName("TSNE computation");
+    _foregroundTask.setMayKill(true);
 }
 
 TsneAnalysis::~TsneAnalysis()
@@ -252,6 +317,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, const std::vector
     }
 
     _tsneWorker = new TsneWorker(parameters, probDist, numPoints, numDimensions);
+
     startComputation(_tsneWorker);
 }
 
@@ -264,6 +330,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, /*const*/ std::ve
     }
 
     _tsneWorker = new TsneWorker(parameters, data, numDimensions);
+
     startComputation(_tsneWorker);
 }
 
@@ -305,10 +372,13 @@ int TsneAnalysis::getNumIterations() const
     return _tsneWorker->getNumIterations();
 }
 
+ForegroundTask* TsneAnalysis::getForegroundTask()
+{
+    return &_foregroundTask;
+}
+
 void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
 {
-    emit progressPercentage(0.0f);
-
     tsneWorker->changeThread(&_workerThread);
 
     // To-Worker signals
@@ -318,8 +388,6 @@ void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
 
     // From-Worker signals
     connect(tsneWorker, &TsneWorker::embeddingUpdate, this, &TsneAnalysis::embeddingUpdate);
-    connect(tsneWorker, &TsneWorker::progressPercentage, this, &TsneAnalysis::progressPercentage);
-    connect(tsneWorker, &TsneWorker::progressSection, this, &TsneAnalysis::progressSection);
     connect(tsneWorker, &TsneWorker::finished, this, &TsneAnalysis::finished);
 
     _workerThread.start();

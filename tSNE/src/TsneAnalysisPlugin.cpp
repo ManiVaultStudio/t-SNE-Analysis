@@ -73,22 +73,26 @@ void TsneAnalysisPlugin::init()
         computationAction.getStopComputationAction().setEnabled(isRunning);
     };
 
+    //auto& datasetTask = getOutputDataset()->getDatasetTask();
+
+    /*
     connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
-        if (getTaskStatus() == DataHierarchyItem::TaskStatus::Aborted)
+        if (datasetTask.isAborting() || datasetTask.isAborted())
             return;
 
-        setTaskProgress(percentage);
+        datasetTask.setProgress(percentage);
     });
 
-    connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
-        if (getTaskStatus() == DataHierarchyItem::TaskStatus::Aborted)
+    connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this, &datasetTask](const QString& section) {
+        if (datasetTask.isAborting() || datasetTask.isAborted())
             return;
 
-        setTaskDescription(section);
+        datasetTask.setProgressDescription(section);
     });
+    */
 
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this, &computationAction]() {
-        setTaskFinished();
+        //datasetTask.setFinished();
         
         computationAction.getRunningAction().setChecked(false);
 
@@ -97,7 +101,7 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::aborted, this, [this, &computationAction, updateComputationAction]() {
-        setTaskAborted();
+        //datasetTask.setAborted();
 
         updateComputationAction();
 
@@ -122,7 +126,7 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&computationAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
-        setTaskDescription("Aborting TSNE");
+        //datasetTask.setProgressDescription("Aborting TSNE");
 
         qApp->processEvents();
 
@@ -149,16 +153,17 @@ void TsneAnalysisPlugin::init()
 
     updateComputationAction();
 
-    setTaskName("TSNE");
+    getOutputDataset()->getForegroundTask().setName("TSNE Computation");
  
     //_tsneSettingsAction.loadDefault();
 }
 
 void TsneAnalysisPlugin::startComputation()
 {
-    setTaskRunning();
-    setTaskProgress(0.0f);
-    setTaskDescription("Preparing data");
+    auto foregroundTask = _tsneAnalysis.getForegroundTask();
+
+    //foregroundTask->setRunning();
+    //foregroundTask->setProgressDescription("Preparing data");
 
     _tsneSettingsAction.getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().reset();
 
@@ -188,8 +193,10 @@ void TsneAnalysisPlugin::startComputation()
 
 void TsneAnalysisPlugin::continueComputation()
 {
-    setTaskRunning();
-    setTaskProgress(0.0f);
+    auto& datasetTask = getOutputDataset()->getDatasetTask();
+
+    datasetTask.setRunning();
+    datasetTask.setProgress(0.0f);
 
     _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
 

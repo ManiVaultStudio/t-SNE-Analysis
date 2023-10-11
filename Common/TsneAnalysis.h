@@ -6,6 +6,8 @@
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
 #include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h"
 
+#include <ForegroundTask.h>
+
 #include <QThread>
 
 #include <vector>
@@ -26,6 +28,8 @@ public:
 
     int getNumIterations() const;
 
+    void setForegroundTask(hdps::ForegroundTask* foregroundTask);
+
 public slots:
     void compute();
     void continueComputation(int iterations);
@@ -33,9 +37,8 @@ public slots:
 
 signals:
     void embeddingUpdate(TsneData tsneData);
-    void progressPercentage(const float& percentage);
-    void progressSection(const QString& section);
     void finished();
+    void aborted();
 
 private:
     void computeSimilarities();
@@ -76,6 +79,8 @@ private:
 
     // Termination flags
     bool _shouldStop;
+
+    hdps::ForegroundTask*    _foregroundTask;
 };
 
 class TsneAnalysis : public QObject
@@ -92,6 +97,8 @@ public:
     bool canContinue() const;
     int getNumIterations() const;
 
+    hdps::ForegroundTask* getForegroundTask();
+
 private:
     void startComputation(TsneWorker* tsneWorker);
 
@@ -103,12 +110,11 @@ signals:
 
     // Outgoing signals
     void embeddingUpdate(const TsneData tsneData);
-    void progressPercentage(const float& percentage);
-    void progressSection(const QString& section);
     void finished();
     void aborted();
 
 private:
-    QThread         _workerThread;
-    TsneWorker*     _tsneWorker;
+    QThread                 _workerThread;
+    TsneWorker*             _tsneWorker;
+    hdps::ForegroundTask    _foregroundTask;
 };
