@@ -4340,7 +4340,7 @@ class exception : public std::exception
                 {
                     for (std::size_t i = 0; i < current->m_parent->m_value.array->size(); ++i)
                     {
-                        if (¤t->m_parent->m_value.array->operator[](i) == current)
+                        if (current->m_parent->m_value.array->operator[](i) == current)
                         {
                             tokens.emplace_back(std::to_string(i));
                             break;
