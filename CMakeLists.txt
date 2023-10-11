@@ -27,34 +27,26 @@ endif()
 # -----------------------------------------------------------------------------
 # Set install directory
 # -----------------------------------------------------------------------------
+# Check if the directory to the ManiVault installation has been provided
+if(NOT DEFINED MV_INSTALL_DIR)
+    set(MV_INSTALL_DIR "" CACHE PATH "Directory where ManiVault is installed")
+    message(FATAL_ERROR "Please set MV_INSTALL_DIR to the directory where ManiVault is installed")
+endif()
+file(TO_CMAKE_PATH ${MV_INSTALL_DIR} MV_INSTALL_DIR)
+
+
 # Checks whether this is the first CMake run for this project.
 # If so, sets the CMake Install Prefix to the HDPS install directory.
 # This if-statement must be placed after the project() command to work.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX ${MV_INSTALL_DIR} CACHE PATH "..." FORCE)
+endif()
 
 if(NOT USE_ARTIFACTORY_LIBS)
     message(STATUS "***********NO PBL*********** ${USE_ARTIFACTORY_LIBS}")
-    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        if (NOT DEFINED ENV{HDPS_INSTALL_DIR})
-            message(WARNING "Environment variable HDPS_INSTALL_DIR not set. \
-                            Plugins will have to be manually copied or \
-                            CMAKE_INSTALL_PREFIX should be set manually.")
-        else()
-            # Load HDPS_INSTALL_DIR in CMake format and store in INSTALL_DIR
-            # Set the default install prefix to HDPS_INSTALL_DIR
-            file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} HDPS_INSTALL_DIR)
-            set(CMAKE_INSTALL_PREFIX ${HDPS_INSTALL_DIR} CACHE PATH "..." FORCE)
-        endif()
-    endif()
-else()
-    if (NOT DEFINED ENV{HDPS_INSTALL_DIR})
-        message(FATAL_ERROR "Environment variable HDPS_INSTALL_DIR not set.")
-    endif()
-    file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} HDPS_INSTALL_DIR)
-    set(CMAKE_INSTALL_PREFIX ${HDPS_INSTALL_DIR} CACHE PATH "..." FORCE)
 endif()
 
-set(INSTALL_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "t-SNE-Analysis install directory")
-message(STATUS "INSTALL_DIR set to ${INSTALL_DIR}")
+message(STATUS "MV_INSTALL_DIR set to ${MV_INSTALL_DIR}")
 
 # -----------------------------------------------------------------------------
 # Windows compiler and linker flags
@@ -132,6 +124,6 @@ include(CMakeHsneProject)
 
 # Automatically set the debug environment (command + working directory) for MSVC
 if(MSVC)
-    set_property(TARGET ${PROJECT} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<IF:$<CONFIG:DEBUG>,${INSTALL_DIR}/debug,${INSTALL_DIR}/release>)
-    set_property(TARGET ${PROJECT} PROPERTY VS_DEBUGGER_COMMAND $<IF:$<CONFIG:DEBUG>,${INSTALL_DIR}/debug/HDPS.exe,${INSTALL_DIR}/release/HDPS.exe>)
+    set_property(TARGET ${PROJECT} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<IF:$<CONFIG:DEBUG>,${MV_INSTALL_DIR}/debug,${MV_INSTALL_DIR}/release>)
+    set_property(TARGET ${PROJECT} PROPERTY VS_DEBUGGER_COMMAND $<IF:$<CONFIG:DEBUG>,${MV_INSTALL_DIR}/debug/HDPS.exe,${MV_INSTALL_DIR}/release/HDPS.exe>)
 endif()

@@ -34,7 +34,7 @@ add_library(${TSNE_PLUGIN} SHARED
 target_include_directories(${TSNE_PLUGIN} PRIVATE ${PROJECT_BINARY_DIR})
 
 # Include HDPS core headers
-target_include_directories(${TSNE_PLUGIN} PRIVATE "${INSTALL_DIR}/$<CONFIGURATION>/include/")
+target_include_directories(${TSNE_PLUGIN} PRIVATE "${MV_INSTALL_DIR}/$<CONFIGURATION>/include/")
 
 target_include_directories(${TSNE_PLUGIN} PRIVATE "Common")
 
@@ -57,8 +57,8 @@ target_compile_definitions(${TSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 target_link_libraries(${TSNE_PLUGIN} Qt6::Widgets)
 target_link_libraries(${TSNE_PLUGIN} Qt6::WebEngineWidgets)
 
-set(HDPS_LINK_PATH "${INSTALL_DIR}/$<CONFIGURATION>/lib")
-set(PLUGIN_LINK_PATH "${INSTALL_DIR}/$<CONFIGURATION>/$<IF:$<CXX_COMPILER_ID:MSVC>,lib,Plugins>")
+set(HDPS_LINK_PATH "${MV_INSTALL_DIR}/$<CONFIGURATION>/lib")
+set(PLUGIN_LINK_PATH "${MV_INSTALL_DIR}/$<CONFIGURATION>/$<IF:$<CXX_COMPILER_ID:MSVC>,lib,Plugins>")
 set(HDPS_LINK_SUFFIX $<IF:$<CXX_COMPILER_ID:MSVC>,${CMAKE_LINK_LIBRARY_SUFFIX},${CMAKE_SHARED_LIBRARY_SUFFIX}>)
 
 set(HDPS_LINK_LIBRARY "${HDPS_LINK_PATH}/${CMAKE_SHARED_LIBRARY_PREFIX}HDPS_Public${HDPS_LINK_SUFFIX}")
@@ -98,7 +98,7 @@ if (NOT DEFINED ENV{CI})
         --install ${PROJECT_BINARY_DIR}
         --config $<CONFIGURATION>
         --component PLUGIN_TSNE
-        --prefix ${INSTALL_DIR}/$<CONFIGURATION>
+        --prefix ${MV_INSTALL_DIR}/$<CONFIGURATION>
         --verbose
     )
 endif()
