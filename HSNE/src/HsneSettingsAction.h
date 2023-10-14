@@ -7,7 +7,7 @@
 #include "HsneScaleAction.h"
 #include "TsneSettingsAction.h"
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 class QMenu;
 class HsneAnalysisPlugin;

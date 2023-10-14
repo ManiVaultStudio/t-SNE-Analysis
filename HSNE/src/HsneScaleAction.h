@@ -9,9 +9,9 @@
 #include "PointData/PointData.h"
 #include "PointData/DimensionsPickerAction.h"
 
-using namespace hdps;
-using namespace hdps::gui;
-using namespace hdps::util;
+using namespace mv;
+using namespace mv::gui;
+using namespace mv::util;
 
 class QMenu;
 
@@ -19,7 +19,7 @@ class HsneAnalysisPlugin;
 class HsneHierarchy;
 class TsneSettingsAction;
 
-namespace hdps {
+namespace mv {
     class CoreInterface;
 }
 
@@ -88,7 +88,7 @@ protected:
     EventListener           _eventListener;         /** Listen to HDPS events */
 
 protected:
-    static hdps::CoreInterface* core;      /** Pointer to the core */
+    static mv::CoreInterface* core;      /** Pointer to the core */
 
     friend class HsneAnalysisPlugin;
     friend class Widget;

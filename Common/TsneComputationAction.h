@@ -4,7 +4,7 @@
 #include <actions/TriggerAction.h>
 #include <actions/ToggleAction.h>
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 class TsneSettingsAction;
 class QMenu;

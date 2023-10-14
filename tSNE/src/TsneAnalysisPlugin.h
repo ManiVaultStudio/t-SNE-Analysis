@@ -9,8 +9,8 @@
 #include "TsneAnalysis.h"
 #include "TsneSettingsAction.h"
 
-using namespace hdps::plugin;
-using namespace hdps::gui;
+using namespace mv::plugin;
+using namespace mv::gui;
 
 class TsneAnalysisPlugin : public AnalysisPlugin
 {
@@ -36,7 +36,7 @@ protected:
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory
 {
-    Q_INTERFACES(hdps::plugin::AnalysisPluginFactory hdps::plugin::PluginFactory)
+    Q_INTERFACES(mv::plugin::AnalysisPluginFactory mv::plugin::PluginFactory)
         Q_OBJECT
         Q_PLUGIN_METADATA(IID   "nl.tudelft.TsneAnalysisPlugin"
                           FILE  "TsneAnalysisPlugin.json")
@@ -63,5 +63,5 @@ public:
      * @param datasets Vector of input datasets
      * @return Vector of plugin trigger actions
      */
-    PluginTriggerActions getPluginTriggerActions(const hdps::Datasets& datasets) const override;
+    PluginTriggerActions getPluginTriggerActions(const mv::Datasets& datasets) const override;
 };

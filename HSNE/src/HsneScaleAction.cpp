@@ -6,8 +6,8 @@
 #include <QGridLayout>
 #include <QMenu>
 
-using namespace hdps;
-using namespace hdps::gui;
+using namespace mv;
+using namespace mv::gui;
 
 CoreInterface* HsneScaleAction::core = nullptr;
 
@@ -71,7 +71,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
 
     auto setDatasets = [this]() ->void {
         // Get unique identifier and gui names from all point data sets in the core
-        auto dataSets = Application::core()->requestAllDataSets(QVector<hdps::DataType> {PointType});
+        auto dataSets = Application::core()->requestAllDataSets(QVector<mv::DataType> {PointType});
 
         // Assign found dataset(s)
         _datasetPickerAction.setDatasets(dataSets);
@@ -214,7 +214,7 @@ void HsneScaleAction::refine()
     {
         LandmarkMap& landmarkMap = _hsneHierarchy.getInfluenceHierarchy().getMap()[refinedScaleLevel];
 
-        hdps::SelectionMap mapping;
+        mv::SelectionMap mapping;
 
         if (_input->isFull())
         {

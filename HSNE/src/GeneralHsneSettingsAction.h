@@ -3,7 +3,7 @@
 #include "actions/Actions.h"
 #include "hdi/dimensionality_reduction/knn_utils.h"
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 class QMenu;
 class HsneSettingsAction;

@@ -121,7 +121,7 @@ void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
     }
 }
 
-void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters)
+void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters)
 {
     _core = core;
 
@@ -143,7 +143,7 @@ void HsneHierarchy::initialize(hdps::CoreInterface* core, const Points& inputDat
     // Check for source data file path
     std::string inputLoadPath = std::string();
     {
-        hdps::Dataset<Images> inputdataImage = nullptr;
+        mv::Dataset<Images> inputdataImage = nullptr;
         for (auto childHierarchyItem : inputData.getDataHierarchyItem().getChildren()) {
 
             if (childHierarchyItem->getDataType() == ImageType) {

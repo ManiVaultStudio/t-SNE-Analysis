@@ -16,8 +16,8 @@ Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
     #include <windows.h>
 #endif
 
-using namespace hdps;
-using namespace hdps::util;
+using namespace mv;
+using namespace mv::util;
 
 HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
@@ -247,7 +247,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     {
         LandmarkMap& landmarkMap = _hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex];
         
-        hdps::SelectionMap mapping;
+        mv::SelectionMap mapping;
 
         if (inputDataset->isFull())
         {
@@ -301,7 +301,7 @@ AnalysisPlugin* HsneAnalysisPluginFactory::produce()
     return new HsneAnalysisPlugin(this);
 }
 
-PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
+PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const mv::Datasets& datasets) const
 {
     PluginTriggerActions pluginTriggerActions;
 

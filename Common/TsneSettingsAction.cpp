@@ -2,7 +2,7 @@
 
 #include <QMenu>
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     GroupAction(parent, "TSNE"),

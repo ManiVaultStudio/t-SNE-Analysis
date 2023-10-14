@@ -5,7 +5,7 @@
 #include <QPushButton>
 #include <QGridLayout>
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
     GroupAction(&tsneSettingsAction, "TSNE", true),
