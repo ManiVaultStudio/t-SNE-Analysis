@@ -28,7 +28,7 @@ public:
 
     int getNumIterations() const;
 
-    void setTask(mv::Task* task);
+    void setParentTask(mv::Task* parentTask);
 
 public slots:
     void compute();
@@ -80,7 +80,11 @@ private:
     // Termination flags
     bool _shouldStop;
 
-    mv::Task*    _task;
+private: // Task
+    mv::Task    _computingSimilaritiesTask;
+    mv::Task    _initializeTsneTask;
+    mv::Task    _computeGradientDescentTask;
+    mv::Task*   _parentTask;
 };
 
 class TsneAnalysis : public QObject

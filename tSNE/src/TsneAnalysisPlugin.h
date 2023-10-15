@@ -34,8 +34,8 @@ public: // Action getters
 protected:
     TsneAnalysis            _tsneAnalysis;                  /** TSNE analysis */
     TsneSettingsAction      _tsneSettingsAction;            /** TSNE settings action */
-    hdps::ForegroundTask    _computationPreparationTask;    /** Task for reporting computation preparation progress */
-    hdps::ForegroundTask    _computationTask;               /** Task for reporting computation progress */
+    mv::ForegroundTask      _computationPreparationTask;    /** Task for reporting computation preparation progress */
+    mv::ForegroundTask      _computationTask;               /** Task for reporting computation progress */
 };
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory
