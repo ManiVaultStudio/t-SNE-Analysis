@@ -6,7 +6,7 @@
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
 #include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h"
 
-#include <ForegroundTask.h>
+#include <Task.h>
 
 #include <QThread>
 
@@ -28,7 +28,7 @@ public:
 
     int getNumIterations() const;
 
-    void setForegroundTask(hdps::ForegroundTask* foregroundTask);
+    void setTask(hdps::Task* task);
 
 public slots:
     void compute();
@@ -80,7 +80,7 @@ private:
     // Termination flags
     bool _shouldStop;
 
-    hdps::ForegroundTask*    _foregroundTask;
+    hdps::Task*    _task;
 };
 
 class TsneAnalysis : public QObject
@@ -97,7 +97,7 @@ public:
     bool canContinue() const;
     int getNumIterations() const;
 
-    hdps::ForegroundTask* getForegroundTask();
+    void setTask(hdps::Task* task);
 
 private:
     void startComputation(TsneWorker* tsneWorker);
@@ -114,7 +114,7 @@ signals:
     void aborted();
 
 private:
-    QThread                 _workerThread;
-    TsneWorker*             _tsneWorker;
-    hdps::ForegroundTask    _foregroundTask;
+    QThread         _workerThread;
+    TsneWorker*     _tsneWorker;
+    hdps::Task*     _task;
 };
