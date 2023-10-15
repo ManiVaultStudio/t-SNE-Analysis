@@ -4,7 +4,7 @@
 
 #include "TsneComputationAction.h"
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 class QMenu;
 class TsneSettingsAction;

@@ -1,7 +1,7 @@
 #include "GeneralHsneSettingsAction.h"
 #include "HsneAnalysisPlugin.h"
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
     GroupAction(&hsneSettingsAction, "General HSNE", true),

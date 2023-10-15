@@ -28,7 +28,7 @@ public:
 
     int getNumIterations() const;
 
-    void setTask(hdps::Task* task);
+    void setTask(mv::Task* task);
 
 public slots:
     void compute();
@@ -80,7 +80,7 @@ private:
     // Termination flags
     bool _shouldStop;
 
-    hdps::Task*    _task;
+    mv::Task*    _task;
 };
 
 class TsneAnalysis : public QObject
@@ -97,7 +97,7 @@ public:
     bool canContinue() const;
     int getNumIterations() const;
 
-    void setTask(hdps::Task* task);
+    void setTask(mv::Task* task);
 
 private:
     void startComputation(TsneWorker* tsneWorker);
@@ -116,5 +116,5 @@ signals:
 private:
     QThread         _workerThread;
     TsneWorker*     _tsneWorker;
-    hdps::Task*     _task;
+    mv::Task*       _task;
 };

@@ -21,7 +21,7 @@ class Points;
 class HsneParameters;
 class HsneHierarchy;
 
-namespace hdps {
+namespace mv {
     namespace utils {
         class CoutLog;
     }
@@ -66,7 +66,7 @@ public:
      * @param  data        The high-dimensional data
      * @param  parameters  Parameters with which to run the HSNE algorithm
      */
-    void initialize(hdps::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters);
+    void initialize(mv::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters);
     HsneMatrix getTransitionMatrixAtScale(int scale) { return _hsne->scale(scale)._transition_matrix; }
 
     void printScaleInfo()
@@ -143,7 +143,7 @@ private:
     bool checkCacheParameters(const std::string fileName, const Hsne::Parameters& params) const;
 
 private:
-    hdps::CoreInterface* _core;
+    mv::CoreInterface* _core;
 
     std::unique_ptr<Hsne> _hsne;
 
