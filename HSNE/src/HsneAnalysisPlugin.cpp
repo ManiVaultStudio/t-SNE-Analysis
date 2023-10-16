@@ -23,9 +23,12 @@ HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
     _hierarchy(),
     _tsneAnalysis(),
-    _hsneSettingsAction(nullptr)
+    _hsneSettingsAction(nullptr),
+    _initializationTask(this, "Initializing HSNE")
 {
     setObjectName("HSNE");
+
+    _initializationTask.setDescription("All operations prior to HSNE computation");
 }
 
 HsneAnalysisPlugin::~HsneAnalysisPlugin()
@@ -50,6 +53,8 @@ void HsneAnalysisPlugin::init()
     // Get input/output datasets
     auto inputDataset  = getInputDataset<Points>();
     auto outputDataset = getOutputDataset<Points>();
+
+    _initializationTask.setParentTask(&outputDataset->getTask());
 
     // Set the default number of hierarchy scales based on number of points
     int numHierarchyScales = std::max(1L, std::lround(log10(inputDataset->getNumPoints())) - 2);
@@ -90,23 +95,7 @@ void HsneAnalysisPlugin::init()
         computationAction.getStopComputationAction().setEnabled(isRunning);
     };
 
-    connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
-        if (getTaskStatus() == DataHierarchyItem::TaskStatus::Aborted)
-            return;
-
-        setTaskProgress(percentage);
-    });
-
-    connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
-        if (getTaskStatus() == DataHierarchyItem::TaskStatus::Aborted)
-            return;
-
-        setTaskDescription(section);
-    });
-
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this, &computationAction, updateComputationAction]() {
-        setTaskFinished();
-
         computationAction.getRunningAction().setChecked(false);
 
         _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setEnabled(false);
@@ -116,8 +105,6 @@ void HsneAnalysisPlugin::init()
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::aborted, this, [this, &computationAction, updateComputationAction]() {
-        setTaskAborted();
-
         updateComputationAction();
 
         computationAction.getRunningAction().setChecked(false);
@@ -146,8 +133,6 @@ void HsneAnalysisPlugin::init()
     });
 
     connect(&computationAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
-        setTaskDescription("Aborting TSNE");
-
         qApp->processEvents();
 
         _tsneAnalysis.stopComputation();
@@ -161,9 +146,7 @@ void HsneAnalysisPlugin::init()
     connect(&_hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
         _hsneSettingsAction->setReadOnly(true);
         
-        setTaskRunning();
-        setTaskProgress(0.0f);
-        setTaskDescription("Initializing HSNE hierarchy");
+        _initializationTask.setRunning();
 
         qApp->processEvents();
 
@@ -172,7 +155,7 @@ void HsneAnalysisPlugin::init()
         // Initialize the HSNE algorithm with the given parameters
         _hierarchy.initialize(_core, *getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
 
-        setTaskDescription("Computing top-level embedding");
+        _initializationTask.setFinished();
 
         qApp->processEvents();
 
@@ -193,8 +176,6 @@ void HsneAnalysisPlugin::init()
     });
 
     updateComputationAction();
-
-    setTaskName("HSNE");
 }
 
 void HsneAnalysisPlugin::computeTopLevelEmbedding()
@@ -283,9 +264,6 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
 void HsneAnalysisPlugin::continueComputation()
 {
-    setTaskRunning();
-    setTaskProgress(0.0f);
-
     _hsneSettingsAction->getTsneSettingsAction().getComputationAction().getRunningAction().setChecked(true);
 
     _tsneAnalysis.continueComputation(_hsneSettingsAction->getTsneSettingsAction().getTsneParameters().getNumIterations());

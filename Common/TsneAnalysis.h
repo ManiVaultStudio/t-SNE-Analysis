@@ -81,6 +81,7 @@ private:
     bool _shouldStop;
 
 private: // Task
+    mv::Task    _initializeOffScreenBufferTask;
     mv::Task    _computingSimilaritiesTask;
     mv::Task    _initializeTsneTask;
     mv::Task    _computeGradientDescentTask;
