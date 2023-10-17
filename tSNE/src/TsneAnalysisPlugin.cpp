@@ -146,9 +146,7 @@ void TsneAnalysisPlugin::init()
 
 void TsneAnalysisPlugin::startComputation()
 {
-    auto& datasetTask = getOutputDataset()->getTask();
-
-    datasetTask.setRunning();
+    getOutputDataset()->getTask().setRunning();
 
     _computationPreparationTask.setEnabled(true);
     _computationPreparationTask.setRunning();
@@ -183,17 +181,13 @@ void TsneAnalysisPlugin::startComputation()
 
 void TsneAnalysisPlugin::continueComputation()
 {
-    auto& datasetTask = getOutputDataset()->getTask();
-
-    datasetTask.setRunning();
+    getOutputDataset()->getTask().setRunning();
 
     _computationPreparationTask.setEnabled(false);
 
     _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
 
     _tsneAnalysis.continueComputation(_tsneSettingsAction.getTsneParameters().getNumIterations());
-
-    datasetTask.setFinished();
 }
 
 void TsneAnalysisPlugin::stopComputation()
