@@ -403,6 +403,7 @@ TsneWorkerTasks::TsneWorkerTasks(QObject* parent, mv::Task* parentTask) :
     _initializeTsneTask.setParentTask(parentTask);
     _computeGradientDescentTask.setParentTask(parentTask);
 
+    _computeGradientDescentTask.setWeight(20.f);
     _computeGradientDescentTask.setSubtaskNamePrefix("Compute gradient descent step");
 
     /*
