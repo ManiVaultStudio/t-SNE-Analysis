@@ -270,7 +270,7 @@ void TsneWorker::continueComputation(int iterations)
     _tasks->getInitializeOffScreenBufferTask().setEnabled(false);
     _tasks->getComputingSimilaritiesTask().setEnabled(false);
     _tasks->getInitializeTsneTask().setEnabled(false);
-
+    
     connect(_parentTask, &Task::requestAbort, this, [this]() -> void { _shouldStop = true; }, Qt::DirectConnection);
 
     _shouldStop = false;
