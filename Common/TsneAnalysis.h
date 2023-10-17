@@ -15,6 +15,23 @@
 
 class OffscreenBuffer;
 
+class TsneWorkerTasks : public QObject
+{
+public:
+    TsneWorkerTasks(QObject* parent, mv::Task* parentTask);
+
+    mv::Task& getInitializeOffScreenBufferTask() { return _initializeOffScreenBufferTask; };
+    mv::Task& getComputingSimilaritiesTask() { return _computingSimilaritiesTask; };
+    mv::Task& getInitializeTsneTask() { return _initializeTsneTask; };
+    mv::Task& getComputeGradientDescentTask() { return _computeGradientDescentTask; };
+
+private:
+    mv::Task    _initializeOffScreenBufferTask;
+    mv::Task    _computingSimilaritiesTask;
+    mv::Task    _initializeTsneTask;
+    mv::Task    _computeGradientDescentTask;
+};
+
 class TsneWorker : public QObject
 {
     Q_OBJECT
@@ -29,6 +46,7 @@ public:
     int getNumIterations() const;
 
     void setParentTask(mv::Task* parentTask);
+    void createTasks();
 
 public slots:
     void compute();
@@ -81,11 +99,8 @@ private:
     bool _shouldStop;
 
 private: // Task
-    mv::Task    _initializeOffScreenBufferTask;
-    mv::Task    _computingSimilaritiesTask;
-    mv::Task    _initializeTsneTask;
-    mv::Task    _computeGradientDescentTask;
-    mv::Task*   _parentTask;
+    mv::Task*           _parentTask;
+    TsneWorkerTasks*    _tasks;
 };
 
 class TsneAnalysis : public QObject

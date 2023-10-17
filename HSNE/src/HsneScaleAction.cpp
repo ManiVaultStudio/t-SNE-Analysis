@@ -247,7 +247,7 @@ void HsneScaleAction::refine()
         _refineEmbedding->addLinkedData(_input, mapping);
     }
 
-    _refineEmbedding->getDataHierarchyItem().setTaskName("HSNE scale");
+    _refineEmbedding->getTask().setName("HSNE scale");
     _refineEmbedding->getDataHierarchyItem().select();
 
     // Update embedding points when the TSNE analysis produces new data
