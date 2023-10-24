@@ -23,15 +23,11 @@ TsneAnalysisPlugin::TsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
     _tsneAnalysis(),
     _tsneSettingsAction(this),
-    _computationPreparationTask(this, "Preparing TSNE computation"),
-    _computationTask(this, "TSNE computation")
+    _computationPreparationTask(this, "Preparing TSNE computation")
 {
     setObjectName("TSNE");
 
     _computationPreparationTask.setDescription("All operations prior to TSNE computation");
-    _computationTask.setDescription("All operations related to TSNE computation");
-
-    _computationTask.setMayKill(false);
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
@@ -48,7 +44,6 @@ void TsneAnalysisPlugin::init()
     auto outputDataset = getOutputDataset<Points>();
 
     _computationPreparationTask.setParentTask(&outputDataset->getTask());
-    _computationTask.setParentTask(&outputDataset->getTask());
 
     std::vector<float> initialData;
 
@@ -83,27 +78,7 @@ void TsneAnalysisPlugin::init()
         computationAction.getStopComputationAction().setEnabled(isRunning);
     };
 
-    //auto& datasetTask = getOutputDataset()->getDatasetTask();
-
-    /*
-    connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
-        if (datasetTask.isAborting() || datasetTask.isAborted())
-            return;
-
-        datasetTask.setProgress(percentage);
-    });
-
-    connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this, &datasetTask](const QString& section) {
-        if (datasetTask.isAborting() || datasetTask.isAborted())
-            return;
-
-        datasetTask.setProgressDescription(section);
-    });
-    */
-
     connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this, &computationAction]() {
-        //datasetTask.setFinished();
-        
         computationAction.getRunningAction().setChecked(false);
 
         _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(false);
@@ -111,8 +86,6 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::aborted, this, [this, &computationAction, updateComputationAction]() {
-        //datasetTask.setAborted();
-
         updateComputationAction();
 
         computationAction.getRunningAction().setChecked(false);
@@ -136,8 +109,6 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&computationAction.getStopComputationAction(), &TriggerAction::triggered, this, [this]() {
-        //datasetTask.setProgressDescription("Aborting TSNE");
-
         qApp->processEvents();
 
         stopComputation();
@@ -163,15 +134,23 @@ void TsneAnalysisPlugin::init()
 
     updateComputationAction();
 
-    getOutputDataset()->getTask().setName("TSNE Computation");
+    auto& datasetTask = getOutputDataset()->getTask();
+
+    datasetTask.setName("TSNE Computation");
+    datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
  
-    _tsneAnalysis.setTask(&_computationTask);
+    _tsneAnalysis.setTask(&datasetTask);
 
     //_tsneSettingsAction.loadDefault();
 }
 
 void TsneAnalysisPlugin::startComputation()
 {
+    getOutputDataset()->getTask().setRunning();
+
+    _computationPreparationTask.setEnabled(true);
+    _computationPreparationTask.setRunning();
+
     auto inputPoints = getInputDataset<Points>();
 
     // Create list of data from the enabled dimensions
@@ -183,20 +162,18 @@ void TsneAnalysisPlugin::startComputation()
 
     const auto numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
 
-    _computationPreparationTask.setRunning();
-    {
-        _tsneSettingsAction.getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().reset();
+    _tsneSettingsAction.getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().reset();
 
-        data.resize((inputPoints->isFull() ? inputPoints->getNumPoints() : inputPoints->indices.size()) * numEnabledDimensions);
+    data.resize((inputPoints->isFull() ? inputPoints->getNumPoints() : inputPoints->indices.size()) * numEnabledDimensions);
 
-        for (int i = 0; i < inputPoints->getNumDimensions(); i++)
-            if (enabledDimensions[i])
-                indices.push_back(i);
+    for (int i = 0; i < inputPoints->getNumDimensions(); i++)
+        if (enabledDimensions[i])
+            indices.push_back(i);
 
-        inputPoints->populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
+    inputPoints->populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
-        _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
-    }
+    _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
+    
     _computationPreparationTask.setFinished();
 
     _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), data, numEnabledDimensions);
@@ -204,6 +181,10 @@ void TsneAnalysisPlugin::startComputation()
 
 void TsneAnalysisPlugin::continueComputation()
 {
+    getOutputDataset()->getTask().setRunning();
+
+    _computationPreparationTask.setEnabled(false);
+
     _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
 
     _tsneAnalysis.continueComputation(_tsneSettingsAction.getTsneParameters().getNumIterations());
