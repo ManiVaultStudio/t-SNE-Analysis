@@ -84,6 +84,7 @@ void TsneWorker::createTasks()
 
 void TsneWorker::computeSimilarities()
 {
+    _tasks->getComputingSimilaritiesTask().setEnabled(true);
     _tasks->getComputingSimilaritiesTask().setRunning();
 
     hdi::dr::HDJointProbabilityGenerator<float>::Parameters probGenParams;
@@ -393,10 +394,10 @@ void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
 
 TsneWorkerTasks::TsneWorkerTasks(QObject* parent, mv::Task* parentTask) :
     QObject(parent),
-    _initializeOffScreenBufferTask(this, "Initializing off-screen GP-GPU buffer", Task::GuiScopes{ Task::GuiScope::DataHierarchy, Task::GuiScope::Foreground }, Task::Status::Idle),
-    _computingSimilaritiesTask(this, "Computing similarities", Task::GuiScopes{ Task::GuiScope::DataHierarchy, Task::GuiScope::Foreground }, Task::Status::Idle),
+    _initializeOffScreenBufferTask(this, "Initialize off-screen GPGPU buffer", Task::GuiScopes{ Task::GuiScope::DataHierarchy, Task::GuiScope::Foreground }, Task::Status::Idle),
+    _computingSimilaritiesTask(this, "Compute similarities", Task::GuiScopes{ Task::GuiScope::DataHierarchy, Task::GuiScope::Foreground }, Task::Status::Idle),
     _initializeTsneTask(this, "Initialize TSNE", Task::GuiScopes{ Task::GuiScope::DataHierarchy, Task::GuiScope::Foreground }, Task::Status::Idle),
-    _computeGradientDescentTask(this, "Computing gradient descent", Task::GuiScopes{ Task::GuiScope::DataHierarchy, Task::GuiScope::Foreground }, Task::Status::Idle)
+    _computeGradientDescentTask(this, "Compute gradient descent", Task::GuiScopes{ Task::GuiScope::DataHierarchy, Task::GuiScope::Foreground }, Task::Status::Idle)
 {
     _initializeOffScreenBufferTask.setParentTask(parentTask);
     _computingSimilaritiesTask.setParentTask(parentTask);

@@ -2,7 +2,7 @@
 
 #include <AnalysisPlugin.h>
 
-#include <ForegroundTask.h>
+#include <Task.h>
 
 #include "HsneHierarchy.h"
 #include "TsneAnalysis.h"
@@ -41,7 +41,7 @@ private:
     HsneHierarchy           _hierarchy;             /** HSNE hierarchy */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneSettingsAction*     _hsneSettingsAction;    /** Pointer to HSNE settings action */
-    mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
+    mv::Task                _dataPreparationTask;   /** Task for reporting data preparation progress */
 };
 
 class HsneAnalysisPluginFactory : public AnalysisPluginFactory
