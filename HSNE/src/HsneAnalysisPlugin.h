@@ -41,7 +41,7 @@ private:
     HsneHierarchy           _hierarchy;             /** HSNE hierarchy */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneSettingsAction*     _hsneSettingsAction;    /** Pointer to HSNE settings action */
-    mv::ForegroundTask      _initializationTask;    /** Task for reporting initialization progress */
+    mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
 };
 
 class HsneAnalysisPluginFactory : public AnalysisPluginFactory

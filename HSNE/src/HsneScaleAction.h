@@ -86,6 +86,7 @@ protected:
     TriggerAction           _setSelectionAction;    /** Set selection action */
 
     EventListener           _eventListener;         /** Listen to HDPS events */
+    mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
 
 protected:
     static mv::CoreInterface* core;      /** Pointer to the core */

@@ -32,9 +32,9 @@ public: // Action getters
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
 
 protected:
-    TsneAnalysis            _tsneAnalysis;                  /** TSNE analysis */
-    TsneSettingsAction      _tsneSettingsAction;            /** TSNE settings action */
-    mv::ForegroundTask      _computationPreparationTask;    /** Task for reporting computation preparation progress */
+    TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
+    TsneSettingsAction      _tsneSettingsAction;    /** TSNE settings action */
+    mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
 };
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory

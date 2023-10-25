@@ -176,10 +176,22 @@ void HsneAnalysisPlugin::init()
     });
 
     updateComputationAction();
+
+    auto& datasetTask = getOutputDataset()->getTask();
+
+    datasetTask.setName("TSNE Computation");
+    datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
+
+    _tsneAnalysis.setTask(&datasetTask);
 }
 
 void HsneAnalysisPlugin::computeTopLevelEmbedding()
 {
+    getOutputDataset()->getTask().setRunning();
+
+    _initializationTask.setEnabled(true);
+    _initializationTask.setRunning();
+
     // Get the top scale of the HSNE hierarchy
     int topScaleIndex = _hierarchy.getTopScale();
 
@@ -257,6 +269,8 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         embeddingDataset->addLinkedData(inputDataset, mapping);
     }
 
+    _initializationTask.setFinished();
+
     // Embed data
     _tsneAnalysis.stopComputation();
     _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
@@ -264,6 +278,10 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
 void HsneAnalysisPlugin::continueComputation()
 {
+    getOutputDataset()->getTask().setRunning();
+
+    _initializationTask.setEnabled(false);
+
     _hsneSettingsAction->getTsneSettingsAction().getComputationAction().getRunningAction().setChecked(true);
 
     _tsneAnalysis.continueComputation(_hsneSettingsAction->getTsneSettingsAction().getTsneParameters().getNumIterations());
