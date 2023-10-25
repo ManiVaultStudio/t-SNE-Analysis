@@ -23,11 +23,11 @@ TsneAnalysisPlugin::TsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
     _tsneAnalysis(),
     _tsneSettingsAction(this),
-    _computationPreparationTask(this, "Preparing TSNE computation")
+    _dataPreparationTask(this, "Prepare data")
 {
     setObjectName("TSNE");
 
-    _computationPreparationTask.setDescription("All operations prior to TSNE computation");
+    _dataPreparationTask.setDescription("All operations prior to TSNE computation");
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
@@ -43,7 +43,7 @@ void TsneAnalysisPlugin::init()
     auto inputDataset  = getInputDataset<Points>();
     auto outputDataset = getOutputDataset<Points>();
 
-    _computationPreparationTask.setParentTask(&outputDataset->getTask());
+    _dataPreparationTask.setParentTask(&outputDataset->getTask());
 
     std::vector<float> initialData;
 
@@ -136,7 +136,7 @@ void TsneAnalysisPlugin::init()
 
     auto& datasetTask = getOutputDataset()->getTask();
 
-    datasetTask.setName("TSNE Computation");
+    datasetTask.setName("Compute TSNE");
     datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
  
     _tsneAnalysis.setTask(&datasetTask);
@@ -148,8 +148,8 @@ void TsneAnalysisPlugin::startComputation()
 {
     getOutputDataset()->getTask().setRunning();
 
-    _computationPreparationTask.setEnabled(true);
-    _computationPreparationTask.setRunning();
+    _dataPreparationTask.setEnabled(true);
+    _dataPreparationTask.setRunning();
 
     auto inputPoints = getInputDataset<Points>();
 
@@ -174,7 +174,7 @@ void TsneAnalysisPlugin::startComputation()
 
     _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
     
-    _computationPreparationTask.setFinished();
+    _dataPreparationTask.setFinished();
 
     _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), data, numEnabledDimensions);
 }
@@ -183,7 +183,7 @@ void TsneAnalysisPlugin::continueComputation()
 {
     getOutputDataset()->getTask().setRunning();
 
-    _computationPreparationTask.setEnabled(false);
+    _dataPreparationTask.setEnabled(false);
 
     _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
 

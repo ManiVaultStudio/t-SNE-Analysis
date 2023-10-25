@@ -23,6 +23,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _datasetPickerAction(this, "Selection IDs"),
     _reloadDatasetsAction(this, "Reload dataset"),
     _setSelectionAction(this, "Set selection"),
+    _initializationTask(this, "Preparing HSNE scale"),
     _isTopScale(true)
 {
     addAction(&_refineAction);
@@ -100,7 +101,6 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
         events().notifyDatasetDataSelectionChanged(_input->getSourceDataset<Points>());
 
         });
-
 }
 
 QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
@@ -189,6 +189,13 @@ void HsneScaleAction::refine()
 
         _refineEmbedding->setText("HSNE Scale");
         _refineEmbedding->getDataHierarchyItem().select();
+
+        auto& datasetTask = _refineEmbedding->getTask();
+
+        datasetTask.setName("HSNE scale computation");
+        datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
+
+        _tsneAnalysis.setTask(&datasetTask);
     }
 
     _refineEmbedding->setData(nullptr, 0, 2);
@@ -250,6 +257,8 @@ void HsneScaleAction::refine()
     _refineEmbedding->getTask().setName("HSNE scale");
     _refineEmbedding->getDataHierarchyItem().select();
 
+    _initializationTask.setRunning();
+
     // Update embedding points when the TSNE analysis produces new data
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
 
@@ -259,6 +268,8 @@ void HsneScaleAction::refine()
         // Notify others that the embedding points have changed
         events().notifyDatasetDataChanged(_refineEmbedding);
     });
+
+    _initializationTask.setFinished();
 
     // Start the embedding process
     _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), transitionMatrix, refinedLandmarks.size(), _hsneHierarchy.getNumDimensions());

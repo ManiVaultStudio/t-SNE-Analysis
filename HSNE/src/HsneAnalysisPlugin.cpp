@@ -24,11 +24,11 @@ HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     _hierarchy(),
     _tsneAnalysis(),
     _hsneSettingsAction(nullptr),
-    _initializationTask(this, "Initializing HSNE")
+    _dataPreparationTask(this, "Prepare data")
 {
     setObjectName("HSNE");
 
-    _initializationTask.setDescription("All operations prior to HSNE computation");
+    _dataPreparationTask.setDescription("All operations prior to HSNE computation");
 }
 
 HsneAnalysisPlugin::~HsneAnalysisPlugin()
@@ -54,7 +54,7 @@ void HsneAnalysisPlugin::init()
     auto inputDataset  = getInputDataset<Points>();
     auto outputDataset = getOutputDataset<Points>();
 
-    _initializationTask.setParentTask(&outputDataset->getTask());
+    _dataPreparationTask.setParentTask(&outputDataset->getTask());
 
     // Set the default number of hierarchy scales based on number of points
     int numHierarchyScales = std::max(1L, std::lround(log10(inputDataset->getNumPoints())) - 2);
@@ -146,16 +146,12 @@ void HsneAnalysisPlugin::init()
     connect(&_hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
         _hsneSettingsAction->setReadOnly(true);
         
-        _initializationTask.setRunning();
-
         qApp->processEvents();
 
         std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
 
         // Initialize the HSNE algorithm with the given parameters
         _hierarchy.initialize(_core, *getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
-
-        _initializationTask.setFinished();
 
         qApp->processEvents();
 
@@ -176,10 +172,21 @@ void HsneAnalysisPlugin::init()
     });
 
     updateComputationAction();
+
+    auto& datasetTask = getOutputDataset()->getTask();
+
+    datasetTask.setName("Compute HSNE");
+    datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
+
+    _tsneAnalysis.setTask(&datasetTask);
 }
 
 void HsneAnalysisPlugin::computeTopLevelEmbedding()
 {
+    getOutputDataset()->getTask().setRunning();
+
+    _dataPreparationTask.setRunning();
+
     // Get the top scale of the HSNE hierarchy
     int topScaleIndex = _hierarchy.getTopScale();
 
@@ -257,6 +264,8 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         embeddingDataset->addLinkedData(inputDataset, mapping);
     }
 
+    _dataPreparationTask.setFinished();
+
     // Embed data
     _tsneAnalysis.stopComputation();
     _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
@@ -264,6 +273,10 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
 void HsneAnalysisPlugin::continueComputation()
 {
+    getOutputDataset()->getTask().setRunning();
+
+    _dataPreparationTask.setEnabled(false);
+
     _hsneSettingsAction->getTsneSettingsAction().getComputationAction().getRunningAction().setChecked(true);
 
     _tsneAnalysis.continueComputation(_hsneSettingsAction->getTsneSettingsAction().getTsneParameters().getNumIterations());

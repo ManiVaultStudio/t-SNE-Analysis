@@ -6,7 +6,7 @@
 
 #include <AnalysisPlugin.h>
 
-#include <ForegroundTask.h>
+#include <Task.h>
 
 #include "TsneAnalysis.h"
 #include "TsneSettingsAction.h"
@@ -32,9 +32,9 @@ public: // Action getters
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
 
 protected:
-    TsneAnalysis            _tsneAnalysis;                  /** TSNE analysis */
-    TsneSettingsAction      _tsneSettingsAction;            /** TSNE settings action */
-    mv::ForegroundTask      _computationPreparationTask;    /** Task for reporting computation preparation progress */
+    TsneAnalysis        _tsneAnalysis;          /** TSNE analysis */
+    TsneSettingsAction  _tsneSettingsAction;    /** TSNE settings action */
+    mv::Task            _dataPreparationTask;   /** Task for reporting data preparation progress */
 };
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory
