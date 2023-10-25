@@ -23,11 +23,11 @@ TsneAnalysisPlugin::TsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
     _tsneAnalysis(),
     _tsneSettingsAction(this),
-    _computationPreparationTask(this, "Preparing TSNE computation")
+    _initializationTask(this, "Preparing TSNE computation")
 {
     setObjectName("TSNE");
 
-    _computationPreparationTask.setDescription("All operations prior to TSNE computation");
+    _initializationTask.setDescription("All operations prior to TSNE computation");
 }
 
 TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
@@ -43,7 +43,7 @@ void TsneAnalysisPlugin::init()
     auto inputDataset  = getInputDataset<Points>();
     auto outputDataset = getOutputDataset<Points>();
 
-    _computationPreparationTask.setParentTask(&outputDataset->getTask());
+    _initializationTask.setParentTask(&outputDataset->getTask());
 
     std::vector<float> initialData;
 
@@ -148,8 +148,8 @@ void TsneAnalysisPlugin::startComputation()
 {
     getOutputDataset()->getTask().setRunning();
 
-    _computationPreparationTask.setEnabled(true);
-    _computationPreparationTask.setRunning();
+    _initializationTask.setEnabled(true);
+    _initializationTask.setRunning();
 
     auto inputPoints = getInputDataset<Points>();
 
@@ -174,7 +174,7 @@ void TsneAnalysisPlugin::startComputation()
 
     _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
     
-    _computationPreparationTask.setFinished();
+    _initializationTask.setFinished();
 
     _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), data, numEnabledDimensions);
 }
@@ -183,7 +183,7 @@ void TsneAnalysisPlugin::continueComputation()
 {
     getOutputDataset()->getTask().setRunning();
 
-    _computationPreparationTask.setEnabled(false);
+    _initializationTask.setEnabled(false);
 
     _tsneSettingsAction.getComputationAction().getRunningAction().setChecked(true);
 
