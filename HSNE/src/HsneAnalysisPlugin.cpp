@@ -150,7 +150,7 @@ void HsneAnalysisPlugin::init()
 
         std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
 
-        // Initialize the HSNE algorithm with the given parameters
+        // Initialize the HSNE algorithm with the given parameters and compute the hierarchy
         _hierarchy.initialize(_core, *getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
 
         qApp->processEvents();
@@ -189,9 +189,9 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
     // Get the top scale of the HSNE hierarchy
     int topScaleIndex = _hierarchy.getTopScale();
-
     Hsne::scale_type& topScale = _hierarchy.getScale(topScaleIndex);
     
+    // Number of landmarks on the top scale
     int numLandmarks = topScale.size();
 
     // Create a subset of the points corresponding to the top level HSNE landmarks,
@@ -216,7 +216,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     }
 
     // Create the subset and clear the selection
-    auto subset = inputDataset->createSubsetFromSelection(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
+    mv::Dataset<Points> subset = inputDataset->createSubsetFromSelection(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
 
     selectionDataset->indices.clear();
 
@@ -239,10 +239,14 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
         if (inputDataset->isFull())
         {
+            std::vector<unsigned int> globalIndices;
+            subset->getGlobalIndices(globalIndices);
+
             for (int i = 0; i < landmarkMap.size(); i++)
             {
                 int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
-                mapping.getMap()[bottomLevelIdx] = landmarkMap[i];
+                
+                mapping.getMap()[globalIndices[i]] = landmarkMap[i];
             }
         }
         else
