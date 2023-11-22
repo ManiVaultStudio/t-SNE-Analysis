@@ -59,7 +59,7 @@ void TsneWorker::changeThread(QThread* targetThread)
     //_task->moveToThread(targetThread);
 
     
-
+    _offscreenBuffer->initialize();
     // Move the Offscreen buffer to the processing thread after creating it in the UI Thread
     _offscreenBuffer->moveToThread(targetThread);
 }
@@ -243,13 +243,6 @@ void TsneWorker::compute()
     double t = 0.0;
     {
         hdi::utils::ScopedTimer<double> timer(t);
-
-        _tasks->getInitializeOffScreenBufferTask().setRunning();
-
-        // Create a context local to this thread that shares with the global share context
-        _offscreenBuffer->initialize();
-        
-        _tasks->getInitializeOffScreenBufferTask().setFinished();
 
         if (!_hasProbabilityDistribution)
             computeSimilarities();
