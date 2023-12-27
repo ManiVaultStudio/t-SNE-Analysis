@@ -18,12 +18,8 @@ set(HSNE_ACTIONS_SOURCES
     ${DIR}/GeneralHsneSettingsAction.cpp
     ${DIR}/AdvancedHsneSettingsAction.h
     ${DIR}/AdvancedHsneSettingsAction.cpp
-	${DIR}/HsneScaleAction.h
+    ${DIR}/HsneScaleAction.h
     ${DIR}/HsneScaleAction.cpp
-	PARENT_SCOPE
-)
-
-set(HSNE_RESOURCES
-    ${DIR}/../res/resources.qrc
     PARENT_SCOPE
 )
+

@@ -6,8 +6,3 @@ set(TSNE_PLUGIN_SOURCES
     ${DIR}/TsneAnalysisPlugin.json
     PARENT_SCOPE
 )
-
-set(TSNE_RESOURCES
-    ${DIR}/../res/resources.qrc
-    PARENT_SCOPE
-)
