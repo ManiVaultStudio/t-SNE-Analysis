@@ -7,7 +7,6 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     GroupAction(hsneAnalysisPlugin, "HSNE", true),
     _hsneAnalysisPlugin(hsneAnalysisPlugin),
     _hsneParameters(),
-    _tsneParameters(),
     _generalHsneSettingsAction(*this),
     _advancedHsneSettingsAction(*this),
     _topLevelScaleAction(this, _tsneSettingsAction, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDataset<Points>(), hsneAnalysisPlugin->getOutputDataset<Points>()),
@@ -76,5 +75,7 @@ HsneParameters& HsneSettingsAction::getHsneParameters()
 
 TsneParameters& HsneSettingsAction::getTsneParameters()
 {
-    return _tsneParameters;
+    return _tsneSettingsAction.getTsneParameters();
+}
+
 }
