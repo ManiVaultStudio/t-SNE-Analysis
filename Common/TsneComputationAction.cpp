@@ -36,3 +36,25 @@ QMenu* TsneComputationAction::getContextMenu(QWidget* parent /*= nullptr*/)
 
     return menu;
 }
+
+void TsneComputationAction::fromVariantMap(const QVariantMap& variantMap)
+{
+    GroupAction::fromVariantMap(variantMap);
+
+    _startComputationAction.fromParentVariantMap(variantMap);
+    _continueComputationAction.fromParentVariantMap(variantMap);
+    _stopComputationAction.fromParentVariantMap(variantMap);
+    _runningAction.fromParentVariantMap(variantMap);
+}
+
+QVariantMap TsneComputationAction::toVariantMap() const
+{
+    QVariantMap variantMap = GroupAction::toVariantMap();
+
+    _startComputationAction.insertIntoVariantMap(variantMap);
+    _continueComputationAction.insertIntoVariantMap(variantMap);
+    _stopComputationAction.insertIntoVariantMap(variantMap);
+    _runningAction.insertIntoVariantMap(variantMap);
+
+    return variantMap;
+}

@@ -65,7 +65,10 @@ public:
      * @param  data        The high-dimensional data
      * @param  parameters  Parameters with which to run the HSNE algorithm
      */
-    void initialize(mv::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters);
+    void initialize(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters);
+
+    void setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters);
+
     HsneMatrix getTransitionMatrixAtScale(int scale) { return _hsne->scale(scale)._transition_matrix; }
 
     void printScaleInfo()
@@ -76,15 +79,14 @@ public:
         std::cout << "AoI size: " << _hsne->scale(getNumScales() - 1)._area_of_influence.size() << std::endl;
     }
 
-    Hsne::scale_type& getScale(int scaleId)
-    {
-        return _hsne->scale(scaleId);
-    }
+    Hsne& getHsne() { return *_hsne.get(); }
+    const Hsne& getHsne() const { return *_hsne.get(); }
 
-    InfluenceHierarchy& getInfluenceHierarchy()
-    {
-        return _influenceHierarchy;
-    }
+    Hsne::scale_type& getScale(int scaleId) { return _hsne->scale(scaleId); }
+    const Hsne::scale_type& getScale(int scaleId) const { return _hsne->scale(scaleId); }
+
+    InfluenceHierarchy& getInfluenceHierarchy() { return _influenceHierarchy; }
+    const InfluenceHierarchy& getInfluenceHierarchy() const { return _influenceHierarchy; }
 
     /**
      * Returns a map of landmark indices and influences on the previous scale in the hierarchy,
@@ -114,11 +116,11 @@ public:
         hdi::utils::extractSubGraph(fullTransitionMatrix, landmarkIdxs, transitionMatrix, dummy, 1);
     }
 
-    int getNumScales() { return _numScales; }
-    int getTopScale() { return _numScales - 1; }
-    QString getInputDataName() { return _inputDataName; }
-    int getNumPoints() { return _numPoints; }
-    int getNumDimensions() { return _numDimensions; }
+    int getNumScales() const { return _numScales; }
+    int getTopScale() const { return _numScales - 1; }
+    QString getInputDataName() const { return _inputDataName; }
+    int getNumPoints() const { return _numPoints; }
+    int getNumDimensions() const { return _numDimensions; }
 
     /** Save HSNE hierarchy from this class to disk */
     void saveCacheHsne(const Hsne::Parameters& internalParams) const;
@@ -142,18 +144,17 @@ private:
     bool checkCacheParameters(const std::string fileName, const Hsne::Parameters& params) const;
 
 private:
+    std::unique_ptr<Hsne>   _hsne;
 
-    InfluenceHierarchy _influenceHierarchy;
+    InfluenceHierarchy      _influenceHierarchy;
 
-    QString _inputDataName;
-    QString _embeddingName;
+    int                     _numScales = 1;
+    unsigned int            _numPoints;
+    unsigned int            _numDimensions;
+    Hsne::Parameters        _params;
 
-    int _numScales = 1;
-
-    unsigned int _numPoints;
-    unsigned int _numDimensions;
-
-    Path _cachePath;                            /** Path for saving and loading cache */
-    Path _cachePathFileName;                    /** cachePath() + data name */
+    Path                    _cachePath;                            /** Path for saving and loading cache */
+    Path                    _cachePathFileName;                    /** cachePath() + data name */
+    QString                 _inputDataName;
 
 };

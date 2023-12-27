@@ -38,6 +38,20 @@ public: // Action getters
     ToggleAction& getUseMonteCarloSamplingAction() { return _useMonteCarloSamplingAction; }
     TriggerAction& getStartAction() { return _startAction; }
 
+public: // Serialization
+
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
+
 protected:
     HsneSettingsAction&     _hsneSettingsAction;                /** Reference to HSNE settings action */
     OptionAction            _knnTypeAction;                     /** KNN action */

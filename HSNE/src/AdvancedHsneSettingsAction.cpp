@@ -15,6 +15,8 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _useOutOfCoreComputationAction(this, "Out-of-core computation"),
     _saveHierarchyToDiskAction(this, "Save hierarchy to disk")
 {
+    setSerializationName("advancedHsneSettings");
+
     addAction(&_numWalksForLandmarkSelectionAction);
     addAction(&_numWalksForLandmarkSelectionThresholdAction);
     addAction(&_randomWalkLengthAction);
@@ -141,4 +143,34 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     updateUseOutOfCoreComputation();
     updateSaveHierarchyToDiskAction();
     updateReadOnly();
+}
+
+void AdvancedHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
+{
+    GroupAction::fromVariantMap(variantMap);
+
+    _numWalksForLandmarkSelectionAction.fromParentVariantMap(variantMap);
+    _numWalksForLandmarkSelectionThresholdAction.fromParentVariantMap(variantMap);
+    _randomWalkLengthAction.fromParentVariantMap(variantMap);
+    _numWalksForAreaOfInfluenceAction.fromParentVariantMap(variantMap);
+    _minWalksRequiredAction.fromParentVariantMap(variantMap);
+    _numChecksAknnAction.fromParentVariantMap(variantMap);
+    _useOutOfCoreComputationAction.fromParentVariantMap(variantMap);
+    _saveHierarchyToDiskAction.fromParentVariantMap(variantMap);
+}
+
+QVariantMap AdvancedHsneSettingsAction::toVariantMap() const
+{
+    QVariantMap variantMap = GroupAction::toVariantMap();
+
+    _numWalksForLandmarkSelectionAction.insertIntoVariantMap(variantMap);
+    _numWalksForLandmarkSelectionThresholdAction.insertIntoVariantMap(variantMap);
+    _randomWalkLengthAction.insertIntoVariantMap(variantMap);
+    _numWalksForAreaOfInfluenceAction.insertIntoVariantMap(variantMap);
+    _minWalksRequiredAction.insertIntoVariantMap(variantMap);
+    _numChecksAknnAction.insertIntoVariantMap(variantMap);
+    _useOutOfCoreComputationAction.insertIntoVariantMap(variantMap);
+    _saveHierarchyToDiskAction.insertIntoVariantMap(variantMap);
+
+    return variantMap;
 }

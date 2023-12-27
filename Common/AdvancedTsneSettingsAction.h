@@ -32,6 +32,20 @@ public: // Action getters
     IntegralAction& getNumTreesAction() { return _numTreesAction; };
     IntegralAction& getNumChecksAction() { return _numChecksAction; };
 
+public: // Serialization
+
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
+
 protected:
     TsneSettingsAction&     _tsneSettingsAction;        /** Pointer to parent tSNE settings action */
     IntegralAction          _exaggerationAction;        /** Exaggeration action */

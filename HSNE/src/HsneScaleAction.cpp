@@ -26,8 +26,11 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _reloadDatasetsAction(this, "Reload dataset"),
     _setSelectionAction(this, "Set selection"),
     _initializationTask(this, "Preparing HSNE scale"),
-    _isTopScale(true)
+    _isTopScale(true),
+    _currentScaleLevel(0)
 {
+    setSerializationName("topLevelScale");
+
     addAction(&_refineAction);
     addAction(&_datasetPickerAction);
     addAction(&_reloadDatasetsAction);
@@ -275,4 +278,36 @@ void HsneScaleAction::refine()
 
     // Start the embedding process
     _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), transitionMatrix, refinedLandmarks.size(), _hsneHierarchy.getNumDimensions());
+}
+
+void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
+{
+    GroupAction::fromVariantMap(variantMap);
+
+    // Handle data sets
+    _input = mv::data().getSet(variantMap["inputGUID"].toString());
+    _embedding = mv::data().getSet(variantMap["embeddingGUID"].toString());
+    _refineEmbedding = mv::data().getSet(variantMap["refineEmbeddingGUID"].toString());
+
+    _refineAction.fromParentVariantMap(variantMap);
+    _datasetPickerAction.fromParentVariantMap(variantMap);
+    _reloadDatasetsAction.fromParentVariantMap(variantMap);
+    _setSelectionAction.fromParentVariantMap(variantMap);
+
+}
+
+QVariantMap HsneScaleAction::toVariantMap() const
+{
+    QVariantMap variantMap = GroupAction::toVariantMap();
+
+    _refineAction.insertIntoVariantMap(variantMap);
+    _datasetPickerAction.insertIntoVariantMap(variantMap);
+    _reloadDatasetsAction.insertIntoVariantMap(variantMap);
+    _setSelectionAction.insertIntoVariantMap(variantMap);
+
+    variantMap.insert({ { "inputGUID", QVariant::fromValue(_input.get<Points>()->getId()) } });
+    variantMap.insert({ { "embeddingGUID", QVariant::fromValue(_embedding.get<Points>()->getId()) } });
+    variantMap.insert({ { "refineEmbeddingGUID", QVariant::fromValue(_refineEmbedding.get<Points>()->getId()) } });
+
+    return variantMap;
 }

@@ -37,6 +37,20 @@ public:
 
     HsneSettingsAction& getHsneSettingsAction() { return *_hsneSettingsAction; }
 
+public: // Serialization
+
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
+
 private:
     HsneHierarchy           _hierarchy;             /** HSNE hierarchy */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */

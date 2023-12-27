@@ -121,10 +121,10 @@ void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
     }
 }
 
-void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters)
+void HsneHierarchy::setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters)
 {
     // Convert our own HSNE parameters to the HDI parameters
-    Hsne::Parameters internalParams = setParameters(parameters);
+    _params = setParameters(parameters);
 
     // Extract the enabled dimensions from the data
     unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
@@ -133,10 +133,6 @@ void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData,
     _numScales = parameters.getNumScales();
     _numPoints = inputData.getNumPoints();
     _numDimensions = numEnabledDimensions;
-
-    // Initialize hierarchy
-    _hsne = std::make_unique<Hsne>();
-    hdi::utils::CoutLog _log;
 
     // Check for source data file path
     std::string inputLoadPath = std::string();
@@ -165,28 +161,37 @@ void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData,
     _inputDataName = inputData.text();
     _cachePathFileName = _cachePath / _inputDataName.toStdString();
 
+    _hsne = std::make_unique<Hsne>();
+}
+
+void HsneHierarchy::initialize(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters)
+{
+    setDataAndParameters(inputData, enabledDimensions, parameters);
+
+    hdi::utils::CoutLog log;
+
     // Check of hsne data can be loaded from cache on disk, otherwise compute hsne hierarchy
-    bool hsneLoadedFromCache = loadCache(internalParams, _log);
+    bool hsneLoadedFromCache = loadCache(_params, log);
     if (hsneLoadedFromCache == false) {
         std::cout << "Initializing HSNE hierarchy " << std::endl;
 
         // Set up a logger
-        _hsne->setLogger(&_log);
+        _hsne->setLogger(&log);
 
         // Set the dimensionality of the data in the HSNE object
-        _hsne->setDimensionality(numEnabledDimensions);
+        _hsne->setDimensionality(_numDimensions);
 
         // Load data and enabled dimensions
         std::vector<float> data;
         std::vector<unsigned int> dimensionIndices;
-        data.resize((inputData.isFull() ? inputData.getNumPoints() : inputData.indices.size()) * numEnabledDimensions);
+        data.resize((inputData.isFull() ? inputData.getNumPoints() : inputData.indices.size()) * _numDimensions);
         for (int i = 0; i < inputData.getNumDimensions(); i++)
             if (enabledDimensions[i]) dimensionIndices.push_back(i);
 
         inputData.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, dimensionIndices);
 
         // Initialize HSNE with the input data and the given parameters
-        _hsne->initialize((Hsne::scalar_type*)data.data(), _numPoints, internalParams);
+        _hsne->initialize((Hsne::scalar_type*)data.data(), _numPoints, _params);
 
         // Add a number of scales as indicated by the user
         for (int s = 0; s < _numScales - 1; ++s) {
@@ -197,7 +202,7 @@ void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData,
 
         // Write HSNE hierarchy to disk
         if(parameters.getSaveHierarchyToDisk())
-            saveCacheHsne(internalParams); 
+            saveCacheHsne(_params); 
     }
 }
 

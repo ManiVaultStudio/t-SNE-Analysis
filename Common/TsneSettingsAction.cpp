@@ -11,6 +11,7 @@ TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     _advancedTsneSettingsAction(*this)
 {
     setText("TSNE");
+    setSerializationName("tsneSettings");
 
     const auto updateReadOnly = [this]() -> void {
         _generalTsneSettingsAction.setReadOnly(isReadOnly());
@@ -35,4 +36,22 @@ QMenu* TsneSettingsAction::getContextMenu(QWidget* parent /*= nullptr*/)
     menu->addAction(&computationAction.getStopComputationAction());
 
     return menu;
+}
+
+void TsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
+{
+    GroupAction::fromVariantMap(variantMap);
+
+    _generalTsneSettingsAction.fromParentVariantMap(variantMap);
+    _advancedTsneSettingsAction.fromParentVariantMap(variantMap);
+}
+
+QVariantMap TsneSettingsAction::toVariantMap() const
+{
+    QVariantMap variantMap = GroupAction::toVariantMap();
+
+    _generalTsneSettingsAction.insertIntoVariantMap(variantMap);
+    _advancedTsneSettingsAction.insertIntoVariantMap(variantMap);
+
+    return variantMap;
 }

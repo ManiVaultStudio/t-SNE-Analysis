@@ -39,6 +39,20 @@ public: // Action getters
     HsneScaleAction& getTopLevelScaleAction() { return _topLevelScaleAction; }
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
 
+public: // Serialization
+
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
+
 protected:
     HsneAnalysisPlugin*             _hsneAnalysisPlugin;            /** Pointer to HSNE analysis plugin */
     HsneParameters                  _hsneParameters;                /** HSNE parameters */
