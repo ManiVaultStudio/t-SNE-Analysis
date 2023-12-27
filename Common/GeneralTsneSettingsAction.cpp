@@ -150,3 +150,31 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     updateCoreUpdate();
     updateReadOnly();
 }
+
+void GeneralTsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
+{
+    GroupAction::fromVariantMap(variantMap);
+
+    _knnTypeAction.fromParentVariantMap(variantMap);
+    _distanceMetricAction.fromParentVariantMap(variantMap);
+    _numIterationsAction.fromParentVariantMap(variantMap);
+    _numberOfComputatedIterationsAction.fromParentVariantMap(variantMap);
+    _perplexityAction.fromParentVariantMap(variantMap);
+    _updateIterationsAction.fromParentVariantMap(variantMap);
+    _computationAction.fromParentVariantMap(variantMap);
+}
+
+QVariantMap GeneralTsneSettingsAction::toVariantMap() const
+{
+    QVariantMap variantMap = GroupAction::toVariantMap();
+
+    _knnTypeAction.insertIntoVariantMap(variantMap);
+    _distanceMetricAction.insertIntoVariantMap(variantMap);
+    _numIterationsAction.insertIntoVariantMap(variantMap);
+    _numberOfComputatedIterationsAction.insertIntoVariantMap(variantMap);
+    _perplexityAction.insertIntoVariantMap(variantMap);
+    _updateIterationsAction.insertIntoVariantMap(variantMap);
+    _computationAction.insertIntoVariantMap(variantMap);
+
+    return variantMap;
+}

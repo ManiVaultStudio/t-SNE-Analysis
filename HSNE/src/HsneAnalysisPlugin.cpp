@@ -58,9 +58,9 @@ void HsneAnalysisPlugin::init()
 
     std::vector<float> initialData;
 
-    const auto numEmbeddingDimensions = 2;
+    const size_t numEmbeddingDimensions = 2;
 
-    initialData.resize(inputDataset->getNumPoints() * numEmbeddingDimensions);
+    initialData.resize(numEmbeddingDimensions * inputDataset->getNumPoints());
 
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
@@ -147,7 +147,7 @@ void HsneAnalysisPlugin::init()
         std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
 
         // Initialize the HSNE algorithm with the given parameters and compute the hierarchy
-        _hierarchy.initialize(_core, *getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
+        _hierarchy.initialize(*getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
 
         qApp->processEvents();
 
@@ -282,6 +282,208 @@ void HsneAnalysisPlugin::continueComputation()
     _tsneAnalysis.continueComputation(_hsneSettingsAction->getTsneSettingsAction().getTsneParameters().getNumIterations());
 }
 
+void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
+{
+    AnalysisPlugin::fromVariantMap(variantMap);
+
+    variantMapMustContain(variantMap, "inputDatasetGUID");
+    variantMapMustContain(variantMap, "outputDatasetGUID");
+    variantMapMustContain(variantMap, "hsneSettings");
+
+    _hsneSettingsAction->fromVariantMap(variantMap["hsneSettings"].toMap());
+
+    // Handle data sets
+    setOutputDataset(mv::data().getSet(variantMap["outputDatasetGUID"].toString()));
+    setInputDataset(mv::data().getSet(variantMap["inputDatasetGUID"].toString()));
+
+    // Handle HSNE Hierarchy
+    std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
+    _hierarchy.setDataAndParameters(*getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
+
+    auto& hsne = _hierarchy.getHsne();
+
+    unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
+    hsne.setDimensionality(numEnabledDimensions);
+
+    hsne.hierarchy().clear();
+    int numScales = variantMap["numberScales"].toInt();
+
+    for (int numScale = 0; numScale < numScales; numScale++)
+    {
+        hsne.hierarchy().push_back(typename Hsne::Scale());
+        auto& scale = hsne.scale(numScale);
+
+        auto scaleName = "Raw Data " + std::to_string(numScale);
+        const auto scaleMap = variantMap[scaleName.c_str()].toInt();
+
+        auto numRowsEntry = "Num Rows " + std::to_string(numScale);
+        size_t numRows = static_cast<size_t>(variantMap[numRowsEntry.c_str()].toInt());
+        
+        // transition matrix
+        scale._transition_matrix.resize(numRows);
+
+        for (size_t row = 0; row < numRows; row++)
+        {
+            auto columnSizeEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Column Size";
+            auto dataEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Data";
+
+            size_t numCols = static_cast<size_t>(variantMap[columnSizeEntry.c_str()].toInt());
+            const auto colData = variantMap[dataEntry.c_str()].toMap();
+
+            std::vector<std::pair<uint32_t, float>> dataVec;
+            populateDataBufferFromVariantMap(colData, (char*)dataVec.data());
+
+            scale._transition_matrix[row].memory() = std::move(dataVec);
+        }
+
+        // landmarks to original data 
+        {
+            auto landmarkToOrigEntry = "landmarkToOrig " + std::to_string(numScale);
+            const auto data = variantMap[landmarkToOrigEntry.c_str()].toMap();
+            std::vector<uint32_t> dataVec;
+            populateDataBufferFromVariantMap(data, (char*)dataVec.data());
+            scale._landmark_to_original_data_idx = std::move(dataVec);
+        }
+
+        // landmarks to previous scale 
+        {
+            auto landmarkToPrevEntry = "landmarkToPrev " + std::to_string(numScale);
+            const auto data = variantMap[landmarkToPrevEntry.c_str()].toMap();
+            std::vector<uint32_t> dataVec;
+            populateDataBufferFromVariantMap(data, (char*)dataVec.data());
+            scale._landmark_to_previous_scale_idx = std::move(dataVec);
+        }
+
+        // landmark weights 
+        {
+            auto landmarkWeightEntry = "landmarkWeight " + std::to_string(numScale);
+            const auto data = variantMap[landmarkWeightEntry.c_str()].toMap();
+            std::vector<float> dataVec;
+            populateDataBufferFromVariantMap(data, (char*)dataVec.data());
+            scale._landmark_weight = std::move(dataVec);
+        }
+
+        // previous scale to current scale landmarks 
+        {
+            auto previousToIdxEntry = "previousToIdx " + std::to_string(numScale);
+            const auto data = variantMap[previousToIdxEntry.c_str()].toMap();
+            std::vector<int32_t> dataVec;
+            populateDataBufferFromVariantMap(data, (char*)dataVec.data());
+            scale._previous_scale_to_landmark_idx = std::move(dataVec);
+        }
+
+        // area of influence 
+        scale._area_of_influence.resize(numRows);
+
+        for (size_t row = 0; row < numRows; row++)
+        {
+            auto columnSizeEntry = "AoI " + std::to_string(numScales) + " Row " + std::to_string(row) + "Column Size";
+            auto dataEntry = "AoI " + std::to_string(numScales) + " Row " + std::to_string(row) + " Data";
+
+            size_t numCols = static_cast<size_t>(variantMap[columnSizeEntry.c_str()].toInt());
+            const auto colData = variantMap[dataEntry.c_str()].toMap();
+
+            std::vector<std::pair<uint32_t, float>> dataVec;
+            populateDataBufferFromVariantMap(colData, (char*)dataVec.data());
+
+            scale._area_of_influence[row].memory() = std::move(dataVec);
+        }
+
+    }
+}
+
+QVariantMap HsneAnalysisPlugin::toVariantMap() const
+{
+    QVariantMap variantMap = AnalysisPlugin::toVariantMap();
+
+    _hsneSettingsAction->insertIntoVariantMap(variantMap);
+
+    // Handle data sets
+    variantMap.insert({ { "inputDatasetGUID", QVariant::fromValue(_input.get<Points>()->getId()) } });
+    variantMap.insert({ { "outputDatasetGUID", QVariant::fromValue(_output.get<Points>()->getId()) } });
+
+    // Handle HSNE Hierarchy
+    auto numScales = _hierarchy.getNumScales();
+    variantMap.insert({ {"numberScales", QVariant::fromValue(numScales)}});
+
+    for(int i = 0; i < numScales; i++)
+    {
+        const auto& scale = _hierarchy.getScale(i);
+        auto numRows = scale._transition_matrix.size();
+        auto numRowsEntry = "Num Rows " + std::to_string(i);
+
+        QVariantMap scaleData = { { numRowsEntry.c_str(), QVariant::fromValue(numRows) } };
+
+        // transition matrix
+        for (size_t row = 0; row < numRows; row++)
+        {
+            const auto& transition_matrix = scale._transition_matrix[row];
+            auto columnSizeEntry = "Transition " + std::to_string(i) + " Row " + std::to_string(row) + " Column Size";
+            auto dataEntry = "Transition " + std::to_string(i) + " Row " + std::to_string(row) + " Data";
+            scaleData.insert({ { columnSizeEntry.c_str(), QVariant::fromValue(transition_matrix.size()) }});
+            scaleData.insert({ { dataEntry.c_str(), rawDataToVariantMap((char*)transition_matrix.memory().data(), transition_matrix.size() * sizeof(std::pair<uint32_t, float>), true)}});
+        }
+
+        // landmarks to original data 
+        const std::vector<uint32_t>& landmarkToOrig = scale._landmark_to_original_data_idx;
+        auto landmarkToOrigEntry = "landmarkToOrig " + std::to_string(i);
+        scaleData.insert({ { landmarkToOrigEntry.c_str(), rawDataToVariantMap((char*)landmarkToOrig.data(), landmarkToOrig.size() * sizeof(uint32_t), true)} });
+
+        // landmarks to previous scale 
+        const std::vector<uint32_t>& landmarkToPrev = scale._landmark_to_previous_scale_idx;
+        auto landmarkToPrevEntry = "landmarkToPrev " + std::to_string(i);
+        scaleData.insert({ { landmarkToPrevEntry.c_str(), rawDataToVariantMap((char*)landmarkToPrev.data(), landmarkToPrev.size() * sizeof(uint32_t), true)} });
+
+        // landmark weights 
+        const std::vector<float>& landmarkWeight = scale._landmark_weight;
+        auto landmarkWeightEntry = "landmarkWeight " + std::to_string(i);
+        scaleData.insert({ { landmarkWeightEntry.c_str(), rawDataToVariantMap((char*)landmarkWeight.data(), landmarkWeight.size() * sizeof(float), true)} });
+
+        // previous scale to current scale landmarks 
+        const std::vector<int32_t>& previousToIdx = scale._previous_scale_to_landmark_idx;
+        auto previousToIdxEntry = "previousToIdx " + std::to_string(i);
+        scaleData.insert({ { previousToIdxEntry.c_str(), rawDataToVariantMap((char*)previousToIdx.data(), previousToIdx.size() * sizeof(int32_t), true)} });
+
+        // area of influence 
+        for (size_t row = 0; row < numRows; row++)
+        {
+            const auto& aoi_matrix = scale._area_of_influence[row];
+            auto columnSizeEntry = "AoI " + std::to_string(i) + " Row " + std::to_string(row) + "Column Size";
+            auto dataEntry = "AoI " + std::to_string(i) + " Row " + std::to_string(row) + " Data";
+            scaleData.insert({ { columnSizeEntry.c_str(), QVariant::fromValue(aoi_matrix.size()) } });
+            scaleData.insert({ { dataEntry.c_str(), rawDataToVariantMap((char*)aoi_matrix.memory().data(), aoi_matrix.size() * sizeof(std::pair<uint32_t, float>), true)} });
+        }
+
+        auto mapName = "Raw Data " + std::to_string(i);
+        variantMap.insert({ { mapName.c_str(), QVariant::fromValue(scaleData)} });
+    }
+
+    // Influence Hierarchy
+    const std::vector < std::vector<std::vector<unsigned int>>>& influenceHierarchy = _hierarchy.getInfluenceHierarchy().getMap();
+    
+    variantMap.insert({ {"influenceHierarchySize", QVariant::fromValue(influenceHierarchy.size())} });
+
+    for (size_t i = 0; i < influenceHierarchy.size(); i++)
+    {
+        auto numRows = influenceHierarchy[i].size();
+        auto inName = "influenceHierarchy " + std::to_string(numRows);
+        QVariantMap inData = { { inName.c_str(), QVariant::fromValue(numRows) } };
+
+        for (size_t j = 0; j < numRows; j++)
+        {
+            const auto& data = influenceHierarchy[i][j];
+            auto rowName = "InHi " + std::to_string(j);
+            inData.insert({ { rowName.c_str(), rawDataToVariantMap((char*)data.data(), data.size() * sizeof(unsigned int), true)} });
+        }
+    }
+
+    return variantMap;
+}
+
+// =============================================================================
+// Plugin Factory 
+// =============================================================================
+
 QIcon HsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) const
 {
     return createPluginIcon("HSNE", color);
@@ -303,7 +505,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const mv
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
             auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "HSNE", "Perform HSNE analysis on selected datasets", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
-                for (auto dataset : datasets)
+                for (auto& dataset : datasets)
                     getPluginInstance(dataset);
             });
 

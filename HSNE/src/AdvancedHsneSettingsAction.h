@@ -36,6 +36,20 @@ public: // Action getters
     ToggleAction& getUseOutOfCoreComputationAction() { return _useOutOfCoreComputationAction; }
     ToggleAction& getSaveHierarchyToDiskAction() { return _saveHierarchyToDiskAction; }
 
+public: // Serialization
+
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
+
 protected:
     HsneSettingsAction&     _hsneSettingsAction;                                /** Reference to HSNE settings action */
     IntegralAction          _numWalksForLandmarkSelectionAction;                /** Number of walks for landmark selection action */

@@ -100,3 +100,26 @@ AdvancedTsneSettingsAction::AdvancedTsneSettingsAction(TsneSettingsAction& tsneS
     updateNumChecks();
     updateReadOnly();
 }
+
+void AdvancedTsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
+{
+    GroupAction::fromVariantMap(variantMap);
+
+    _exaggerationAction.fromParentVariantMap(variantMap);
+    _exponentialDecayAction.fromParentVariantMap(variantMap);
+    _numTreesAction.fromParentVariantMap(variantMap);
+    _numChecksAction.fromParentVariantMap(variantMap);
+
+}
+
+QVariantMap AdvancedTsneSettingsAction::toVariantMap() const
+{
+    QVariantMap variantMap = GroupAction::toVariantMap();
+
+    _exaggerationAction.insertIntoVariantMap(variantMap);
+    _exponentialDecayAction.insertIntoVariantMap(variantMap);
+    _numTreesAction.insertIntoVariantMap(variantMap);
+    _numChecksAction.insertIntoVariantMap(variantMap);
+
+    return variantMap;
+}

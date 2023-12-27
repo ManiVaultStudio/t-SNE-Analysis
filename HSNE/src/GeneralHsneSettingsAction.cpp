@@ -12,6 +12,8 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling"),
     _startAction(this, "Start")
 {
+    setSerializationName("generalHsneSettings");
+
     addAction(&_knnTypeAction);
     addAction(&_numScalesAction);
     addAction(&_seedAction);
@@ -102,4 +104,28 @@ void GeneralHsneSettingsAction::setPerplexity(const int32_t& perplexity) {
 
 void GeneralHsneSettingsAction::setDistanceMetric(const hdi::dr::knn_distance_metric& metric) {
     _hsneSettingsAction.getHsneParameters().setKnnMetric(metric);
+}
+
+void GeneralHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
+{
+    GroupAction::fromVariantMap(variantMap);
+
+    _knnTypeAction.fromParentVariantMap(variantMap);
+    _numScalesAction.fromParentVariantMap(variantMap);
+    _seedAction.fromParentVariantMap(variantMap);
+    _useMonteCarloSamplingAction.fromParentVariantMap(variantMap);
+    _startAction.fromParentVariantMap(variantMap);
+}
+
+QVariantMap GeneralHsneSettingsAction::toVariantMap() const
+{
+    QVariantMap variantMap = GroupAction::toVariantMap();
+
+    _knnTypeAction.insertIntoVariantMap(variantMap);
+    _numScalesAction.insertIntoVariantMap(variantMap);
+    _seedAction.insertIntoVariantMap(variantMap);
+    _useMonteCarloSamplingAction.insertIntoVariantMap(variantMap);
+    _startAction.insertIntoVariantMap(variantMap);
+
+    return variantMap;
 }

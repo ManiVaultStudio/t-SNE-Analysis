@@ -36,6 +36,20 @@ public: // Action getters
     IntegralAction& getPerplexityAction() { return _perplexityAction; };
     TsneComputationAction& getComputationAction() { return _computationAction; }
 
+public: // Serialization
+
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
+
 protected:
     TsneSettingsAction&     _tsneSettingsAction;                    /** Reference to parent tSNE settings action */
     OptionAction            _knnTypeAction;                         /** KNN action */

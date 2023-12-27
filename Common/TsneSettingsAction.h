@@ -41,6 +41,20 @@ public: // Action getters
     AdvancedTsneSettingsAction& getAdvancedTsneSettingsAction() { return _advancedTsneSettingsAction; }
     TsneComputationAction& getComputationAction() { return _generalTsneSettingsAction.getComputationAction(); }
 
+public: // Serialization
+
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
+
 protected:
     TsneParameters                  _tsneParameters;                /** TSNE parameters */
     GeneralTsneSettingsAction       _generalTsneSettingsAction;     /** General tSNE settings action */
