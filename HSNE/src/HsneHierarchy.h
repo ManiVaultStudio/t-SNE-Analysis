@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CoreInterface.h"
 #include "TsneAnalysis.h"
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
 #include "hdi/utils/graph_algorithms.h"
@@ -143,9 +142,6 @@ private:
     bool checkCacheParameters(const std::string fileName, const Hsne::Parameters& params) const;
 
 private:
-    mv::CoreInterface* _core;
-
-    std::unique_ptr<Hsne> _hsne;
 
     InfluenceHierarchy _influenceHierarchy;
 

@@ -123,8 +123,6 @@ void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
 
 void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters)
 {
-    _core = core;
-
     // Convert our own HSNE parameters to the HDI parameters
     Hsne::Parameters internalParams = setParameters(parameters);
 

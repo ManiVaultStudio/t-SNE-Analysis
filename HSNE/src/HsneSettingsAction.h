@@ -9,7 +9,6 @@
 
 using namespace mv::gui;
 
-class QMenu;
 class HsneAnalysisPlugin;
 
 /**
@@ -43,7 +42,6 @@ public: // Action getters
 protected:
     HsneAnalysisPlugin*             _hsneAnalysisPlugin;            /** Pointer to HSNE analysis plugin */
     HsneParameters                  _hsneParameters;                /** HSNE parameters */
-    TsneParameters                  _tsneParameters;                /** TSNE parameters */
     GeneralHsneSettingsAction       _generalHsneSettingsAction;     /** General HSNE settings action */
     AdvancedHsneSettingsAction      _advancedHsneSettingsAction;    /** Advanced HSNE settings action */
     HsneScaleAction                 _topLevelScaleAction;           /** Top level scale action */

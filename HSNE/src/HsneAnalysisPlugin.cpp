@@ -12,10 +12,6 @@
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
 
-#ifdef _WIN32
-    #include <windows.h>
-#endif
-
 using namespace mv;
 using namespace mv::util;
 
