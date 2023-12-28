@@ -114,6 +114,8 @@ void AdvancedTsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 
 QVariantMap AdvancedTsneSettingsAction::toVariantMap() const
 {
+    qDebug() << "AdvancedTsneSettingsAction::toVariantMap:";
+
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _exaggerationAction.insertIntoVariantMap(variantMap);

@@ -48,6 +48,8 @@ void TsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 
 QVariantMap TsneSettingsAction::toVariantMap() const
 {
+    qDebug() << "TsneSettingsAction::toVariantMap:";
+
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _generalTsneSettingsAction.insertIntoVariantMap(variantMap);

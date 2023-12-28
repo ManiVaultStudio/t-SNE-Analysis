@@ -166,6 +166,8 @@ void GeneralTsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 
 QVariantMap GeneralTsneSettingsAction::toVariantMap() const
 {
+    qDebug() << "GeneralTsneSettingsAction::toVariantMap:";
+
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _knnTypeAction.insertIntoVariantMap(variantMap);
