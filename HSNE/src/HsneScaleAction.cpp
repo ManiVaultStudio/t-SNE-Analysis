@@ -294,6 +294,8 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
 
 QVariantMap HsneScaleAction::toVariantMap() const
 {
+    qDebug() << "HsneScaleAction::toVariantMap:";
+
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _refineAction.insertIntoVariantMap(variantMap);

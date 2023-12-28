@@ -49,6 +49,8 @@ void TsneComputationAction::fromVariantMap(const QVariantMap& variantMap)
 
 QVariantMap TsneComputationAction::toVariantMap() const
 {
+    qDebug() << "TsneComputationAction::toVariantMap:";
+
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _startComputationAction.insertIntoVariantMap(variantMap);

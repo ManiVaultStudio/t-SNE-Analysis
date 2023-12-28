@@ -390,8 +390,17 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     }
 }
 
+static QList<std::string> saved;
+
 QVariantMap HsneAnalysisPlugin::toVariantMap() const
 {
+    if (saved.contains(this->getId().toStdString()))
+        return {};
+    else
+        saved.push_back(this->getId().toStdString());
+
+    qDebug() << "HsneAnalysisPlugin::toVariantMap: " << saved;
+
     QVariantMap variantMap = AnalysisPlugin::toVariantMap();
 
     _hsneSettingsAction->insertIntoVariantMap(variantMap);

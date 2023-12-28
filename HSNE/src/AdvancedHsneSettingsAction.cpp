@@ -161,6 +161,8 @@ void AdvancedHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 
 QVariantMap AdvancedHsneSettingsAction::toVariantMap() const
 {
+    qDebug() << "AdvancedHsneSettingsAction::toVariantMap:";
+
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _numWalksForLandmarkSelectionAction.insertIntoVariantMap(variantMap);
