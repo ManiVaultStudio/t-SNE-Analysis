@@ -2,6 +2,7 @@
 #include "HsneParameters.h"
 #include "HsneScaleAction.h"
 
+#include "PointData/InfoAction.h"
 #include <PointData/PointData.h>
 
 #include <util/Icon.h>
@@ -47,6 +48,9 @@ void HsneAnalysisPlugin::init()
     // Get input/output datasets
     auto inputDataset  = getInputDataset<Points>();
     auto outputDataset = getOutputDataset<Points>();
+
+    outputDataset->getDataHierarchyItem().select();
+    outputDataset->_infoAction->collapse();
 
     _dataPreparationTask.setParentTask(&outputDataset->getTask());
 
