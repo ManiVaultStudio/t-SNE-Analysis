@@ -33,8 +33,6 @@ HsneAnalysisPlugin::~HsneAnalysisPlugin()
 
 void HsneAnalysisPlugin::init()
 {
-    HsneScaleAction::core = _core;
-
     // Created derived dataset for embedding
     setOutputDataset(_core->createDerivedDataset("HSNE Embedding", getInputDataset(), getInputDataset()));
 

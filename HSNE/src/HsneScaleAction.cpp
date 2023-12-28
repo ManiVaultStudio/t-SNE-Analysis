@@ -9,8 +9,6 @@
 using namespace mv;
 using namespace mv::gui;
 
-CoreInterface* HsneScaleAction::core = nullptr;
-
 HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
     GroupAction(parent, "HSNE scale", true),
     _tsneSettingsAction(tsneSettingsAction),
@@ -188,7 +186,7 @@ void HsneScaleAction::refine()
         auto hsneScaleSubset = _input->createSubsetFromSelection("hsne_scale", _input, false);
 
         // And the derived data for the embedding
-        _refineEmbedding = core->createDerivedDataset<Points>(QString("%1_embedding").arg(_input->text()), hsneScaleSubset, _embedding);
+        _refineEmbedding = Application::core()->createDerivedDataset<Points>(QString("%1_embedding").arg(_input->text()), hsneScaleSubset, _embedding);
 
         _refineEmbedding->setText("HSNE Scale");
         _refineEmbedding->getDataHierarchyItem().select();
