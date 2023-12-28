@@ -144,7 +144,7 @@ void HsneScaleAction::refine()
     // Threshold neighbours with enough influence, these represent the indices of the refined points relative to their HSNE scale
     std::vector<uint32_t> refinedLandmarks; // Scale-relative indices
     refinedLandmarks.clear();
-    for (auto n : neighbors) {
+    for (const auto& n : neighbors) {
         if (n.second > 0.5) //QUICKPAPER
         {
             refinedLandmarks.push_back(n.first);
@@ -285,7 +285,20 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
     // Handle data sets
     _input = mv::data().getSet(variantMap["inputGUID"].toString());
     _embedding = mv::data().getSet(variantMap["embeddingGUID"].toString());
-    _refineEmbedding = mv::data().getSet(variantMap["refineEmbeddingGUID"].toString());
+
+    QString refineEmbeddingGUID = variantMap["refineEmbeddingGUID"].toString();
+    if(refineEmbeddingGUID != "")
+        _refineEmbedding = mv::data().getSet(refineEmbeddingGUID);
+
+    {
+        const auto drillIndices = variantMap["drillIndices"].toMap();
+        std::vector<uint32_t> drillIndicesVec;
+        populateDataBufferFromVariantMap(drillIndices, (char*)drillIndicesVec.data());
+        _drillIndices = std::move(drillIndicesVec);
+    }
+
+    _isTopScale = variantMap["isTopScale"].toBool();
+    _currentScaleLevel = variantMap["currentScaleLevel"].toUInt();
 
     _refineAction.fromParentVariantMap(variantMap);
     _datasetPickerAction.fromParentVariantMap(variantMap);
@@ -307,7 +320,16 @@ QVariantMap HsneScaleAction::toVariantMap() const
 
     variantMap.insert({ { "inputGUID", QVariant::fromValue(_input.get<Points>()->getId()) } });
     variantMap.insert({ { "embeddingGUID", QVariant::fromValue(_embedding.get<Points>()->getId()) } });
-    variantMap.insert({ { "refineEmbeddingGUID", QVariant::fromValue(_refineEmbedding.get<Points>()->getId()) } });
+    
+    QString refineEmbeddingGUID = "";
+    if(_refineEmbedding.isValid())
+        refineEmbeddingGUID = _refineEmbedding.get<Points>()->getId();
+    
+    variantMap.insert({ { "refineEmbeddingGUID", QVariant::fromValue(refineEmbeddingGUID) } });
+
+    variantMap["drillIndices"] = rawDataToVariantMap((char*)_drillIndices.data(), _drillIndices.size() * sizeof(uint32_t), true);
+    variantMap.insert({ { "isTopScale", QVariant::fromValue(_isTopScale) } });
+    variantMap.insert({ { "currentScaleLevel", QVariant::fromValue(_currentScaleLevel) } });
 
     return variantMap;
 }
