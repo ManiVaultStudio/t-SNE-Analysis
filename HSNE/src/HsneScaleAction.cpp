@@ -11,8 +11,6 @@
 using namespace mv;
 using namespace mv::gui;
 
-CoreInterface* HsneScaleAction::core = nullptr;
-
 HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
     GroupAction(parent, "HSNE scale", true),
     _tsneSettingsAction(tsneSettingsAction),

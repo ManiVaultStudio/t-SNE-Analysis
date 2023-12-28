@@ -51,8 +51,7 @@ public:
      */
     QMenu* getContextMenu(QWidget* parent = nullptr) override;
 
-protected:
-
+private:
     /** Refine the landmarks based on the current selection */
     void refine();
 
@@ -61,6 +60,7 @@ public: // Action getters
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
     TriggerAction& getRefineAction() { return _refineAction; }
 
+public: // Setters
     void setScale(unsigned int scale)
     {
         _currentScaleLevel = scale;
@@ -86,7 +86,7 @@ public: // Serialization
      */
     QVariantMap toVariantMap() const override;
 
-protected:
+private:
     TsneSettingsAction&     _tsneSettingsAction;    /** Reference to TSNE settings action from the HSNE analysis */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneHierarchy&          _hsneHierarchy;         /** Reference to HSNE hierarchy */
@@ -101,12 +101,6 @@ protected:
 
     EventListener           _eventListener;         /** Listen to HDPS events */
     mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
-
-protected:
-    static mv::CoreInterface* core;      /** Pointer to the core */
-
-    friend class HsneAnalysisPlugin;
-    friend class Widget;
 
 private:
     std::vector<uint32_t>   _drillIndices;          /** Vector relating local indices to scale relative indices */
