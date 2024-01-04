@@ -388,15 +388,9 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
 {
     AnalysisPlugin::fromVariantMap(variantMap);
 
-    variantMapMustContain(variantMap, "inputDatasetGUID");
-    variantMapMustContain(variantMap, "outputDatasetGUID");
     variantMapMustContain(variantMap, "hsneSettings");
 
     _hsneSettingsAction->fromVariantMap(variantMap["hsneSettings"].toMap());
-
-    // Handle data sets
-    setOutputDataset(mv::data().getSet(variantMap["outputDatasetGUID"].toString()));
-    setInputDataset(mv::data().getSet(variantMap["inputDatasetGUID"].toString()));
 
     // Handle HSNE Hierarchy
     std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
@@ -518,10 +512,6 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
     QVariantMap variantMap = AnalysisPlugin::toVariantMap();
 
     _hsneSettingsAction->insertIntoVariantMap(variantMap);
-
-    // Handle data sets
-    variantMap["inputDatasetGUID"]  = _input.get<Points>()->getId();
-    variantMap["outputDatasetGUID"] = _output.get<Points>()->getId();
 
     // Handle HSNE Hierarchy
     auto numScales = _hierarchy.getNumScales();
