@@ -41,7 +41,7 @@ void HsneAnalysisPlugin::init()
     // Create derived dataset for embedding
     if (!outputDataInit())
     {
-        auto newOutput = Dataset<Points>(mv::data().createDerivedDataset("HSNE Embedding", inputDataset, inputDataset));
+        auto newOutput = Dataset<Points>(mv::core().addDataset("Points", "HSNE Embedding", inputDataset));
         setOutputDataset(newOutput);
 
         const size_t numEmbeddingDimensions = 2;
@@ -86,6 +86,8 @@ void HsneAnalysisPlugin::init()
     outputDataset->addAction(*dimensionsGroupAction);
 
     outputDataset->getDataHierarchyItem().select();
+
+    inputDataset->setProperty("selectionHelperCount", 0);
 
     auto& computationAction = _hsneSettingsAction->getTsneSettingsAction().getComputationAction();
 
@@ -220,7 +222,9 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     }
 
     // Create the subset and clear the selection
-    mv::Dataset<Points> subset = inputDataset->createSubsetFromSelection(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
+    auto selectionHelperCount = inputDataset->getProperty("selectionHelperCount").toInt();
+    inputDataset->setProperty("selectionHelperCount", ++selectionHelperCount);
+    mv::Dataset<Points> subset = inputDataset->createSubsetFromSelection(QString("hsne_selection_helper_%1").arg(selectionHelperCount), inputDataset, /*visible = */ false);
 
     selectionDataset->indices.clear();
     
@@ -315,9 +319,8 @@ static QByteArray serializeNestedVector(const OuterVector& inputVector)
     return byteArray;
 }
 
-static OuterVector deserializeNestedVector(const QByteArray& byteArray)
+static void deserializeNestedVector(const QByteArray& byteArray, OuterVector& result)
 {
-    OuterVector result;
     QDataStream stream(byteArray);
 
     // Deserialize the vector
@@ -347,8 +350,6 @@ static OuterVector deserializeNestedVector(const QByteArray& byteArray)
 
         result.push_back(middleVector);
     }
-
-    return result;
 }
 
 typedef std::pair<uint, float> PairUIntFloat;
@@ -363,16 +364,15 @@ static QByteArray serializePairVector(const PairVector& inputVector)
     stream << static_cast<quint32>(inputVector.size()); // Store the size of the vector
 
     for (const auto& pair : inputVector) {
-        stream << pair.first;
+        stream << static_cast<quint32>(pair.first);
         stream << pair.second;
     }
 
     return byteArray;
 }
 
-static PairVector deserializePairVector(const QByteArray& byteArray)
+static void deserializePairVector(const QByteArray& byteArray, PairVector& result)
 {
-    PairVector result;
     QDataStream stream(byteArray);
 
     // Deserialize the vector
@@ -385,12 +385,12 @@ static PairVector deserializePairVector(const QByteArray& byteArray)
         stream >> pair.second;
         result.push_back(pair);
     }
-
-    return result;
 }
 
 void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
 {
+    qDebug() << "HsneAnalysisPlugin::fromVariantMap: Start";
+
     AnalysisPlugin::fromVariantMap(variantMap);
 
     variantMapMustContain(variantMap, "hsneSettings");
@@ -402,23 +402,33 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     _hierarchy.setDataAndParameters(*getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
 
     auto& hsne = _hierarchy.getHsne();
+    hsne.hierarchy().clear();
 
     unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
     hsne.setDimensionality(numEnabledDimensions);
 
-    hsne.hierarchy().clear();
-    int numScales = variantMap["numberScales"].toInt();
+    variantMapMustContain(variantMap, "numberScales");
+    const int numScales = variantMap["numberScales"].toInt();
+
+    {
+        auto scaleMap = variantMap["Scale Data 0"].toMap();
+        auto test = scaleMap["Transition 0 Row 0 Data"].toByteArray();
+        PairVector in;
+        deserializePairVector(test, in);
+    }
 
     for (int numScale = 0; numScale < numScales; numScale++)
     {
         hsne.hierarchy().push_back(typename Hsne::Scale());
         auto& scale = hsne.scale(numScale);
 
-        auto scaleName = "Raw Data " + std::to_string(numScale);
-        const auto scaleMap = variantMap[scaleName.c_str()].toInt();
+        auto scaleName = "Scale Data " + std::to_string(numScale);
+        variantMapMustContain(variantMap, scaleName.c_str());
+        const auto scaleMap = variantMap[scaleName.c_str()].toMap();
 
-        auto numRowsTransEntry = "Num Rows Trans" + std::to_string(numScale);
-        size_t numRowsTrans = static_cast<size_t>(variantMap[numRowsTransEntry.c_str()].toInt());
+        auto numRowsTransEntry = "Num Rows Trans " + std::to_string(numScale);
+        variantMapMustContain(scaleMap, numRowsTransEntry.c_str());
+        size_t numRowsTrans = static_cast<size_t>(scaleMap[numRowsTransEntry.c_str()].toInt());
         
         // transition matrix
         scale._transition_matrix.resize(numRowsTrans);
@@ -428,58 +438,53 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
             if (row % 1000 == 0)
                 qDebug() << "HsneAnalysisPlugin::fromVariantMap: transition matrix " << row << " of " << numRowsTrans;
 
-            auto columnSizeEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Column Size";
-            auto dataEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Data";
+            auto dataEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Name";
+            auto sizeEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Size";
 
-            size_t numCols = static_cast<size_t>(variantMap[columnSizeEntry.c_str()].toInt());
-            const auto colData = variantMap[dataEntry.c_str()].toMap();
+            variantMapMustContain(scaleMap, dataEntry.c_str());
+            variantMapMustContain(scaleMap, sizeEntry.c_str());
 
-            std::vector<std::pair<uint32_t, float>> dataVec;
-            populateDataBufferFromVariantMap(colData, (char*)dataVec.data());
+            const auto dataSize = static_cast<size_t>(scaleMap[sizeEntry.c_str()].toInt());
+            QByteArray dataBytes;
+            dataBytes.resize(dataSize);
 
-            scale._transition_matrix[row].memory() = std::move(dataVec);
+            const auto loadPath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + scaleMap[dataEntry.c_str()].toString());
+            loadRawDataFromBinaryFile(dataBytes.data(), dataSize, loadPath);
+
+            deserializePairVector(dataBytes, scale._transition_matrix[row].memory());
         }
+
+        auto populateData = [&scaleMap, numScale](auto& vec, const std::string& name) {
+            const auto dataEntry = name + " " + std::to_string(numScale);
+            const auto sizeEntry = name + "Size " + std::to_string(numScale);
+
+            variantMapMustContain(scaleMap, dataEntry.c_str());
+            variantMapMustContain(scaleMap, sizeEntry.c_str());
+
+            const auto data = scaleMap[dataEntry.c_str()].toMap();
+            const auto dataSize = static_cast<size_t>(scaleMap[sizeEntry.c_str()].toInt());
+
+            vec.clear();
+            vec.resize(dataSize);
+            populateDataBufferFromVariantMap(data, (char*)vec.data());
+        };
 
         // landmarks to original data 
-        {
-            auto landmarkToOrigEntry = "landmarkToOrig " + std::to_string(numScale);
-            const auto data = variantMap[landmarkToOrigEntry.c_str()].toMap();
-            std::vector<uint32_t> dataVec;
-            populateDataBufferFromVariantMap(data, (char*)dataVec.data());
-            scale._landmark_to_original_data_idx = std::move(dataVec);
-        }
+        populateData(scale._landmark_to_original_data_idx, "landmarkToOrig");
 
         // landmarks to previous scale 
-        {
-            auto landmarkToPrevEntry = "landmarkToPrev " + std::to_string(numScale);
-            const auto data = variantMap[landmarkToPrevEntry.c_str()].toMap();
-            std::vector<uint32_t> dataVec;
-            populateDataBufferFromVariantMap(data, (char*)dataVec.data());
-            scale._landmark_to_previous_scale_idx = std::move(dataVec);
-        }
+        populateData(scale._landmark_to_previous_scale_idx, "landmarkToPrev");
 
-        // landmark weights 
-        {
-            auto landmarkWeightEntry = "landmarkWeight " + std::to_string(numScale);
-            const auto data = variantMap[landmarkWeightEntry.c_str()].toMap();
-            std::vector<float> dataVec;
-            populateDataBufferFromVariantMap(data, (char*)dataVec.data());
-            scale._landmark_weight = std::move(dataVec);
-        }
+        // landmark weights
+        populateData(scale._landmark_weight, "landmarkWeight");
 
         // previous scale to current scale landmarks 
-        {
-            auto previousToIdxEntry = "previousToIdx " + std::to_string(numScale);
-            const auto data = variantMap[previousToIdxEntry.c_str()].toMap();
-            std::vector<int32_t> dataVec;
-            populateDataBufferFromVariantMap(data, (char*)dataVec.data());
-            scale._previous_scale_to_landmark_idx = std::move(dataVec);
-        }
+        populateData(scale._previous_scale_to_landmark_idx, "previousToIdx");
 
         // area of influence 
-
         auto numRowsAoIEntry = "Num Rows AoI " + std::to_string(numScale);
-        size_t numRowsAoI = static_cast<size_t>(variantMap[numRowsAoIEntry.c_str()].toInt());
+        variantMapMustContain(scaleMap, numRowsAoIEntry.c_str());
+        size_t numRowsAoI = static_cast<size_t>(scaleMap[numRowsAoIEntry.c_str()].toInt());
 
         scale._area_of_influence.resize(numRowsAoI);
 
@@ -488,19 +493,31 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
             if (row % 1000 == 0)
                 qDebug() << "HsneAnalysisPlugin::fromVariantMap: area of influence " << row << " of " << numRowsAoI;
 
-            auto columnSizeEntry = "AoI " + std::to_string(numScales) + " Row " + std::to_string(row) + "Column Size";
             auto dataEntry = "AoI " + std::to_string(numScales) + " Row " + std::to_string(row) + " Data";
 
-            size_t numCols = static_cast<size_t>(variantMap[columnSizeEntry.c_str()].toInt());
-            const auto colData = variantMap[dataEntry.c_str()].toMap();
+            variantMapMustContain(scaleMap, dataEntry.c_str());
+            const auto colData = scaleMap[dataEntry.c_str()].toMap();
 
             std::vector<std::pair<uint32_t, float>> dataVec;
             populateDataBufferFromVariantMap(colData, (char*)dataVec.data());
-
+            // TODO: this prob also has to change
             scale._area_of_influence[row].memory() = std::move(dataVec);
         }
-
     }
+
+    // Influence Hierarchy
+    variantMapMustContain(variantMap, "influenceHierarchySize");
+    variantMapMustContain(variantMap, "InfluenceHierarchy");
+
+    const int influenceHierarchySize = variantMap["influenceHierarchySize"].toInt();
+    const auto serializedNestedVector = variantMap["InfluenceHierarchy"].toByteArray();
+
+    std::vector<std::vector<std::vector<unsigned int>>>& influenceHierarchy = _hierarchy.getInfluenceHierarchy().getMap();
+    deserializeNestedVector(serializedNestedVector, influenceHierarchy);
+
+    assert(influenceHierarchy.size() == influenceHierarchySize);
+
+    qDebug() << "HsneAnalysisPlugin::fromVariantMap: Finished";
 }
 
 QVariantMap HsneAnalysisPlugin::toVariantMap() const
@@ -526,7 +543,7 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
         qDebug() << "HsneAnalysisPlugin::toVariantMap: transition matrix";
         {
             auto numRowsTrans = scale._transition_matrix.size();
-            auto numRowsTransEntry = "Num Rows Trans" + std::to_string(numScale);
+            auto numRowsTransEntry = "Num Rows Trans " + std::to_string(numScale);
             scaleData[numRowsTransEntry.c_str()] = numRowsTrans;
 
             for (size_t row = 0; row < numRowsTrans; row++)
@@ -534,45 +551,60 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
                 if (row % 1000 == 0)
                     qDebug() << "HsneAnalysisPlugin::toVariantMap: transition matrix " << row << " of " << numRowsTrans;
 
-                auto dataEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Data";
-                scaleData[dataEntry.c_str()] = serializePairVector(scale._transition_matrix[row].memory());
+                auto dataEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Name";
+                auto sizeEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Size";
+
+                auto pairs = serializePairVector(scale._transition_matrix[row].memory());
+
+                const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
+                const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName);
+
+                // Save the raw data to binary file
+                saveRawDataToBinaryFile(pairs.constData(), pairs.size(), filePath);
+
+                scaleData[dataEntry.c_str()] = fileName;
+                scaleData[sizeEntry.c_str()] = pairs.size();
+
+                // This works:
+                //auto out = serializePairVector(scale._transition_matrix[row].memory());
+                //PairVector in;
+                //deserializePairVector(out, in);
+
+                // This works:
+                //auto test = scaleData[dataEntry.c_str()].toByteArray();
+                //PairVector in;
+                //deserializePairVector(test, in);
             }
         }
 
+        auto dataToMap = [&scaleData, numScale](auto& vec, const std::string& name) {
+            using T = typename std::remove_reference<decltype(vec)>::type::value_type;
+
+            const auto dataEntry = name + " " + std::to_string(numScale);
+            const auto sizeEntry = name + "Size " + std::to_string(numScale);
+
+            scaleData[sizeEntry.c_str()] = vec.size();
+            scaleData[dataEntry.c_str()] = rawDataToVariantMap((char*)vec.data(), vec.size() * sizeof(T), true);
+            };
+
         // landmarks to original data 
-        {
-            const std::vector<uint32_t>& landmarkToOrig = scale._landmark_to_original_data_idx;
-            auto landmarkToOrigEntry = "landmarkToOrig " + std::to_string(numScale);
-            scaleData[landmarkToOrigEntry.c_str()] = rawDataToVariantMap((char*)landmarkToOrig.data(), landmarkToOrig.size() * sizeof(uint32_t), true);
-        }
+        dataToMap(scale._landmark_to_original_data_idx, "landmarkToOrig");
 
         // landmarks to previous scale 
-        {
-            const std::vector<uint32_t>& landmarkToPrev = scale._landmark_to_previous_scale_idx;
-            auto landmarkToPrevEntry = "landmarkToPrev " + std::to_string(numScale);
-            scaleData[landmarkToPrevEntry.c_str()] = rawDataToVariantMap((char*)landmarkToPrev.data(), landmarkToPrev.size() * sizeof(uint32_t), true);
-        }
+        dataToMap(scale._landmark_to_previous_scale_idx, "landmarkToPrev");
 
         // landmark weights 
-        {
-            const std::vector<float>& landmarkWeight = scale._landmark_weight;
-            auto landmarkWeightEntry = "landmarkWeight " + std::to_string(numScale);
-            scaleData[landmarkWeightEntry.c_str()] = rawDataToVariantMap((char*)landmarkWeight.data(), landmarkWeight.size() * sizeof(float), true);
-        }
+        dataToMap(scale._landmark_weight, "landmarkWeight");
 
         // previous scale to current scale landmarks 
-        {
-            const std::vector<int32_t>& previousToIdx = scale._previous_scale_to_landmark_idx;
-            auto previousToIdxEntry = "previousToIdx " + std::to_string(numScale);
-            scaleData[previousToIdxEntry.c_str()] = rawDataToVariantMap((char*)previousToIdx.data(), previousToIdx.size() * sizeof(int32_t), true);
-        }
+        dataToMap(scale._previous_scale_to_landmark_idx, "previousToIdx");
 
         // area of influence 
         {
             qDebug() << "HsneAnalysisPlugin::toVariantMap: area of influence";
             auto numRowsAoI = scale._area_of_influence.size();
 
-            auto numRowsAoIEntry = "Num Rows AoI" + std::to_string(numScale);
+            auto numRowsAoIEntry = "Num Rows AoI " + std::to_string(numScale);
             scaleData[numRowsAoIEntry.c_str()] = numRowsAoI;
 
             for (size_t row = 0; row < numRowsAoI; row++)
@@ -586,18 +618,22 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
             }
         }
 
-        auto mapName = "Raw Data " + std::to_string(numScale);
-        variantMap.insert({ { mapName.c_str(), QVariant::fromValue(scaleData)} });
+        auto mapName = "Scale Data " + std::to_string(numScale);
+        variantMap[mapName.c_str()] = scaleData;
     }
+
+    // This works
+    //auto scaleMap = variantMap["Scale Data 0"].toMap();
+    //auto test = scaleMap["Transition 0 Row 0 Data"].toByteArray();
+    //PairVector in;
+    //deserializePairVector(test, in);
 
     // Influence Hierarchy
     qDebug() << "HsneAnalysisPlugin::toVariantMap: Influence Hierarchy";
     {
-        //QVariantMap influenceHierarchyMap;
-        const std::vector < std::vector<std::vector<unsigned int>>>& influenceHierarchy = _hierarchy.getInfluenceHierarchy().getMap();
+        const std::vector<std::vector<std::vector<unsigned int>>>& influenceHierarchy = _hierarchy.getInfluenceHierarchy().getMap();
 
-        variantMap.insert({ {"influenceHierarchySize", QVariant::fromValue(influenceHierarchy.size())} });
-
+        variantMap["influenceHierarchySize"] = QVariant::fromValue(influenceHierarchy.size());
         variantMap["InfluenceHierarchy"] = serializeNestedVector(influenceHierarchy);
     }
 

@@ -69,6 +69,9 @@ private:
     
     void copyEmbeddingOutput();
 
+    void resetThread();
+
+private:
     /** Parameters for the execution of the similarity computation and gradient descent */
     TsneParameters _parameters;
 

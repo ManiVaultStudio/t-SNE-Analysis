@@ -61,6 +61,11 @@ void TsneWorker::changeThread(QThread* targetThread)
     _offscreenBuffer->moveToThread(targetThread);
 }
 
+void TsneWorker::resetThread()
+{
+    changeThread(QCoreApplication::instance()->thread());
+}
+
 int TsneWorker::getNumIterations() const
 {
     return _currentIteration + 1;
@@ -255,14 +260,14 @@ void TsneWorker::compute()
  
     qDebug() << "t-SNE total compute time: " << t / 1000 << " seconds.";
 
-    changeThread(QCoreApplication::instance()->thread());
-
     if (_shouldStop)
         _tasks->getComputeGradientDescentTask().setAborted();
     else
         _tasks->getComputeGradientDescentTask().setFinished();
 
     _parentTask->setFinished();
+
+    resetThread();
 }
 
 void TsneWorker::continueComputation(int iterations)
@@ -282,6 +287,8 @@ void TsneWorker::continueComputation(int iterations)
     }
 
     _parentTask->setFinished();
+
+    resetThread();
 }
 
 void TsneWorker::stop()
@@ -332,6 +339,11 @@ void TsneAnalysis::startComputation(TsneParameters parameters, /*const*/ std::ve
 
 void TsneAnalysis::continueComputation(int iterations)
 {
+    if (_tsneWorker == nullptr)
+        return;
+
+    _tsneWorker->changeThread(&_workerThread);
+
     emit continueWorker(iterations);
 }
 

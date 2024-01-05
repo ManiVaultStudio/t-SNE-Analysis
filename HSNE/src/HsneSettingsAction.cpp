@@ -88,11 +88,10 @@ void HsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
     variantMapMustContain(variantMap, "advancedHsneSettings");
     variantMapMustContain(variantMap, "tsneSettings");
     variantMapMustContain(variantMap, "topLevelScale");
-    variantMapMustContain(variantMap, "hsneParameters");
 
+    _tsneSettingsAction.fromVariantMap(variantMap["tsneSettings"].toMap());
     _generalHsneSettingsAction.fromVariantMap(variantMap["generalHsneSettings"].toMap());
     _advancedHsneSettingsAction.fromVariantMap(variantMap["advancedHsneSettings"].toMap());
-    _tsneSettingsAction.fromVariantMap(variantMap["tsneSettings"].toMap());
     _topLevelScaleAction.fromVariantMap(variantMap["topLevelScale"].toMap());
     
     _hsneParameters.setKnnLibrary(static_cast<hdi::dr::knn_library>(variantMap["KnnLibrary"].toInt()));
@@ -118,12 +117,10 @@ QVariantMap HsneSettingsAction::toVariantMap() const
 
     QVariantMap variantMap = GroupAction::toVariantMap();
 
+    _tsneSettingsAction.insertIntoVariantMap(variantMap);
     _generalHsneSettingsAction.insertIntoVariantMap(variantMap);
     _advancedHsneSettingsAction.insertIntoVariantMap(variantMap);
     _topLevelScaleAction.insertIntoVariantMap(variantMap);
-    _tsneSettingsAction.insertIntoVariantMap(variantMap);
-
-    QVariantMap settingsMap = { { "hsneParameters", QUuid::createUuid().toString(QUuid::WithoutBraces) } };
 
     variantMap.insert({ { "KnnLibrary", QVariant::fromValue(static_cast<int>(_hsneParameters.getKnnLibrary())) } });
     variantMap.insert({ { "KnnMetric", QVariant::fromValue(static_cast<int>(_hsneParameters.getKnnMetric())) } });
