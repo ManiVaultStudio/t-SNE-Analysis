@@ -1,6 +1,7 @@
 #pragma once
 
-#include "actions/Actions.h"
+#include "actions/IntegralAction.h"
+#include "actions/OptionAction.h"
 
 #include "TsneComputationAction.h"
 

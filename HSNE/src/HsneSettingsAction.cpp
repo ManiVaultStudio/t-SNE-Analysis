@@ -1,4 +1,5 @@
 #include "HsneSettingsAction.h"
+
 #include "HsneAnalysisPlugin.h"
 
 using namespace mv::gui;

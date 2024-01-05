@@ -1,10 +1,10 @@
 #pragma once
 
-#include "HsneParameters.h"
-#include "TsneParameters.h"
-#include "GeneralHsneSettingsAction.h"
 #include "AdvancedHsneSettingsAction.h"
+#include "GeneralHsneSettingsAction.h"
+#include "HsneParameters.h"
 #include "HsneScaleAction.h"
+#include "TsneParameters.h"
 #include "TsneSettingsAction.h"
 
 using namespace mv::gui;
