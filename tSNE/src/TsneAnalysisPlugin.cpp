@@ -37,7 +37,7 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    setOutputDataset(_core->createDerivedDataset("TSNE Embedding", getInputDataset(), getInputDataset()));
+    setOutputDataset(mv::core()->createDerivedDataset("TSNE Embedding", getInputDataset(), getInputDataset()));
 
     // Get input/output datasets
     auto inputDataset  = getInputDataset<Points>();
