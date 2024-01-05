@@ -183,7 +183,9 @@ void HsneScaleAction::refine()
         }
 
         // Create HSNE scale subset
-        auto hsneScaleSubset = _input->createSubsetFromSelection("hsne_scale", _input, false);
+        auto selectionHelperCount = _input->getProperty("selectionHelperCount").toInt();
+        _input->setProperty("selectionHelperCount", ++selectionHelperCount);
+        auto hsneScaleSubset = _input->createSubsetFromSelection(QString("hsne_selection_helper_%1").arg(selectionHelperCount), _input, /* visible = */ false);
 
         // And the derived data for the embedding
         _refineEmbedding = Application::core()->createDerivedDataset<Points>(QString("%1_embedding").arg(_input->text()), hsneScaleSubset, _embedding);
