@@ -2,7 +2,7 @@
 #include "HsneParameters.h"
 #include "HsneScaleAction.h"
 
-#include "PointData/InfoAction.h"
+#include <PointData/InfoAction.h>
 #include <PointData/PointData.h>
 
 #include <actions/PluginTriggerAction.h>
@@ -294,127 +294,6 @@ void HsneAnalysisPlugin::continueComputation()
     _hsneSettingsAction->getTsneSettingsAction().getComputationAction().getRunningAction().setChecked(true);
 
     _tsneAnalysis.continueComputation(_hsneSettingsAction->getTsneSettingsAction().getTsneParameters().getNumIterations());
-}
-
-typedef std::vector<unsigned int> InnerVector;
-typedef std::vector<InnerVector> MiddleVector;
-typedef std::vector<MiddleVector> OuterVector;
-
-static QByteArray serializeNestedVector(const OuterVector& inputVector)
-{
-    QByteArray byteArray;
-    QDataStream stream(&byteArray, QIODevice::WriteOnly);
-
-    // Serialize the vector
-    stream << static_cast<quint32>(inputVector.size()); // Store the size of the outer vector
-
-    for (const auto& middleVector : inputVector) {
-        stream << static_cast<quint32>(middleVector.size()); // Store the size of the middle vector
-
-        for (const auto& innerVector : middleVector) {
-            stream << static_cast<quint32>(innerVector.size()); // Store the size of the inner vector
-
-            for (const auto& value : innerVector) {
-                stream << value;
-            }
-        }
-    }
-
-    return byteArray;
-}
-
-static void deserializeNestedVector(const QByteArray& byteArray, OuterVector& result)
-{
-    QDataStream stream(byteArray);
-
-    // Deserialize the vector
-    quint32 outerSize;
-    stream >> outerSize;
-
-    for (quint32 i = 0; i < outerSize; ++i) {
-        MiddleVector middleVector;
-
-        quint32 middleSize;
-        stream >> middleSize;
-
-        for (quint32 j = 0; j < middleSize; ++j) {
-            InnerVector innerVector;
-
-            quint32 valueSize;
-            stream >> valueSize;
-
-            for (quint32 k = 0; k < valueSize; ++k) {
-                unsigned int value;
-                stream >> value;
-                innerVector.push_back(value);
-            }
-
-            middleVector.push_back(innerVector);
-        }
-
-        result.push_back(middleVector);
-    }
-}
-
-typedef std::pair<uint, float> PairUIntFloat;
-typedef std::vector<PairUIntFloat> PairVector;
-
-static QByteArray serializePairVector(const PairVector& inputVector)
-{
-    QByteArray byteArray;
-    QDataStream stream(&byteArray, QIODevice::WriteOnly);
-
-    // Serialize the vector
-    stream << static_cast<quint32>(inputVector.size()); // Store the size of the vector
-
-    for (const auto& pair : inputVector) {
-        stream << static_cast<quint32>(pair.first);
-        stream << pair.second;
-    }
-
-    return byteArray;
-}
-
-static std::pair<std::vector<uint>, std::vector<float>> serializePairs(const PairVector& inputVector)
-{
-    std::vector<uint> uintVector;
-    std::vector<float> floatVector;
-
-    for (const auto& pair : inputVector) {
-        uintVector.push_back(pair.first);
-        floatVector.push_back(pair.second);
-    }
-
-    return std::make_pair(uintVector, floatVector);
-}
-
-static void deserializePairVector(const QByteArray& byteArray, PairVector& result)
-{
-    QDataStream stream(byteArray);
-
-    // Deserialize the vector
-    quint32 size;
-    stream >> size;
-
-    for (quint32 i = 0; i < size; ++i) {
-        PairUIntFloat pair;
-        stream >> pair.first;
-        stream >> pair.second;
-        result.push_back(pair);
-    }
-}
-
-static PairVector deserializePairs(const std::vector<uint>& uVec, const std::vector<float>& fVec)
-{
-    // Ensure both vectors have the same size
-    assert(uVec.size() == fVec.size());
-
-    PairVector pairs;
-    for (size_t i = 0; i < uVec.size(); ++i) {
-        pairs.emplace_back(uVec[i], fVec[i]);
-    }
-
-    return pairs;
 }
 
 void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)

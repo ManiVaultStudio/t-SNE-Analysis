@@ -15,11 +15,6 @@
 
 class OffscreenBuffer;
 
-namespace mv
-{
-    class Task;
-}
-
 class TsneWorkerTasks : public QObject
 {
 public:
