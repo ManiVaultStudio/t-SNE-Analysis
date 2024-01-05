@@ -128,7 +128,7 @@ public:
     /** Load HSNE hierarchy from disk */
     bool loadCache(const Hsne::Parameters& internalParams, hdi::utils::CoutLog& log);
 
-private:
+protected:
     /** Save HsneHierarchy to disk */
     void saveCacheHsneHierarchy(std::string fileName) const;
     /** Save InfluenceHierarchy to disk */
@@ -157,4 +157,5 @@ private:
     Path                    _cachePathFileName;                    /** cachePath() + data name */
     QString                 _inputDataName;
 
+    friend class HsneAnalysisPlugin;
 };
