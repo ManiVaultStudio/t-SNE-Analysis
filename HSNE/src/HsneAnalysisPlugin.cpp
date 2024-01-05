@@ -8,9 +8,9 @@
 #include <actions/PluginTriggerAction.h>
 #include <util/Icon.h>
 
-#include <QDebug>
 #include <QByteArray>
 #include <QDataStream>
+#include <QDebug>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
 
@@ -35,8 +35,24 @@ HsneAnalysisPlugin::~HsneAnalysisPlugin()
 
 void HsneAnalysisPlugin::init()
 {
-    // Created derived dataset for embedding
-    setOutputDataset(_core->createDerivedDataset("HSNE Embedding", getInputDataset(), getInputDataset()));
+    // Get input/output datasets
+    auto inputDataset = getInputDataset<Points>();
+
+    // Create derived dataset for embedding
+    if (!outputDataInit())
+    {
+        auto newOutput = Dataset<Points>(_core->createDerivedDataset("HSNE Embedding", inputDataset, inputDataset));
+        setOutputDataset(newOutput);
+
+        const size_t numEmbeddingDimensions = 2;
+        std::vector<float> initialData;
+        initialData.resize(numEmbeddingDimensions * inputDataset->getNumPoints());
+
+        newOutput->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
+        events().notifyDatasetDataChanged(newOutput);
+    }
+    
+    auto outputDataset = getOutputDataset<Points>();
 
     // Create new HSNE settings actions
     _hsneSettingsAction = new HsneSettingsAction(this);
@@ -44,26 +60,15 @@ void HsneAnalysisPlugin::init()
     // Collapse the TSNE settings by default
     _hsneSettingsAction->getTsneSettingsAction().getGeneralTsneSettingsAction().collapse();
 
-    // Get input/output datasets
-    auto inputDataset  = getInputDataset<Points>();
-    auto outputDataset = getOutputDataset<Points>();
-
-    outputDataset->getDataHierarchyItem().select();
-    outputDataset->_infoAction->collapse();
-
     _dataPreparationTask.setParentTask(&outputDataset->getTask());
 
     // Set the default number of hierarchy scales based on number of points
     int numHierarchyScales = std::max(1L, std::lround(log10(inputDataset->getNumPoints())) - 2);
     _hsneSettingsAction->getGeneralHsneSettingsAction().getNumScalesAction().setValue(numHierarchyScales);
 
-    std::vector<float> initialData;
-
-    const size_t numEmbeddingDimensions = 2;
-
-    initialData.resize(numEmbeddingDimensions * inputDataset->getNumPoints());
-
-    outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
+    // Manage UI elements attached to output data set
+    outputDataset->getDataHierarchyItem().select();
+    outputDataset->_infoAction->collapse();
 
     outputDataset->addAction(_hsneSettingsAction->getGeneralHsneSettingsAction());
     outputDataset->addAction(_hsneSettingsAction->getAdvancedHsneSettingsAction());
@@ -165,12 +170,12 @@ void HsneAnalysisPlugin::init()
         // NOTE: Commented out because it causes a stack overflow after a couple of iterations
         //QCoreApplication::processEvents();
 
-        events().notifyDatasetDataChanged(getOutputDataset());
+        events().notifyDatasetDataChanged(embedding);
     });
 
     updateComputationAction();
 
-    auto& datasetTask = getOutputDataset()->getTask();
+    auto& datasetTask = outputDataset->getTask();
 
     datasetTask.setName("Compute HSNE");
     datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
@@ -180,7 +185,9 @@ void HsneAnalysisPlugin::init()
 
 void HsneAnalysisPlugin::computeTopLevelEmbedding()
 {
-    getOutputDataset()->getTask().setRunning();
+    auto embeddingDataset = getOutputDataset<Points>();
+
+    embeddingDataset->getTask().setRunning();
 
     _dataPreparationTask.setRunning();
 
@@ -216,8 +223,6 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     mv::Dataset<Points> subset = inputDataset->createSubsetFromSelection(QString("hsne_scale_%1").arg(topScaleIndex), nullptr, false);
 
     selectionDataset->indices.clear();
-
-    auto embeddingDataset = getOutputDataset<Points>();
     
     embeddingDataset->setSourceDataSet(subset);
     _hsneSettingsAction->getTopLevelScaleAction().setScale(topScaleIndex);
@@ -604,6 +609,8 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
 
         variantMap["InfluenceHierarchy"] = serializeNestedVector(influenceHierarchy);
     }
+
+    qDebug() << "HsneAnalysisPlugin::toVariantMap: Finished";
 
     return variantMap;
 }
