@@ -8,6 +8,10 @@
 #include <actions/PluginTriggerAction.h>
 #include <util/Icon.h>
 
+#include "hdi/dimensionality_reduction/hierarchical_sne.h"
+
+#include <fstream>
+
 #include <QByteArray>
 #include <QDataStream>
 #include <QDebug>
@@ -551,111 +555,25 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
 
     _hsneSettingsAction->insertIntoVariantMap(variantMap);
 
-    // Handle HSNE Hierarchy
     auto numScales = _hierarchy.getNumScales();
     variantMap["numberScales"] = numScales;
 
-
-    for(int numScale = 0; numScale < numScales; numScale++)
+    // Handle HSNE Hierarchy
     {
-        qDebug() << "HsneAnalysisPlugin::toVariantMap: scale " << numScale;
+        const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
+        const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
 
-        const auto& scale = _hierarchy.getScale(numScale);
-        QVariantMap scaleData;
-
-        // transition matrix
-        qDebug() << "HsneAnalysisPlugin::toVariantMap: transition matrix";
-        {
-            auto numRowsTrans = scale._transition_matrix.size();
-            auto numRowsTransEntry = "Num Rows Trans " + std::to_string(numScale);
-            scaleData[numRowsTransEntry.c_str()] = numRowsTrans;
-
-            for (size_t row = 0; row < numRowsTrans; row++)
-            {
-                if (row % 1000 == 0)
-                    qDebug() << "HsneAnalysisPlugin::toVariantMap: transition matrix " << row << " of " << numRowsTrans;
-
-                auto dataIEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Uint";
-                auto dataFEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Float";
-                auto sizeEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Size";
-
-                const auto separatedPairs = serializePairs(scale._transition_matrix[row].memory());
-                const auto numPairs = separatedPairs.first.size();
-
-                scaleData[dataIEntry.c_str()] = rawDataToVariantMap((char*)separatedPairs.first.data(), numPairs * sizeof(uint), true);
-                scaleData[dataFEntry.c_str()] = rawDataToVariantMap((char*)separatedPairs.second.data(), numPairs * sizeof(float), true);
-                scaleData[sizeEntry.c_str()] = numPairs;
-
-                // This works:
-                //auto out = serializePairVector(scale._transition_matrix[row].memory());
-                //PairVector in;
-                //deserializePairVector(out, in);
-
-                // This works:
-                //auto test = scaleData[dataEntry.c_str()].toByteArray();
-                //PairVector in;
-                //deserializePairVector(test, in);
-            }
-        }
-
-        auto dataToMap = [&scaleData, numScale](auto& vec, const std::string& name) {
-            using T = typename std::remove_reference<decltype(vec)>::type::value_type;
-
-            const auto dataEntry = name + " " + std::to_string(numScale);
-            const auto sizeEntry = name + "Size " + std::to_string(numScale);
-
-            scaleData[sizeEntry.c_str()] = vec.size();
-            scaleData[dataEntry.c_str()] = rawDataToVariantMap((char*)vec.data(), vec.size() * sizeof(T), true);
-            };
-
-        // landmarks to original data 
-        dataToMap(scale._landmark_to_original_data_idx, "landmarkToOrig");
-
-        // landmarks to previous scale 
-        dataToMap(scale._landmark_to_previous_scale_idx, "landmarkToPrev");
-
-        // landmark weights 
-        dataToMap(scale._landmark_weight, "landmarkWeight");
-
-        // previous scale to current scale landmarks 
-        dataToMap(scale._previous_scale_to_landmark_idx, "previousToIdx");
-
-        // area of influence 
-        {
-            qDebug() << "HsneAnalysisPlugin::toVariantMap: area of influence";
-            auto numRowsAoI = scale._area_of_influence.size();
-
-            auto numRowsAoIEntry = "Num Rows AoI " + std::to_string(numScale);
-            scaleData[numRowsAoIEntry.c_str()] = numRowsAoI;
-
-            for (size_t row = 0; row < numRowsAoI; row++)
-            {
-                if (row % 1000 == 0)
-                    qDebug() << "HsneAnalysisPlugin::toVariantMap: area of influence " << row << " of " << numRowsAoI;
-
-
-                auto dataEntry = "AoI " + std::to_string(numScale) + " Row " + std::to_string(row) + " Data";
-                scaleData[dataEntry.c_str()] = serializePairVector(scale._area_of_influence[row].memory());
-            }
-        }
-
-        auto mapName = "Scale Data " + std::to_string(numScale);
-        variantMap[mapName.c_str()] = scaleData;
+        _hierarchy.saveCacheHsneHierarchy(filePath);    // crash here during file close - why
+        variantMap["HsneHierarchy"] = fileName;
     }
 
-    // This works
-    //auto scaleMap = variantMap["Scale Data 0"].toMap();
-    //auto test = scaleMap["Transition 0 Row 0 Data"].toByteArray();
-    //PairVector in;
-    //deserializePairVector(test, in);
-
-    // Influence Hierarchy
-    qDebug() << "HsneAnalysisPlugin::toVariantMap: Influence Hierarchy";
+    // Handle HSNE InfluenceHierarchy
     {
-        const std::vector<std::vector<std::vector<unsigned int>>>& influenceHierarchy = _hierarchy.getInfluenceHierarchy().getMap();
+        const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
+        const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
 
-        variantMap["influenceHierarchySize"] = QVariant::fromValue(influenceHierarchy.size());
-        variantMap["InfluenceHierarchy"] = serializeNestedVector(influenceHierarchy);
+        _hierarchy.saveCacheHsneInfluenceHierarchy(filePath, _hierarchy.getInfluenceHierarchy().getMap());
+        variantMap["HsneInfluenceHierarchy"] = fileName;
     }
 
     qDebug() << "HsneAnalysisPlugin::toVariantMap: Finished";
