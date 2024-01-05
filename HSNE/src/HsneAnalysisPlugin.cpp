@@ -371,6 +371,19 @@ static QByteArray serializePairVector(const PairVector& inputVector)
     return byteArray;
 }
 
+static std::pair<std::vector<uint>, std::vector<float>> serializePairs(const PairVector& inputVector)
+{
+    std::vector<uint> uintVector;
+    std::vector<float> floatVector;
+
+    for (const auto& pair : inputVector) {
+        uintVector.push_back(pair.first);
+        floatVector.push_back(pair.second);
+    }
+
+    return std::make_pair(uintVector, floatVector);
+}
+
 static void deserializePairVector(const QByteArray& byteArray, PairVector& result)
 {
     QDataStream stream(byteArray);
@@ -385,6 +398,19 @@ static void deserializePairVector(const QByteArray& byteArray, PairVector& resul
         stream >> pair.second;
         result.push_back(pair);
     }
+}
+
+static PairVector deserializePairs(const std::vector<uint>& uVec, const std::vector<float>& fVec)
+{
+    // Ensure both vectors have the same size
+    assert(uVec.size() == fVec.size());
+
+    PairVector pairs;
+    for (size_t i = 0; i < uVec.size(); ++i) {
+        pairs.emplace_back(uVec[i], fVec[i]);
+    }
+
+    return pairs;
 }
 
 void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
@@ -410,13 +436,6 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     variantMapMustContain(variantMap, "numberScales");
     const int numScales = variantMap["numberScales"].toInt();
 
-    {
-        auto scaleMap = variantMap["Scale Data 0"].toMap();
-        auto test = scaleMap["Transition 0 Row 0 Data"].toByteArray();
-        PairVector in;
-        deserializePairVector(test, in);
-    }
-
     for (int numScale = 0; numScale < numScales; numScale++)
     {
         hsne.hierarchy().push_back(typename Hsne::Scale());
@@ -438,20 +457,25 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
             if (row % 1000 == 0)
                 qDebug() << "HsneAnalysisPlugin::fromVariantMap: transition matrix " << row << " of " << numRowsTrans;
 
-            auto dataEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Name";
+            auto dataIEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Uint";
+            auto dataFEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Float";
             auto sizeEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Size";
 
-            variantMapMustContain(scaleMap, dataEntry.c_str());
+            variantMapMustContain(scaleMap, dataIEntry.c_str());
+            variantMapMustContain(scaleMap, dataFEntry.c_str());
             variantMapMustContain(scaleMap, sizeEntry.c_str());
 
+            const auto dataI = scaleMap[dataIEntry.c_str()].toMap();
+            const auto dataF = scaleMap[dataFEntry.c_str()].toMap();
             const auto dataSize = static_cast<size_t>(scaleMap[sizeEntry.c_str()].toInt());
-            QByteArray dataBytes;
-            dataBytes.resize(dataSize);
 
-            const auto loadPath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + scaleMap[dataEntry.c_str()].toString());
-            loadRawDataFromBinaryFile(dataBytes.data(), dataSize, loadPath);
+            std::vector<uint> dataIVec(dataSize);
+            std::vector<float> dataFVec(dataSize);
 
-            deserializePairVector(dataBytes, scale._transition_matrix[row].memory());
+            populateDataBufferFromVariantMap(dataI, (char*)dataIVec.data());
+            populateDataBufferFromVariantMap(dataF, (char*)dataFVec.data());
+
+            scale._transition_matrix[row].memory() = deserializePairs(dataIVec, dataFVec);
         }
 
         auto populateData = [&scaleMap, numScale](auto& vec, const std::string& name) {
@@ -464,7 +488,6 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
             const auto data = scaleMap[dataEntry.c_str()].toMap();
             const auto dataSize = static_cast<size_t>(scaleMap[sizeEntry.c_str()].toInt());
 
-            vec.clear();
             vec.resize(dataSize);
             populateDataBufferFromVariantMap(data, (char*)vec.data());
         };
@@ -532,6 +555,7 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
     auto numScales = _hierarchy.getNumScales();
     variantMap["numberScales"] = numScales;
 
+
     for(int numScale = 0; numScale < numScales; numScale++)
     {
         qDebug() << "HsneAnalysisPlugin::toVariantMap: scale " << numScale;
@@ -551,19 +575,16 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
                 if (row % 1000 == 0)
                     qDebug() << "HsneAnalysisPlugin::toVariantMap: transition matrix " << row << " of " << numRowsTrans;
 
-                auto dataEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Name";
+                auto dataIEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Uint";
+                auto dataFEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Float";
                 auto sizeEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Size";
 
-                auto pairs = serializePairVector(scale._transition_matrix[row].memory());
+                const auto separatedPairs = serializePairs(scale._transition_matrix[row].memory());
+                const auto numPairs = separatedPairs.first.size();
 
-                const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
-                const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName);
-
-                // Save the raw data to binary file
-                saveRawDataToBinaryFile(pairs.constData(), pairs.size(), filePath);
-
-                scaleData[dataEntry.c_str()] = fileName;
-                scaleData[sizeEntry.c_str()] = pairs.size();
+                scaleData[dataIEntry.c_str()] = rawDataToVariantMap((char*)separatedPairs.first.data(), numPairs * sizeof(uint), true);
+                scaleData[dataFEntry.c_str()] = rawDataToVariantMap((char*)separatedPairs.second.data(), numPairs * sizeof(float), true);
+                scaleData[sizeEntry.c_str()] = numPairs;
 
                 // This works:
                 //auto out = serializePairVector(scale._transition_matrix[row].memory());
