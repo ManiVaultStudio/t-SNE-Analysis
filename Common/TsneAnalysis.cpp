@@ -3,11 +3,11 @@
 #include "hdi/utils/glad/glad.h"
 #include "OffscreenBuffer.h"
 
+#include <cassert>
 #include <vector>
-#include <assert.h>
 
-#include <QDebug>
 #include <QCoreApplication>
+#include <QDebug>
 
 #include "hdi/dimensionality_reduction/tsne_parameters.h"
 #include "hdi/utils/scoped_timers.h"
@@ -25,7 +25,6 @@ TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::M
     _shouldStop(false),
     _parentTask(nullptr),
     _tasks(nullptr)
-    
 {
     // Offscreen buffer must be created in the UI thread because it is a QWindow, afterwards we move it
     _offscreenBuffer = new OffscreenBuffer();
@@ -58,8 +57,6 @@ void TsneWorker::changeThread(QThread* targetThread)
     
     //_task->moveToThread(targetThread);
 
-    
-
     // Move the Offscreen buffer to the processing thread after creating it in the UI Thread
     _offscreenBuffer->moveToThread(targetThread);
 }
@@ -73,7 +70,6 @@ void TsneWorker::setParentTask(mv::Task* parentTask)
 {
     _parentTask = parentTask;
 
-    
     //_tasks->getComputeGradientDescentTask().setGuiScopes({ Task::GuiScope::Foreground });
 }
 
@@ -256,7 +252,10 @@ void TsneWorker::compute()
 
         computeGradientDescent(_parameters.getNumIterations());
     }
+ 
     qDebug() << "t-SNE total compute time: " << t / 1000 << " seconds.";
+
+    changeThread(QCoreApplication::instance()->thread());
 
     if (_shouldStop)
         _tasks->getComputeGradientDescentTask().setAborted();
@@ -377,7 +376,7 @@ void TsneAnalysis::setTask(mv::Task* task)
 void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
 {
     tsneWorker->changeThread(&_workerThread);
-
+    
     // To-Worker signals
     connect(this, &TsneAnalysis::startWorker, tsneWorker, &TsneWorker::compute);
     connect(this, &TsneAnalysis::continueWorker, tsneWorker, &TsneWorker::continueComputation);

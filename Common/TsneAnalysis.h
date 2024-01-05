@@ -1,19 +1,24 @@
 #pragma once
 
-#include "TsneParameters.h"
 #include "TsneData.h"
+#include "TsneParameters.h"
 
-#include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
 #include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h"
+#include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
 
 #include <Task.h>
 
 #include <QThread>
 
-#include <vector>
 #include <string>
+#include <vector>
 
 class OffscreenBuffer;
+
+namespace mv
+{
+    class Task;
+}
 
 class TsneWorkerTasks : public QObject
 {
