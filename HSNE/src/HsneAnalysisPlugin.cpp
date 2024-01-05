@@ -437,114 +437,17 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
     hsne.setDimensionality(numEnabledDimensions);
 
-    variantMapMustContain(variantMap, "numberScales");
-    const int numScales = variantMap["numberScales"].toInt();
+    variantMapMustContain(variantMap, "HsneHierarchy");
+    variantMapMustContain(variantMap, "HsneInfluenceHierarchy");
 
-    for (int numScale = 0; numScale < numScales; numScale++)
-    {
-        hsne.hierarchy().push_back(typename Hsne::Scale());
-        auto& scale = hsne.scale(numScale);
+    hdi::utils::CoutLog log;
+    const auto loadPathHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
+    bool loadedHierarchy = _hierarchy.loadCacheHsneHierarchy(loadPathHierarchy.toStdString(), log);
 
-        auto scaleName = "Scale Data " + std::to_string(numScale);
-        variantMapMustContain(variantMap, scaleName.c_str());
-        const auto scaleMap = variantMap[scaleName.c_str()].toMap();
+    const auto loadPathInfluenceHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
+    bool loadedInfluenceHierarchy = _hierarchy.loadCacheHsneInfluenceHierarchy(loadPathInfluenceHierarchy.toStdString(), _hierarchy.getInfluenceHierarchy().getMap());
 
-        auto numRowsTransEntry = "Num Rows Trans " + std::to_string(numScale);
-        variantMapMustContain(scaleMap, numRowsTransEntry.c_str());
-        size_t numRowsTrans = static_cast<size_t>(scaleMap[numRowsTransEntry.c_str()].toInt());
-        
-        // transition matrix
-        scale._transition_matrix.resize(numRowsTrans);
-
-        for (size_t row = 0; row < numRowsTrans; row++)
-        {
-            if (row % 1000 == 0)
-                qDebug() << "HsneAnalysisPlugin::fromVariantMap: transition matrix " << row << " of " << numRowsTrans;
-
-            auto dataIEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Uint";
-            auto dataFEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Float";
-            auto sizeEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Size";
-
-            variantMapMustContain(scaleMap, dataIEntry.c_str());
-            variantMapMustContain(scaleMap, dataFEntry.c_str());
-            variantMapMustContain(scaleMap, sizeEntry.c_str());
-
-            const auto dataI = scaleMap[dataIEntry.c_str()].toMap();
-            const auto dataF = scaleMap[dataFEntry.c_str()].toMap();
-            const auto dataSize = static_cast<size_t>(scaleMap[sizeEntry.c_str()].toInt());
-
-            std::vector<uint> dataIVec(dataSize);
-            std::vector<float> dataFVec(dataSize);
-
-            populateDataBufferFromVariantMap(dataI, (char*)dataIVec.data());
-            populateDataBufferFromVariantMap(dataF, (char*)dataFVec.data());
-
-            scale._transition_matrix[row].memory() = deserializePairs(dataIVec, dataFVec);
-        }
-
-        auto populateData = [&scaleMap, numScale](auto& vec, const std::string& name) {
-            const auto dataEntry = name + " " + std::to_string(numScale);
-            const auto sizeEntry = name + "Size " + std::to_string(numScale);
-
-            variantMapMustContain(scaleMap, dataEntry.c_str());
-            variantMapMustContain(scaleMap, sizeEntry.c_str());
-
-            const auto data = scaleMap[dataEntry.c_str()].toMap();
-            const auto dataSize = static_cast<size_t>(scaleMap[sizeEntry.c_str()].toInt());
-
-            vec.resize(dataSize);
-            populateDataBufferFromVariantMap(data, (char*)vec.data());
-        };
-
-        // landmarks to original data 
-        populateData(scale._landmark_to_original_data_idx, "landmarkToOrig");
-
-        // landmarks to previous scale 
-        populateData(scale._landmark_to_previous_scale_idx, "landmarkToPrev");
-
-        // landmark weights
-        populateData(scale._landmark_weight, "landmarkWeight");
-
-        // previous scale to current scale landmarks 
-        populateData(scale._previous_scale_to_landmark_idx, "previousToIdx");
-
-        // area of influence 
-        auto numRowsAoIEntry = "Num Rows AoI " + std::to_string(numScale);
-        variantMapMustContain(scaleMap, numRowsAoIEntry.c_str());
-        size_t numRowsAoI = static_cast<size_t>(scaleMap[numRowsAoIEntry.c_str()].toInt());
-
-        scale._area_of_influence.resize(numRowsAoI);
-
-        for (size_t row = 0; row < numRowsAoI; row++)
-        {
-            if (row % 1000 == 0)
-                qDebug() << "HsneAnalysisPlugin::fromVariantMap: area of influence " << row << " of " << numRowsAoI;
-
-            auto dataEntry = "AoI " + std::to_string(numScales) + " Row " + std::to_string(row) + " Data";
-
-            variantMapMustContain(scaleMap, dataEntry.c_str());
-            const auto colData = scaleMap[dataEntry.c_str()].toMap();
-
-            std::vector<std::pair<uint32_t, float>> dataVec;
-            populateDataBufferFromVariantMap(colData, (char*)dataVec.data());
-            // TODO: this prob also has to change
-            scale._area_of_influence[row].memory() = std::move(dataVec);
-        }
-    }
-
-    // Influence Hierarchy
-    variantMapMustContain(variantMap, "influenceHierarchySize");
-    variantMapMustContain(variantMap, "InfluenceHierarchy");
-
-    const int influenceHierarchySize = variantMap["influenceHierarchySize"].toInt();
-    const auto serializedNestedVector = variantMap["InfluenceHierarchy"].toByteArray();
-
-    std::vector<std::vector<std::vector<unsigned int>>>& influenceHierarchy = _hierarchy.getInfluenceHierarchy().getMap();
-    deserializeNestedVector(serializedNestedVector, influenceHierarchy);
-
-    assert(influenceHierarchy.size() == influenceHierarchySize);
-
-    qDebug() << "HsneAnalysisPlugin::fromVariantMap: Finished";
+    qDebug() << "HsneAnalysisPlugin::fromVariantMap: Finished << " << (loadedHierarchy && loadedInfluenceHierarchy);
 }
 
 QVariantMap HsneAnalysisPlugin::toVariantMap() const
@@ -555,16 +458,21 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
 
     _hsneSettingsAction->insertIntoVariantMap(variantMap);
 
-    auto numScales = _hierarchy.getNumScales();
-    variantMap["numberScales"] = numScales;
-
     // Handle HSNE Hierarchy
     {
         const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
         const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
 
-        _hierarchy.saveCacheHsneHierarchy(filePath);    // crash here during file close - why
-        variantMap["HsneHierarchy"] = fileName;
+        std::ofstream saveFile(filePath, std::ios::out | std::ios::binary);
+
+        if (!saveFile.is_open())
+            std::cerr << "Caching failed. File could not be opened. " << std::endl;
+        else
+        {
+            hdi::dr::IO::saveHSNE(_hierarchy.getHsne(), saveFile, nullptr);
+            saveFile.close();
+            variantMap["HsneHierarchy"] = fileName;
+        }
     }
 
     // Handle HSNE InfluenceHierarchy
