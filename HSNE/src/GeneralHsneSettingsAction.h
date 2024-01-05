@@ -1,6 +1,11 @@
 #pragma once
 
-#include "actions/Actions.h"
+#include "actions/GroupAction.h"
+#include "actions/IntegralAction.h"
+#include "actions/OptionAction.h"
+#include "actions/ToggleAction.h"
+#include "actions/TriggerAction.h"
+
 #include "hdi/dimensionality_reduction/knn_utils.h"
 
 using namespace mv::gui;

@@ -503,16 +503,9 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     }
 }
 
-static QList<std::string> saved;
-
 QVariantMap HsneAnalysisPlugin::toVariantMap() const
 {
-    if (saved.contains(this->getId().toStdString()))
-        return {};
-    else
-        saved.push_back(this->getId().toStdString());
-
-    qDebug() << "HsneAnalysisPlugin::toVariantMap: " << saved;
+    qDebug() << "HsneAnalysisPlugin::toVariantMap: Start";
 
     QVariantMap variantMap = AnalysisPlugin::toVariantMap();
 
@@ -543,9 +536,7 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
 
                 auto dataEntry = "Transition " + std::to_string(numScale) + " Row " + std::to_string(row) + " Data";
                 scaleData[dataEntry.c_str()] = serializePairVector(scale._transition_matrix[row].memory());
-
             }
-
         }
 
         // landmarks to original data 
