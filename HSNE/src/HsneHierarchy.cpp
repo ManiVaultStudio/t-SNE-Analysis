@@ -148,7 +148,9 @@ void HsneHierarchy::setDataAndParameters(const Points& inputData, const std::vec
 
         if (inputdataImage.isValid())
         {
-            inputLoadPath = QFileInfo(inputdataImage->getImageFilePaths().first()).dir().absolutePath().toStdString();
+            auto imageFilePath = inputdataImage->getImageFilePaths();
+            if(!imageFilePath.isEmpty())
+                inputLoadPath = QFileInfo(imageFilePath.first()).dir().absolutePath().toStdString();
         }
     }
 
