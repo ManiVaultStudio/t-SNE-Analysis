@@ -1,7 +1,9 @@
 #include "HsneScaleAction.h"
+
+#include "DataHierarchyItem.h"
 #include "HsneHierarchy.h"
 #include "TsneSettingsAction.h"
-#include "DataHierarchyItem.h"
+
 #include <event/Event.h>
 
 #include <event/Event.h>
@@ -118,6 +120,8 @@ QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
 
 void HsneScaleAction::refine()
 {
+    _initializationTask.setRunning();
+
     // Get the selection of points that are to be refined
     auto selection = _embedding->getSelection<Points>();
 
@@ -188,25 +192,22 @@ void HsneScaleAction::refine()
         // Create HSNE scale subset
         auto selectionHelperCount = _input->getProperty("selectionHelperCount").toInt();
         _input->setProperty("selectionHelperCount", ++selectionHelperCount);
-        auto hsneScaleSubset = _input->createSubsetFromSelection(QString("hsne_selection_helper_%1").arg(selectionHelperCount), _input, /* visible = */ false);
+        auto hsneScaleSubset = _input->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), _input, /* visible = */ false);
 
         // And the derived data for the embedding
-        _refineEmbedding = mv::data().createDerivedDataset<Points>(QString("%1_embedding").arg(_input->text()), hsneScaleSubset, _embedding);
+        _refineEmbedding = mv::data().createDerivedDataset<Points>(QString("Hsne scale %1").arg(refinedScaleLevel), hsneScaleSubset, _embedding);
 
-        _refineEmbedding->setText("HSNE Scale");
+        _refineEmbedding->setData(nullptr, 0, 2);
+        events().notifyDatasetDataChanged(_refineEmbedding);
+
         _refineEmbedding->getDataHierarchyItem().select();
 
         auto& datasetTask = _refineEmbedding->getTask();
-
         datasetTask.setName("HSNE scale computation");
         datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
 
         _tsneAnalysis.setTask(&datasetTask);
     }
-
-    _refineEmbedding->setData(nullptr, 0, 2);
-
-    auto hsneScaleSubset = _refineEmbedding->getSourceDataset<Points>();
 
     // Only add a new scale action if the drill scale is higher than data level
     if (refinedScaleLevel > 0)
@@ -218,8 +219,6 @@ void HsneScaleAction::refine()
         _refineEmbedding->addAction(*hsneScaleAction);
     }
 
-    events().notifyDatasetAdded(_refineEmbedding);
-
     ///////////////////////////////////
     // Connect scales by linked data //
     ///////////////////////////////////
@@ -230,13 +229,14 @@ void HsneScaleAction::refine()
         LandmarkMap& landmarkMap = _hsneHierarchy.getInfluenceHierarchy().getMap()[refinedScaleLevel];
 
         mv::SelectionMap mapping;
+        auto& selectionMap = mapping.getMap();
 
         if (_input->isFull())
         {
             for (const unsigned int& scaleIndex : refinedLandmarks)
             {
                 int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
-                mapping.getMap()[bottomLevelIdx] = landmarkMap[scaleIndex];
+                selectionMap[bottomLevelIdx] = landmarkMap[scaleIndex];
             }
         }
         else
@@ -253,17 +253,12 @@ void HsneScaleAction::refine()
                     bottomMap[j] = globalIndices[bottomMap[j]];
                 }
                 int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
-                mapping.getMap()[globalIndices[bottomLevelIdx]] = bottomMap;
+                selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
             }
         }
 
         _refineEmbedding->addLinkedData(_input, mapping);
     }
-
-    _refineEmbedding->getTask().setName("HSNE scale");
-    _refineEmbedding->getDataHierarchyItem().select();
-
-    _initializationTask.setRunning();
 
     // Update embedding points when the TSNE analysis produces new data
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {

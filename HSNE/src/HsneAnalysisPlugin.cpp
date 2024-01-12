@@ -200,7 +200,10 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     // Get the top scale of the HSNE hierarchy
     int topScaleIndex = _hierarchy.getTopScale();
     Hsne::scale_type& topScale = _hierarchy.getScale(topScaleIndex);
-    
+    _hsneSettingsAction->getTopLevelScaleAction().setScale(topScaleIndex);
+
+    _hierarchy.printScaleInfo();
+
     // Number of landmarks on the top scale
     int numLandmarks = topScale.size();
 
@@ -228,24 +231,18 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     // Create the subset and clear the selection
     auto selectionHelperCount = inputDataset->getProperty("selectionHelperCount").toInt();
     inputDataset->setProperty("selectionHelperCount", ++selectionHelperCount);
-    mv::Dataset<Points> subset = inputDataset->createSubsetFromSelection(QString("hsne_selection_helper_%1").arg(selectionHelperCount), inputDataset, /*visible = */ false);
+    mv::Dataset<Points> subset = inputDataset->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), inputDataset, /*visible = */ false);
 
     selectionDataset->indices.clear();
     
     embeddingDataset->setSourceDataSet(subset);
-    _hsneSettingsAction->getTopLevelScaleAction().setScale(topScaleIndex);
-
-    _hierarchy.printScaleInfo();
-
-    // Set t-SNE parameters
-    HsneParameters hsneParameters = _hsneSettingsAction->getHsneParameters();
-    TsneParameters tsneParameters = _hsneSettingsAction->getTsneSettingsAction().getTsneParameters();
 
     // Add linked selection between the upper embedding and the bottom layer
     {
         LandmarkMap& landmarkMap = _hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex];
         
         mv::SelectionMap mapping;
+        auto& selectionMap = mapping.getMap();
 
         if (inputDataset->isFull())
         {
@@ -253,10 +250,8 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
             subset->getGlobalIndices(globalIndices);
 
             for (int i = 0; i < landmarkMap.size(); i++)
-            {
-                int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
-                
-                mapping.getMap()[globalIndices[i]] = landmarkMap[i];
+            {                
+                selectionMap[globalIndices[i]] = landmarkMap[i];
             }
         }
         else
@@ -271,7 +266,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
                     bottomMap[j] = globalIndices[bottomMap[j]];
                 }
                 int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
-                mapping.getMap()[globalIndices[bottomLevelIdx]] = bottomMap;
+                selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
             }
         }
 
@@ -279,6 +274,9 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     }
 
     _dataPreparationTask.setFinished();
+
+    // Set t-SNE parameters
+    TsneParameters tsneParameters = _hsneSettingsAction->getTsneSettingsAction().getTsneParameters();
 
     // Embed data
     _tsneAnalysis.stopComputation();
