@@ -2,6 +2,7 @@
 #include "HsneHierarchy.h"
 #include "TsneSettingsAction.h"
 #include "DataHierarchyItem.h"
+#include <event/Event.h>
 
 #include <event/Event.h>
 
@@ -77,7 +78,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
 
     auto setDatasets = [this]() ->void {
         // Get unique identifier and gui names from all point data sets in the core
-        auto dataSets = mv::data().getAllDatasets(std::vector<mv::DataType> {PointType});
+        auto dataSets = mv::data().getAllDatasets( {PointType} );
 
         // Assign found dataset(s)
         _datasetPickerAction.setDatasets(dataSets);
@@ -285,12 +286,12 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
     GroupAction::fromVariantMap(variantMap);
 
     // Handle data sets
-    _input = mv::data().getSet(variantMap["inputGUID"].toString());
-    _embedding = mv::data().getSet(variantMap["embeddingGUID"].toString());
+    _input = mv::data().getDataset(variantMap["inputGUID"].toString());
+    _embedding = mv::data().getDataset(variantMap["embeddingGUID"].toString());
 
     QString refineEmbeddingGUID = variantMap["refineEmbeddingGUID"].toString();
     if(refineEmbeddingGUID != "")
-        _refineEmbedding = mv::data().getSet(refineEmbeddingGUID);
+        _refineEmbedding = mv::data().getDataset(refineEmbeddingGUID);
 
     {
         const auto drillIndices = variantMap["drillIndices"].toMap();
