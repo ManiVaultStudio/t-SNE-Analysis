@@ -3,6 +3,8 @@
 #include "TsneSettingsAction.h"
 #include "DataHierarchyItem.h"
 
+#include <event/Event.h>
+
 #include <QGridLayout>
 #include <QMenu>
 
@@ -74,7 +76,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
 
     auto setDatasets = [this]() ->void {
         // Get unique identifier and gui names from all point data sets in the core
-        auto dataSets = Application::core()->requestAllDataSets(QVector<mv::DataType> {PointType});
+        auto dataSets = mv::data().getAllDatasets(std::vector<mv::DataType> {PointType});
 
         // Assign found dataset(s)
         _datasetPickerAction.setDatasets(dataSets);
@@ -185,7 +187,7 @@ void HsneScaleAction::refine()
         auto hsneScaleSubset = _input->createSubsetFromSelection("hsne_scale", _input, false);
 
         // And the derived data for the embedding
-        _refineEmbedding = core->createDerivedDataset<Points>(QString("%1_embedding").arg(_input->text()), hsneScaleSubset, _embedding);
+        _refineEmbedding = mv::data().createDerivedDataset<Points>(QString("%1_embedding").arg(_input->text()), hsneScaleSubset, _embedding);
 
         _refineEmbedding->setText("HSNE Scale");
         _refineEmbedding->getDataHierarchyItem().select();

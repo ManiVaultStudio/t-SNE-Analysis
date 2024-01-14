@@ -37,7 +37,7 @@ TsneAnalysisPlugin::~TsneAnalysisPlugin(void)
 
 void TsneAnalysisPlugin::init()
 {
-    setOutputDataset(_core->createDerivedDataset("TSNE Embedding", getInputDataset(), getInputDataset()));
+    setOutputDataset(mv::data().createDerivedDataset("TSNE Embedding", getInputDataset(), getInputDataset()));
 
     // Get input/output datasets
     auto inputDataset  = getInputDataset<Points>();
@@ -225,7 +225,7 @@ PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const mv
 
         if (datasets.count() >= 2) {
             auto pluginTriggerAction = new PluginTriggerAction(const_cast<TsneAnalysisPluginFactory*>(this), this, "Group/TSNE", "Group datasets and perform TSNE analysis on it", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
-                getPluginInstance(Application::core()->groupDatasets(datasets));
+                getPluginInstance(mv::data().groupDatasets(datasets));
             });
 
             pluginTriggerActions << pluginTriggerAction;
