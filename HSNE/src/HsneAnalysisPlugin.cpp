@@ -40,7 +40,7 @@ void HsneAnalysisPlugin::init()
     HsneScaleAction::core = _core;
 
     // Created derived dataset for embedding
-    setOutputDataset(_core->createDerivedDataset("HSNE Embedding", getInputDataset(), getInputDataset()));
+    setOutputDataset(mv::data().createDerivedDataset("HSNE Embedding", getInputDataset(), getInputDataset()));
 
     getOutputDataset()->getDataHierarchyItem().select();
 
@@ -316,7 +316,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const mv
 
         if (datasets.count() >= 2) {
             auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "Group/HSNE", "Group datasets and perform HSNE analysis on it", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
-                getPluginInstance(Application::core()->groupDatasets(datasets));
+                getPluginInstance(mv::data().groupDatasets(datasets));
             });
 
             pluginTriggerActions << pluginTriggerAction;
