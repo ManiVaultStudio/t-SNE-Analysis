@@ -1,24 +1,25 @@
 #include "HsneHierarchy.h"
 
-#include "HsneParameters.h"
-#include "PointData/PointData.h"
-#include "ImageData/Images.h"
 #include "DataHierarchyItem.h"
+#include "HsneParameters.h"
+#include "ImageData/Images.h"
+#include "PointData/PointData.h"
 
 #include "hdi/utils/cout_log.h"
-#include <iostream>
+
 #include <fstream>
+#include <iostream>
 
 #include "nlohmann/json.hpp"
 #include <QFileInfo>
 #include <QStringList>
 
 // set suffix strings for cache
-#define _CACHE_SUBFOLDER_ "hsne-cache"
-#define _HIERARCHY_CACHE_EXTENSION_ "_hierarchy.hsne"
-#define _INFLUENCE_TOPDOWN_CACHE_EXTENSION_ "_influence-tp-hierarchy.hsne"
-#define _PARAMETERS_CACHE_EXTENSION_ "_parameters.hsne"
-#define _PARAMETERS_CACHE_VERSION_ "1.0"
+constexpr auto _CACHE_SUBFOLDER_ = "hsne-cache";
+constexpr auto _HIERARCHY_CACHE_EXTENSION_ = "_hierarchy.hsne";
+constexpr auto _INFLUENCE_TOPDOWN_CACHE_EXTENSION_ = "_influence-tp-hierarchy.hsne";
+constexpr auto _PARAMETERS_CACHE_EXTENSION_ = "_parameters.hsne";
+constexpr auto _PARAMETERS_CACHE_VERSION_ = "1.0";
 
 namespace
 {
