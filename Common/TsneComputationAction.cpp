@@ -19,7 +19,6 @@ TsneComputationAction::TsneComputationAction(QObject* parent) :
     addAction(&_startComputationAction);
     addAction(&_continueComputationAction);
     addAction(&_stopComputationAction);
-    addAction(&_runningAction);
 
     _startComputationAction.setToolTip("Start the tSNE computation");
     _continueComputationAction.setToolTip("Continue with the tSNE computation");
