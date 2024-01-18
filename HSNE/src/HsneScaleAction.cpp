@@ -52,30 +52,6 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     });
 
     updateReadOnly();
-
-    /*
-    // Connect the progress percentage of the t-SNE process to the data hierarchy item associated with this embedding
-    connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
-        _refineEmbedding->getDataHierarchyItem().setTaskProgress(percentage);
-    });
-
-    // Connect the progress description of the t-SNE process to the data hierarchy item associated with this embedding
-    connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
-        _refineEmbedding->getDataHierarchyItem().setTaskDescription(section);
-    });
-
-    // Connect the finishing of the t-SNE process to the data hierarchy item associated with this embedding
-    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
-        _refineEmbedding->getDataHierarchyItem().setTaskFinished();
-    });
-    */
-
-    auto setDatasets = [this]() ->void {
-        // Get unique identifier and gui names from all point data sets in the core
-        auto dataSets = mv::data().getAllDatasets( {PointType} );
-    };
-
-    setDatasets();
 }
 
 QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
