@@ -300,28 +300,32 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     AnalysisPlugin::fromVariantMap(variantMap);
 
     variantMapMustContain(variantMap, "hsneSettings");
-
     _hsneSettingsAction->fromVariantMap(variantMap["hsneSettings"].toMap());
 
-    // Handle HSNE Hierarchy
     std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
     _hierarchy.setDataAndParameters(*getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters());
 
     auto& hsne = _hierarchy.getHsne();
-    hsne.hierarchy().clear();
-
     unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
     hsne.setDimensionality(numEnabledDimensions);
 
-    variantMapMustContain(variantMap, "HsneHierarchy");
-    variantMapMustContain(variantMap, "HsneInfluenceHierarchy");
+    if (_hsneSettingsAction->getAdvancedHsneSettingsAction().getSaveHierarchyToProjectAction().isChecked())
+    {
+        if (variantMap.contains("HsneHierarchy") && variantMap.contains("HsneInfluenceHierarchy"))
+        {
+            hdi::utils::CoutLog log;
 
-    hdi::utils::CoutLog log;
-    const auto loadPathHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
-    bool loadedHierarchy = _hierarchy.loadCacheHsneHierarchy(loadPathHierarchy.toStdString(), log);
+            // Load HSNE Hierarchy
+            const auto loadPathHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
+            bool loadedHierarchy = _hierarchy.loadCacheHsneHierarchy(loadPathHierarchy.toStdString(), log);
 
-    const auto loadPathInfluenceHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
-    bool loadedInfluenceHierarchy = _hierarchy.loadCacheHsneInfluenceHierarchy(loadPathInfluenceHierarchy.toStdString(), _hierarchy.getInfluenceHierarchy().getMap());
+            // Load HSNE InfluenceHierarchy
+            const auto loadPathInfluenceHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
+            bool loadedInfluenceHierarchy = _hierarchy.loadCacheHsneInfluenceHierarchy(loadPathInfluenceHierarchy.toStdString(), _hierarchy.getInfluenceHierarchy().getMap());
+        }
+        else
+            qWarning("HsneAnalysisPlugin::fromVariantMap: HSNE hierarchy cannot be loaded from project since the project file does not seem to contain a saved HSNE hierarchy");
+    }
 }
 
 QVariantMap HsneAnalysisPlugin::toVariantMap() const
@@ -330,30 +334,33 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
 
     _hsneSettingsAction->insertIntoVariantMap(variantMap);
 
-    // Handle HSNE Hierarchy
+    if (_hsneSettingsAction->getAdvancedHsneSettingsAction().getSaveHierarchyToProjectAction().isChecked())
     {
-        const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
-        const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
-
-        std::ofstream saveFile(filePath, std::ios::out | std::ios::binary);
-
-        if (!saveFile.is_open())
-            std::cerr << "Caching failed. File could not be opened. " << std::endl;
-        else
+        // Handle HSNE Hierarchy
         {
-            hdi::dr::IO::saveHSNE(_hierarchy.getHsne(), saveFile, nullptr);
-            saveFile.close();
-            variantMap["HsneHierarchy"] = fileName;
+            const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
+            const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
+
+            std::ofstream saveFile(filePath, std::ios::out | std::ios::binary);
+
+            if (!saveFile.is_open())
+                std::cerr << "Caching failed. File could not be opened. " << std::endl;
+            else
+            {
+                hdi::dr::IO::saveHSNE(_hierarchy.getHsne(), saveFile, nullptr);
+                saveFile.close();
+                variantMap["HsneHierarchy"] = fileName;
+            }
         }
-    }
 
-    // Handle HSNE InfluenceHierarchy
-    {
-        const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
-        const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
+        // Handle HSNE InfluenceHierarchy
+        {
+            const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
+            const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
 
-        _hierarchy.saveCacheHsneInfluenceHierarchy(filePath, _hierarchy.getInfluenceHierarchy().getMap());
-        variantMap["HsneInfluenceHierarchy"] = fileName;
+            _hierarchy.saveCacheHsneInfluenceHierarchy(filePath, _hierarchy.getInfluenceHierarchy().getMap());
+            variantMap["HsneInfluenceHierarchy"] = fileName;
+        }
     }
 
     return variantMap;

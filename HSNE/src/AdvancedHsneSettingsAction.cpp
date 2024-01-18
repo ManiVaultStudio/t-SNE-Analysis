@@ -14,7 +14,8 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _minWalksRequiredAction(this, "Minimum #walks required"),
     _numChecksAknnAction(this, "No. KNN checks"),
     _useOutOfCoreComputationAction(this, "Out-of-core computation"),
-    _saveHierarchyToDiskAction(this, "Save hierarchy to disk")
+    _saveHierarchyToDiskAction(this, "Save hierarchy to disk"),
+    _saveHierarchyToProjectAction(this, "Save hierarchy to project")
 {
     setSerializationName("advancedHsneSettings");
 
@@ -25,6 +26,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     addAction(&_minWalksRequiredAction);
     addAction(&_numChecksAknnAction);
     addAction(&_saveHierarchyToDiskAction);
+    addAction(&_saveHierarchyToProjectAction);
 
     _numWalksForLandmarkSelectionAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numWalksForLandmarkSelectionThresholdAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
@@ -34,6 +36,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _numChecksAknnAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
     _useOutOfCoreComputationAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
     _saveHierarchyToDiskAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
+    _saveHierarchyToProjectAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
 
     _numWalksForLandmarkSelectionAction.setToolTip("Number of walks for landmark selection");
     _numWalksForLandmarkSelectionThresholdAction.setToolTip("Number of walks for landmark selection");
@@ -42,7 +45,8 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _minWalksRequiredAction.setToolTip("Minimum number of walks required");
     _numChecksAknnAction.setToolTip("Number of KNN checks");
     _useOutOfCoreComputationAction.setToolTip("Use out-of-core computation");
-    _saveHierarchyToDiskAction.setToolTip("Save computed hierarchy to disk");
+    _saveHierarchyToDiskAction.setToolTip("Save computed hierarchy to disk. \nWhen computing HSNE again with the same settings, \nthe hierarchy is loaded instead of recomputed");
+    _saveHierarchyToProjectAction.setToolTip("Save computed hierarchy when saving a project. \nThis enables selection refinements \nafter loading projects");
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
@@ -54,6 +58,7 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _numChecksAknnAction.initialize(0, 1024, hsneParameters.getNumChecksAKNN());
     _useOutOfCoreComputationAction.setChecked(hsneParameters.useOutOfCoreComputation());
     _saveHierarchyToDiskAction.setChecked(true);
+    _saveHierarchyToProjectAction.setChecked(true);
     
     const auto updateNumWalksForLandmarkSelectionAction = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setNumWalksForLandmarkSelection(_numWalksForLandmarkSelectionAction.getValue());
@@ -158,6 +163,7 @@ void AdvancedHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
     _numChecksAknnAction.fromParentVariantMap(variantMap);
     _useOutOfCoreComputationAction.fromParentVariantMap(variantMap);
     _saveHierarchyToDiskAction.fromParentVariantMap(variantMap);
+    _saveHierarchyToProjectAction.fromParentVariantMap(variantMap);
 }
 
 QVariantMap AdvancedHsneSettingsAction::toVariantMap() const
@@ -172,6 +178,7 @@ QVariantMap AdvancedHsneSettingsAction::toVariantMap() const
     _numChecksAknnAction.insertIntoVariantMap(variantMap);
     _useOutOfCoreComputationAction.insertIntoVariantMap(variantMap);
     _saveHierarchyToDiskAction.insertIntoVariantMap(variantMap);
+    _saveHierarchyToProjectAction.insertIntoVariantMap(variantMap);
 
     return variantMap;
 }

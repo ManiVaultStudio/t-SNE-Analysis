@@ -38,6 +38,7 @@ public: // Action getters
     IntegralAction& getNumChecksAknnAction() { return _numChecksAknnAction; }
     ToggleAction& getUseOutOfCoreComputationAction() { return _useOutOfCoreComputationAction; }
     ToggleAction& getSaveHierarchyToDiskAction() { return _saveHierarchyToDiskAction; }
+    ToggleAction& getSaveHierarchyToProjectAction() { return _saveHierarchyToProjectAction; }
 
 public: // Serialization
 
@@ -63,6 +64,7 @@ protected:
     IntegralAction          _numChecksAknnAction;                               /** Number of KNN checks action */
     ToggleAction            _useOutOfCoreComputationAction;                     /** Use out of core computation action */
     ToggleAction            _saveHierarchyToDiskAction;                         /** Save computed hierarchy to disk action */
+    ToggleAction            _saveHierarchyToProjectAction;                      /** Save computed hierarchy to project action */
 
     friend class Widget;
 };
