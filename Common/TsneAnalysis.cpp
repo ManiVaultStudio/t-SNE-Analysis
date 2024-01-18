@@ -58,8 +58,10 @@ void TsneWorker::changeThread(QThread* targetThread)
     
     //_task->moveToThread(targetThread);
 
-    
-
+#ifdef __APPLE__
+    // On macOS initialize OpenGL context in main thread
+    _offscreenBuffer->initialize();
+#endif // __APPLE__
     // Move the Offscreen buffer to the processing thread after creating it in the UI Thread
     _offscreenBuffer->moveToThread(targetThread);
 }
@@ -244,12 +246,14 @@ void TsneWorker::compute()
     {
         hdi::utils::ScopedTimer<double> timer(t);
 
+#ifndef __APPLE__
         _tasks->getInitializeOffScreenBufferTask().setRunning();
 
         // Create a context local to this thread that shares with the global share context
         _offscreenBuffer->initialize();
         
         _tasks->getInitializeOffScreenBufferTask().setFinished();
+#endif // Not __APPLE __
 
         if (!_hasProbabilityDistribution)
             computeSimilarities();
