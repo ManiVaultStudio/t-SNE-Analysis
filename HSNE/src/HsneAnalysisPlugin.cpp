@@ -296,8 +296,6 @@ void HsneAnalysisPlugin::continueComputation()
 
 void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
 {
-    qDebug() << "HsneAnalysisPlugin::fromVariantMap: Start";
-
     AnalysisPlugin::fromVariantMap(variantMap);
 
     variantMapMustContain(variantMap, "hsneSettings");
@@ -323,14 +321,10 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
 
     const auto loadPathInfluenceHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
     bool loadedInfluenceHierarchy = _hierarchy.loadCacheHsneInfluenceHierarchy(loadPathInfluenceHierarchy.toStdString(), _hierarchy.getInfluenceHierarchy().getMap());
-
-    qDebug() << "HsneAnalysisPlugin::fromVariantMap: Finished << " << (loadedHierarchy && loadedInfluenceHierarchy);
 }
 
 QVariantMap HsneAnalysisPlugin::toVariantMap() const
 {
-    qDebug() << "HsneAnalysisPlugin::toVariantMap: Start";
-
     QVariantMap variantMap = AnalysisPlugin::toVariantMap();
 
     _hsneSettingsAction->insertIntoVariantMap(variantMap);
@@ -360,8 +354,6 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
         _hierarchy.saveCacheHsneInfluenceHierarchy(filePath, _hierarchy.getInfluenceHierarchy().getMap());
         variantMap["HsneInfluenceHierarchy"] = fileName;
     }
-
-    qDebug() << "HsneAnalysisPlugin::toVariantMap: Finished";
 
     return variantMap;
 }

@@ -5,8 +5,8 @@
 #include <Task.h>
 
 #include "HsneHierarchy.h"
-#include "TsneAnalysis.h"
 #include "HsneSettingsAction.h"
+#include "TsneAnalysis.h"
 
 using namespace mv::plugin;
 using namespace mv::gui;

@@ -1,5 +1,6 @@
 #include "GeneralHsneSettingsAction.h"
-#include "HsneAnalysisPlugin.h"
+
+#include "HsneSettingsAction.h"
 
 using namespace mv::gui;
 
@@ -119,8 +120,6 @@ void GeneralHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 
 QVariantMap GeneralHsneSettingsAction::toVariantMap() const
 {
-    qDebug() << "GeneralHsneSettingsAction::toVariantMap:";
-
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _knnTypeAction.insertIntoVariantMap(variantMap);

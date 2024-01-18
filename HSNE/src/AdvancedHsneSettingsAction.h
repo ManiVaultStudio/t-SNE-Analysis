@@ -1,7 +1,7 @@
 #pragma once
 
-#include "actions/GroupAction.h"
 #include "actions/DecimalAction.h"
+#include "actions/GroupAction.h"
 #include "actions/IntegralAction.h"
 #include "actions/ToggleAction.h"
 

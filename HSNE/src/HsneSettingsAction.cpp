@@ -113,8 +113,6 @@ void HsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 
 QVariantMap HsneSettingsAction::toVariantMap() const
 {
-    qDebug() << "HsneSettingsAction::toVariantMap:";
-
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _tsneSettingsAction.insertIntoVariantMap(variantMap);
