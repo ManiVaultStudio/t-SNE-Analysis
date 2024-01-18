@@ -20,7 +20,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _input(inputDataset),
     _embedding(embeddingDataset),
     _refineEmbedding(),
-    _refineAction(this, "Refine..."),
+    _refineAction(this, "Refine selection"),
     _initializationTask(this, "Preparing HSNE scale"),
     _isTopScale(true),
     _currentScaleLevel(0)
