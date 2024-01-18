@@ -6,7 +6,6 @@
 #include "TsneAnalysis.h"
 
 #include "PointData/PointData.h"
-#include "PointData/DimensionsPickerAction.h"
 
 using namespace mv;
 using namespace mv::gui;
@@ -94,9 +93,6 @@ private:
     Dataset<Points>         _refineEmbedding;       /** Refine embedding dataset reference */
 
     TriggerAction           _refineAction;          /** Refine action */
-    DatasetPickerAction     _datasetPickerAction;   /** Dataset picker action */
-    TriggerAction           _reloadDatasetsAction;  /** Reload action */
-    TriggerAction           _setSelectionAction;    /** Set selection action */
 
     EventListener           _eventListener;         /** Listen to HDPS events */
     mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */

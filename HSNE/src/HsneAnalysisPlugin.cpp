@@ -2,6 +2,7 @@
 #include "HsneParameters.h"
 #include "HsneScaleAction.h"
 
+#include <PointData/DimensionsPickerAction.h>
 #include <PointData/InfoAction.h>
 #include <PointData/PointData.h>
 

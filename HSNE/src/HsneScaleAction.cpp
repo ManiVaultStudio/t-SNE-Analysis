@@ -21,9 +21,6 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _embedding(embeddingDataset),
     _refineEmbedding(),
     _refineAction(this, "Refine..."),
-    _datasetPickerAction(this, "Selection IDs"),
-    _reloadDatasetsAction(this, "Reload dataset"),
-    _setSelectionAction(this, "Set selection"),
     _initializationTask(this, "Preparing HSNE scale"),
     _isTopScale(true),
     _currentScaleLevel(0)
@@ -31,9 +28,6 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     setSerializationName("topLevelScale");
 
     addAction(&_refineAction);
-    addAction(&_datasetPickerAction);
-    addAction(&_reloadDatasetsAction);
-    addAction(&_setSelectionAction);
 
     _refineAction.setToolTip("Refine the selected landmarks");
 
@@ -79,32 +73,9 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     auto setDatasets = [this]() ->void {
         // Get unique identifier and gui names from all point data sets in the core
         auto dataSets = mv::data().getAllDatasets( {PointType} );
-
-        // Assign found dataset(s)
-        _datasetPickerAction.setDatasets(dataSets);
-
     };
 
     setDatasets();
-
-    connect(&_reloadDatasetsAction, &TriggerAction::triggered, this, [this, setDatasets]() {
-        setDatasets();
-        });
-
-    connect(&_setSelectionAction, &TriggerAction::triggered, this, [this]() {
-        
-        auto selectionDataset = Dataset<Points>(_datasetPickerAction.getCurrentDataset().get<Points>());
-
-        std::vector<unsigned int> selectionIDs;
-        selectionIDs.resize(selectionDataset->getNumPoints());
-        selectionDataset->populateDataForDimensions < std::vector<unsigned int>, std::vector<unsigned int>>(selectionIDs, std::vector<unsigned int>{ 0 });
-
-        //_embedding->setSelectionIndices(selectionIDs);
-        //events().notifyDatasetSelectionChanged(_embedding->getSourceDataset<Points>());
-        _input->setSelectionIndices(selectionIDs);
-        events().notifyDatasetDataSelectionChanged(_input->getSourceDataset<Points>());
-
-        });
 }
 
 QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
@@ -297,9 +268,6 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
     _currentScaleLevel = variantMap["currentScaleLevel"].toUInt();
 
     _refineAction.fromParentVariantMap(variantMap);
-    _datasetPickerAction.fromParentVariantMap(variantMap);
-    _reloadDatasetsAction.fromParentVariantMap(variantMap);
-    _setSelectionAction.fromParentVariantMap(variantMap);
 
 }
 
@@ -308,9 +276,6 @@ QVariantMap HsneScaleAction::toVariantMap() const
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _refineAction.insertIntoVariantMap(variantMap);
-    _datasetPickerAction.insertIntoVariantMap(variantMap);
-    _reloadDatasetsAction.insertIntoVariantMap(variantMap);
-    _setSelectionAction.insertIntoVariantMap(variantMap);
 
     variantMap.insert({ { "inputGUID", QVariant::fromValue(_input.get<Points>()->getId()) } });
     variantMap.insert({ { "embeddingGUID", QVariant::fromValue(_embedding.get<Points>()->getId()) } });
