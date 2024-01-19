@@ -61,12 +61,12 @@ public: // Serialization
     QVariantMap toVariantMap() const override;
 
 private:
-    TsneParameters                  _tsneParameters;                /** TSNE parameters */
-    KnnParameters                   _knnParameters;                         /** Knn parameters */
+    TsneParameters                  _tsneParameters;                    /** TSNE parameters */
+    KnnParameters                   _knnParameters;                     /** Knn parameters */
 
 private:
-    GeneralTsneSettingsAction       _generalTsneSettingsAction;     /** General tSNE settings action */
-    GradientDescentSettingsAction   _gradientDescentSettingsAction;         /** Gradient descent settings action */
-    KnnSettingsAction               _knnSettingsAction;                     /** knn settings action */
+    GeneralTsneSettingsAction       _generalTsneSettingsAction;         /** General tSNE settings action */
+    GradientDescentSettingsAction   _gradientDescentSettingsAction;     /** Gradient descent settings action */
+    KnnSettingsAction               _knnSettingsAction;                 /** knn settings action */
 
 };

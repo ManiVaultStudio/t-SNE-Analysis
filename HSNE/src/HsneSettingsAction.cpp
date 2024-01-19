@@ -16,8 +16,6 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _knnSettingsAction(this, _knnParameters),
     _topLevelScaleAction(this, _tsneParameters, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDataset<Points>(), hsneAnalysisPlugin->getOutputDataset<Points>())
 {
-    //setObjectName("HSNE Settings");
-
     const auto updateReadOnly = [this]() -> void {
         _generalHsneSettingsAction.setReadOnly(isReadOnly());
         _hierarchyConstructionSettingsAction.setReadOnly(isReadOnly());
@@ -68,11 +66,11 @@ void HsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
     _hsneParameters.useOutOfCoreComputation(variantMap["OutOfCoreComputation"].toBool());
     _hsneParameters.setSaveHierarchyToDisk(variantMap["SaveHierarchyToDisk"].toBool());
 
-    _tsneParameters.setNumIterations(variantMap["NumIterations"].toBool());
-    _tsneParameters.setExaggerationIter(variantMap["ExaggerationIter"].toBool());
-    _tsneParameters.setExponentialDecayIter(variantMap["ExponentialDecayIter"].toBool());
-    _tsneParameters.setNumDimensionsOutput(variantMap["NumDimensionsOutput"].toBool());
-    _tsneParameters.setUpdateCore(variantMap["UpdateCore"].toBool());
+    _tsneParameters.setNumIterations(variantMap["NumIterations"].toInt());
+    _tsneParameters.setExaggerationIter(variantMap["ExaggerationIter"].toInt());
+    _tsneParameters.setExponentialDecayIter(variantMap["ExponentialDecayIter"].toInt());
+    _tsneParameters.setNumDimensionsOutput(variantMap["NumDimensionsOutput"].toInt());
+    _tsneParameters.setUpdateCore(variantMap["UpdateCore"].toInt());
 }
 
 QVariantMap HsneSettingsAction::toVariantMap() const
