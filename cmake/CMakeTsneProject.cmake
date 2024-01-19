@@ -12,7 +12,6 @@ source_group(Common FILES ${COMMON_TSNE_SOURCES})
 source_group(Common//Actions FILES ${COMMON_ACTIONS_SOURCES})
 source_group(Tsne FILES ${TSNE_PLUGIN_SOURCES})
 source_group(Actions FILES ${TSNE_ACTIONS_SOURCES})
-source_group(Resources FILES ${TSNE_RESOURCES})
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -27,7 +26,6 @@ add_library(${TSNE_PLUGIN} SHARED
     ${COMMON_ACTIONS_SOURCES}
     ${TSNE_PLUGIN_SOURCES}
     ${TSNE_ACTIONS_SOURCES}
-    ${TSNE_RESOURCES}
 )
 
 # -----------------------------------------------------------------------------

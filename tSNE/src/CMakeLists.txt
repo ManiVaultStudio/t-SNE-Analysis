@@ -14,8 +14,3 @@ set(TSNE_ACTIONS_SOURCES
     ${DIR}/GeneralTsneSettingsAction.cpp
     PARENT_SCOPE
 )
-
-set(TSNE_RESOURCES
-    ${DIR}/../res/resources.qrc
-    PARENT_SCOPE
-)
