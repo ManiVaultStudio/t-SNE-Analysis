@@ -1,8 +1,10 @@
 #pragma once
 
-#include "TsneParameters.h"
 #include "GeneralTsneSettingsAction.h"
-#include "AdvancedTsneSettingsAction.h"
+#include "GradientDescentSettingsAction.h"
+#include "KnnParameters.h"
+#include "KnnSettingsAction.h"
+#include "TsneParameters.h"
 
 using namespace mv::gui;
 
@@ -34,11 +36,14 @@ public:
      */
     QMenu* getContextMenu(QWidget* parent = nullptr) override;
 
+    TsneParameters& getTsneParameters() { return _tsneParameters; }
+    KnnParameters& getKnnParameters() { return _knnParameters; }
+
 public: // Action getters
 
-    TsneParameters& getTsneParameters() { return _tsneParameters; }
     GeneralTsneSettingsAction& getGeneralTsneSettingsAction() { return _generalTsneSettingsAction; }
-    AdvancedTsneSettingsAction& getAdvancedTsneSettingsAction() { return _advancedTsneSettingsAction; }
+    GradientDescentSettingsAction& getGradientDescentSettingsAction() { return _gradientDescentSettingsAction; }
+    KnnSettingsAction& getKnnSettingsAction() { return _knnSettingsAction; }
     TsneComputationAction& getComputationAction() { return _generalTsneSettingsAction.getComputationAction(); }
 
 public: // Serialization
@@ -55,10 +60,13 @@ public: // Serialization
      */
     QVariantMap toVariantMap() const override;
 
-protected:
+private:
     TsneParameters                  _tsneParameters;                /** TSNE parameters */
-    GeneralTsneSettingsAction       _generalTsneSettingsAction;     /** General tSNE settings action */
-    AdvancedTsneSettingsAction      _advancedTsneSettingsAction;    /** Advanced tSNE settings action */
+    KnnParameters                   _knnParameters;                         /** Knn parameters */
 
-    friend class Widget;
+private:
+    GeneralTsneSettingsAction       _generalTsneSettingsAction;     /** General tSNE settings action */
+    GradientDescentSettingsAction   _gradientDescentSettingsAction;         /** Gradient descent settings action */
+    KnnSettingsAction               _knnSettingsAction;                     /** knn settings action */
+
 };

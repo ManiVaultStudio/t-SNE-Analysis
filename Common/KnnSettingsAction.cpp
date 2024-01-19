@@ -12,8 +12,6 @@ KnnSettingsAction::KnnSettingsAction(QObject* parent, KnnParameters& knnParamete
     _mAction(this, "HNSW M"),
     _efAction(this, "HNSW ef")
 {
-    //setObjectName("Knn Settings");
-
     addAction(&_numTreesAction);
     addAction(&_numChecksAction);
     addAction(&_mAction);

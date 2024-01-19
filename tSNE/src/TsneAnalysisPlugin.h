@@ -2,8 +2,6 @@
 
 #define no_init_all deprecated
 
-#include <actions/WidgetAction.h>
-
 #include <AnalysisPlugin.h>
 
 #include <Task.h>

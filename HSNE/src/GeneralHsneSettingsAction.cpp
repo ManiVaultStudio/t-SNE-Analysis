@@ -8,13 +8,11 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     GroupAction(&hsneSettingsAction, "HSNE", true),
     _hsneSettingsAction(hsneSettingsAction),
     _numScalesAction(this, "Number of Hierarchy Scales"),
-    _knnAlgorithmAction(this, "KNN Type"),
+    _knnAlgorithmAction(this, "kNN Algorithm"),
     _distanceMetricAction(this, "Distance metric"),
     _numKnnAction(this, "Number of NN"),
     _startAction(this, "Start")
 {
-    //setObjectName("HSNE");
-
     addAction(&_numScalesAction);
     addAction(&_knnAlgorithmAction);
     addAction(&_distanceMetricAction);

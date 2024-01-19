@@ -10,8 +10,6 @@ GradientDescentSettingsAction::GradientDescentSettingsAction(QObject* parent, Ts
     _exaggerationAction(this, "Exaggeration"),
     _exponentialDecayAction(this, "Exponential decay")
 {
-    //setObjectName("Gradient Descent Settings");
-
     addAction(&_exaggerationAction);
     addAction(&_exponentialDecayAction);
 

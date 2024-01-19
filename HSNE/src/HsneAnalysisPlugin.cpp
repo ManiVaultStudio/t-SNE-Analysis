@@ -13,10 +13,6 @@
 
 #include <fstream>
 
-#include <QByteArray>
-#include <QDataStream>
-#include <QDebug>
-
 Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
 
 using namespace mv;
@@ -69,6 +65,7 @@ void HsneAnalysisPlugin::init()
     _hsneSettingsAction->getGeneralHsneSettingsAction().getNumScalesAction().setValue(numHierarchyScales);
 
     // Manage UI elements attached to output data set
+    mv::dataHierarchy().clearSelection();
     outputDataset->getDataHierarchyItem().select();
     outputDataset->_infoAction->collapse();
 

@@ -7,12 +7,15 @@ using namespace mv::gui;
 TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     GroupAction(parent, "TSNE Settings"),
     _tsneParameters(),
+    _knnParameters(),
     _generalTsneSettingsAction(*this),
-    _advancedTsneSettingsAction(*this)
+    _gradientDescentSettingsAction(this, _tsneParameters),
+    _knnSettingsAction(this, _knnParameters)
 {
     const auto updateReadOnly = [this]() -> void {
         _generalTsneSettingsAction.setReadOnly(isReadOnly());
-        _advancedTsneSettingsAction.setReadOnly(isReadOnly());
+        _gradientDescentSettingsAction.setReadOnly(isReadOnly());
+        _knnSettingsAction.setReadOnly(isReadOnly());
     };
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
@@ -40,7 +43,8 @@ void TsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
     GroupAction::fromVariantMap(variantMap);
 
     _generalTsneSettingsAction.fromParentVariantMap(variantMap);
-    _advancedTsneSettingsAction.fromParentVariantMap(variantMap);
+    _gradientDescentSettingsAction.fromVariantMap(variantMap["Gradient Descent Settings"].toMap());
+    _knnSettingsAction.fromVariantMap(variantMap["Knn Settings"].toMap());
 }
 
 QVariantMap TsneSettingsAction::toVariantMap() const
@@ -48,7 +52,8 @@ QVariantMap TsneSettingsAction::toVariantMap() const
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _generalTsneSettingsAction.insertIntoVariantMap(variantMap);
-    _advancedTsneSettingsAction.insertIntoVariantMap(variantMap);
+    _gradientDescentSettingsAction.insertIntoVariantMap(variantMap);
+    _knnSettingsAction.insertIntoVariantMap(variantMap);
 
     return variantMap;
 }

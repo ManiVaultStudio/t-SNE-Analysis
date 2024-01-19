@@ -1,8 +1,8 @@
 #pragma once
 
-#include <actions/VerticalGroupAction.h>
-#include <actions/TriggerAction.h>
 #include <actions/ToggleAction.h>
+#include <actions/TriggerAction.h>
+#include <actions/VerticalGroupAction.h>
 
 using namespace mv::gui;
 
@@ -59,6 +59,4 @@ protected:
     TriggerAction   _continueComputationAction;     /** Continue computation action */
     TriggerAction   _stopComputationAction;         /** Stop computation action */
     ToggleAction    _runningAction;                 /** Running action */
-
-    friend class Widget;
 };

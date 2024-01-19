@@ -18,8 +18,6 @@ HierarchyConstructionSettingsAction::HierarchyConstructionSettingsAction(HsneSet
     _saveHierarchyToDiskAction(this, "Save hierarchy to disk"),
     _saveHierarchyToProjectAction(this, "Save hierarchy to project")
 {
-    setObjectName("Hierarchy Construction");
-
     addAction(&_numWalksForLandmarkSelectionAction);
     addAction(&_numWalksForLandmarkSelectionThresholdAction);
     addAction(&_randomWalkLengthAction);

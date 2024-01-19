@@ -1,16 +1,12 @@
 #include "GeneralTsneSettingsAction.h"
 #include "TsneSettingsAction.h"
 
-#include <QLabel>
-#include <QPushButton>
-#include <QGridLayout>
-
 using namespace mv::gui;
 
 GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
     GroupAction(&tsneSettingsAction, "TSNE", true),
     _tsneSettingsAction(tsneSettingsAction),
-    _knnAlgorithmAction(this, "KNN Type"),
+    _knnAlgorithmAction(this, "kNN Algorithm"),
     _distanceMetricAction(this, "Distance metric"),
     _numIterationsAction(this, "Number of iterations"),
     _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0),
@@ -22,6 +18,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     addAction(&_distanceMetricAction);
     addAction(&_numIterationsAction);
     addAction(&_numberOfComputatedIterationsAction);
+//    addAction(&_updateIterationsAction);
     addAction(&_perplexityAction);
     addAction(&_computationAction);
 
@@ -46,33 +43,33 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 
     const auto updateKnnAlgorithm = [this]() -> void {
         if (_knnAlgorithmAction.getCurrentText() == "FLANN")
-            _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_FLANN);
+            _tsneSettingsAction.getKnnParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_FLANN);
 
         if (_knnAlgorithmAction.getCurrentText() == "HNSW")
-            _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_HNSW);
+            _tsneSettingsAction.getKnnParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_HNSW);
 
         if (_knnAlgorithmAction.getCurrentText() == "ANNOY")
-            _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_ANNOY);
+            _tsneSettingsAction.getKnnParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_ANNOY);
     };
 
     const auto updateDistanceMetric = [this]() -> void {
         if (_distanceMetricAction.getCurrentText() == "Euclidean")
-            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_EUCLIDEAN);
+            _tsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_EUCLIDEAN);
 
         if (_distanceMetricAction.getCurrentText() == "Cosine")
-            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_COSINE);
+            _tsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_COSINE);
 
         if (_distanceMetricAction.getCurrentText() == "Inner Product")
-            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_INNER_PRODUCT);
+            _tsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_INNER_PRODUCT);
 
         if (_distanceMetricAction.getCurrentText() == "Manhattan")
-            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_MANHATTAN);
+            _tsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_MANHATTAN);
 
         if (_distanceMetricAction.getCurrentText() == "Hamming")
-            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_HAMMING);
+            _tsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_HAMMING);
 
         if (_distanceMetricAction.getCurrentText() == "Dot")
-            _tsneSettingsAction.getTsneParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_DOT);
+            _tsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_DOT);
     };
 
     const auto updateNumIterations = [this]() -> void {

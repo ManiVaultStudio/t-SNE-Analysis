@@ -6,7 +6,8 @@
 
 #include <event/Event.h>
 
-#include <QGridLayout>
+#include <limits>
+
 #include <QMenu>
 
 using namespace mv;
@@ -22,7 +23,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
     _refineEmbedding(),
     _refineAction(this, "Refine selection"),
     _numIterationsAction(this, "Number of iterations"),
-    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0),
+    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, std::numeric_limits<int>::max(), 0),
     _updateIterationsAction(this, "Core update every"),
     _computationAction(this),
     _initializationTask(this, "Preparing HSNE scale"),
@@ -32,7 +33,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
     addAction(&_refineAction);
     addAction(&_numIterationsAction);
     addAction(&_numberOfComputatedIterationsAction);
-    addAction(&_updateIterationsAction);
+//    addAction(&_updateIterationsAction);
     addAction(&_computationAction);
 
     _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
@@ -45,6 +46,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
     _refineAction.setToolTip("Refine the selected landmarks");
     _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
 
+    _numberOfComputatedIterationsAction.setEnabled(false);
     _computationAction.getStartComputationAction().setEnabled(false);
 
     connect(&_refineAction, &TriggerAction::triggered, this, [this]() {

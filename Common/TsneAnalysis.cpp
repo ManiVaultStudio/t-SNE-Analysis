@@ -226,7 +226,7 @@ void TsneWorker::computeGradientDescent(int iterations)
     }
 
     qDebug() << "--------------------------------------------------------------------------------";
-    qDebug() << "A-tSNE: Finished embedding of " << "tSNE Analysis" << " in: " << elapsed / 1000 << " seconds ";
+    qDebug() << "A-tSNE: Finished embedding in: " << elapsed / 1000 << " seconds, with " << _currentIteration << " total iterations";
     qDebug() << "================================================================================";
 
     emit finished();
