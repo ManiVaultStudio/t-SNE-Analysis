@@ -79,6 +79,8 @@ public:
         std::cout << "AoI size: " << _hsne->scale(getNumScales() - 1)._area_of_influence.size() << std::endl;
     }
 
+    bool itInitialized() const { return _itInit; }
+
     Hsne& getHsne() { return *_hsne.get(); }
     const Hsne& getHsne() const { return *_hsne.get(); }
 
@@ -152,6 +154,7 @@ private:
     unsigned int            _numPoints;
     unsigned int            _numDimensions;
     Hsne::Parameters        _params;
+    bool                    _itInit = false;
 
     Path                    _cachePath;                            /** Path for saving and loading cache */
     Path                    _cachePathFileName;                    /** cachePath() + data name */

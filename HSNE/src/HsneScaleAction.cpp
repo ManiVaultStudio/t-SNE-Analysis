@@ -47,7 +47,6 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
     _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
 
     _numberOfComputatedIterationsAction.setEnabled(false);
-    _computationAction.getStartComputationAction().setEnabled(false);
 
     connect(&_refineAction, &TriggerAction::triggered, this, [this]() {
         refine();
