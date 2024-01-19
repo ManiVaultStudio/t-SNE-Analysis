@@ -1,20 +1,20 @@
 #pragma once
 
-#include "actions/Actions.h"
+#include "actions/GroupAction.h"
+#include "actions/IntegralAction.h"
 
 using namespace mv::gui;
 
-class QMenu;
-class TsneSettingsAction;
+class TsneParameters;
 
 /**
- * Advanced TSNE setting action class
+ * Gradient Descent setting action class
  *
- * Action class for advanced TSNE settings
+ * Action class for Gradient Descent settings
  *
  * @author Thomas Kroes
  */
-class AdvancedTsneSettingsAction : public GroupAction
+class GradientDescentSettingsAction : public GroupAction
 {
 public:
 
@@ -22,15 +22,12 @@ public:
      * Constructor
      * @param tsneSettingsAction Reference to TSNE settings action
      */
-    AdvancedTsneSettingsAction(TsneSettingsAction& tsneSettingsAction);
+    GradientDescentSettingsAction(QObject* parent, TsneParameters& tsneParameters);
 
 public: // Action getters
     
-    TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; };
     IntegralAction& getExaggerationAction() { return _exaggerationAction; };
     IntegralAction& getExponentialDecayAction() { return _exponentialDecayAction; };
-    IntegralAction& getNumTreesAction() { return _numTreesAction; };
-    IntegralAction& getNumChecksAction() { return _numChecksAction; };
 
 public: // Serialization
 
@@ -47,11 +44,7 @@ public: // Serialization
     QVariantMap toVariantMap() const override;
 
 protected:
-    TsneSettingsAction&     _tsneSettingsAction;        /** Pointer to parent tSNE settings action */
+    TsneParameters&         _tsneParameters;            /** Pointer to tSNE parameters */
     IntegralAction          _exaggerationAction;        /** Exaggeration action */
     IntegralAction          _exponentialDecayAction;    /** Exponential decay action */
-    IntegralAction          _numTreesAction;            /** Exponential decay action */
-    IntegralAction          _numChecksAction;           /** Exponential decay action */
-
-    friend class Widget;
 };

@@ -5,14 +5,11 @@
 using namespace mv::gui;
 
 TsneSettingsAction::TsneSettingsAction(QObject* parent) :
-    GroupAction(parent, "TSNE"),
+    GroupAction(parent, "TSNE Settings"),
     _tsneParameters(),
     _generalTsneSettingsAction(*this),
     _advancedTsneSettingsAction(*this)
 {
-    setText("TSNE");
-    setSerializationName("tsneSettings");
-
     const auto updateReadOnly = [this]() -> void {
         _generalTsneSettingsAction.setReadOnly(isReadOnly());
         _advancedTsneSettingsAction.setReadOnly(isReadOnly());
@@ -48,8 +45,6 @@ void TsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 
 QVariantMap TsneSettingsAction::toVariantMap() const
 {
-    qDebug() << "TsneSettingsAction::toVariantMap:";
-
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _generalTsneSettingsAction.insertIntoVariantMap(variantMap);

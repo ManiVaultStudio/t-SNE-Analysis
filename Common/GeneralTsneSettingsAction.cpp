@@ -18,8 +18,6 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _updateIterationsAction(this, "Core update every"),
     _computationAction(this)
 {
-    setObjectName("General TSNE");
-
     addAction(&_knnTypeAction);
     addAction(&_distanceMetricAction);
     addAction(&_numIterationsAction);

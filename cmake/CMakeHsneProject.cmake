@@ -27,8 +27,8 @@ add_library(${HSNE_PLUGIN} SHARED
     ${TSNE_ACTIONS_SOURCES}
     ${TSNE_COMMON_SOURCES}
     ${HSNE_PLUGIN_SOURCES}
-	${HSNE_RESOURCES}
-	${THIRD_PARTY_JSON}
+    ${HSNE_RESOURCES}
+    ${THIRD_PARTY_JSON}
 )
 
 # -----------------------------------------------------------------------------

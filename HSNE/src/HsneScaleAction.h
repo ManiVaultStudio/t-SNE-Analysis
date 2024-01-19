@@ -1,6 +1,5 @@
 #pragma once
 
-#include "actions/Actions.h"
 #include "event/EventListener.h"
 
 #include "TsneAnalysis.h"
@@ -15,7 +14,7 @@ class QMenu;
 
 class HsneAnalysisPlugin;
 class HsneHierarchy;
-class TsneSettingsAction;
+class TsneParameters;
 
 namespace mv {
     class CoreInterface;
@@ -40,7 +39,7 @@ public:
      * @param inputDataset Smart pointer to input dataset
      * @param embeddingDataset Smart pointer to embedding dataset
      */
-    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset);
+    HsneScaleAction(QObject* parent, TsneParameters& tsneParameters, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset);
 
     /**
      * Get the context menu for the action
@@ -55,7 +54,7 @@ private:
 
 public: // Action getters
 
-    TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
+    //TsneParameters& getTsneParameters() { return _tsneParameters; }
     TriggerAction& getRefineAction() { return _refineAction; }
 
 public: // Setters
@@ -85,7 +84,7 @@ public: // Serialization
     QVariantMap toVariantMap() const override;
 
 private:
-    TsneSettingsAction&     _tsneSettingsAction;    /** Reference to TSNE settings action from the HSNE analysis */
+    TsneParameters&         _tsneParameters;        /** Reference to TSNE paremeters from the HSNE analysis */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneHierarchy&          _hsneHierarchy;         /** Reference to HSNE hierarchy */
     Dataset<Points>         _input;                 /** Input dataset reference */

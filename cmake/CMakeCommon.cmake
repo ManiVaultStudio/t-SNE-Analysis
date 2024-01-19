@@ -17,8 +17,10 @@ set(TSNE_ACTIONS_SOURCES
     ${DIR}/TsneSettingsAction.cpp
     ${DIR}/GeneralTsneSettingsAction.h
     ${DIR}/GeneralTsneSettingsAction.cpp
-    ${DIR}/AdvancedTsneSettingsAction.h
-    ${DIR}/AdvancedTsneSettingsAction.cpp
+    ${DIR}/GradientDescentSettingsAction.h
+    ${DIR}/GradientDescentSettingsAction.cpp
+    ${DIR}/KnnSettingsAction.h
+    ${DIR}/KnnSettingsAction.cpp
 )
 
 set(THIRD_PARTY_JSON

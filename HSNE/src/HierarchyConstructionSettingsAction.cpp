@@ -1,30 +1,33 @@
-#include "AdvancedHsneSettingsAction.h"
+#include "HierarchyConstructionSettingsAction.h"
 
 #include "HsneSettingsAction.h"
 
 using namespace mv::gui;
 
-AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
-    GroupAction(&hsneSettingsAction, "Advanced HSNE"),
+HierarchyConstructionSettingsAction::HierarchyConstructionSettingsAction(HsneSettingsAction& hsneSettingsAction) :
+    GroupAction(&hsneSettingsAction, "Hierarchy Construction"),
     _hsneSettingsAction(hsneSettingsAction),
     _numWalksForLandmarkSelectionAction(this, "#walks for landmark sel."),
     _numWalksForLandmarkSelectionThresholdAction(this, "#walks for landmark sel. thres."),
     _randomWalkLengthAction(this, "Random walk length"),
     _numWalksForAreaOfInfluenceAction(this, "#walks for aoi"),
     _minWalksRequiredAction(this, "Minimum #walks required"),
-    _numChecksAknnAction(this, "No. KNN checks"),
     _useOutOfCoreComputationAction(this, "Out-of-core computation"),
+    _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling"),
+    _seedAction(this, "Random seed"),
     _saveHierarchyToDiskAction(this, "Save hierarchy to disk"),
     _saveHierarchyToProjectAction(this, "Save hierarchy to project")
 {
-    setSerializationName("advancedHsneSettings");
+    setObjectName("Hierarchy Construction");
 
     addAction(&_numWalksForLandmarkSelectionAction);
     addAction(&_numWalksForLandmarkSelectionThresholdAction);
     addAction(&_randomWalkLengthAction);
     addAction(&_numWalksForAreaOfInfluenceAction);
     addAction(&_minWalksRequiredAction);
-    addAction(&_numChecksAknnAction);
+    addAction(&_seedAction);
+    addAction(&_useOutOfCoreComputationAction);
+    addAction(&_useMonteCarloSamplingAction);
     addAction(&_saveHierarchyToDiskAction);
     addAction(&_saveHierarchyToProjectAction);
 
@@ -33,8 +36,9 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _randomWalkLengthAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numWalksForAreaOfInfluenceAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _minWalksRequiredAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
-    _numChecksAknnAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
     _useOutOfCoreComputationAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
+    _useMonteCarloSamplingAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
+    _seedAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _saveHierarchyToDiskAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
     _saveHierarchyToProjectAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
 
@@ -43,8 +47,9 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _randomWalkLengthAction.setToolTip("Number of walks for landmark selection threshold");
     _numWalksForAreaOfInfluenceAction.setToolTip("Number of walks for area of influence");
     _minWalksRequiredAction.setToolTip("Minimum number of walks required");
-    _numChecksAknnAction.setToolTip("Number of KNN checks");
     _useOutOfCoreComputationAction.setToolTip("Use out-of-core computation");
+    _useMonteCarloSamplingAction.setToolTip("Use Monte Carlo Sampling");
+    _seedAction.setToolTip("Random seed for initialization");
     _saveHierarchyToDiskAction.setToolTip("Save computed hierarchy to disk. \nWhen computing HSNE again with the same settings, \nthe hierarchy is loaded instead of recomputed");
     _saveHierarchyToProjectAction.setToolTip("Save computed hierarchy when saving a project. \nThis enables selection refinements \nafter loading projects");
 
@@ -55,8 +60,9 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     _randomWalkLengthAction.initialize(1, 100, hsneParameters.getRandomWalkLength());
     _numWalksForAreaOfInfluenceAction.initialize(1, 500, hsneParameters.getNumWalksForAreaOfInfluence());
     _minWalksRequiredAction.initialize(0, 100, hsneParameters.getMinWalksRequired());
-    _numChecksAknnAction.initialize(0, 1024, hsneParameters.getNumChecksAKNN());
     _useOutOfCoreComputationAction.setChecked(hsneParameters.useOutOfCoreComputation());
+    _useMonteCarloSamplingAction.setChecked(hsneParameters.useMonteCarloSampling());
+    _seedAction.initialize(-1000, 1000, hsneParameters.getSeed());
     _saveHierarchyToDiskAction.setChecked(true);
     _saveHierarchyToProjectAction.setChecked(true);
     
@@ -80,9 +86,13 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
         _hsneSettingsAction.getHsneParameters().setMinWalksRequired(_minWalksRequiredAction.getValue());
     };
 
-    const auto updateNumChecksAknn = [this]() -> void {
-        _hsneSettingsAction.getHsneParameters().setNumChecksAKNN(_numChecksAknnAction.getValue());
-    };
+    const auto updateSeed = [this]() -> void {
+        _hsneSettingsAction.getHsneParameters().setSeed(_seedAction.getValue());
+        };
+
+    const auto updateUseMonteCarloSampling = [this]() -> void {
+        _hsneSettingsAction.getHsneParameters().useMonteCarloSampling(_useMonteCarloSamplingAction.isChecked());
+        };
 
     const auto updateUseOutOfCoreComputation = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().useOutOfCoreComputation(_useOutOfCoreComputationAction.isChecked());
@@ -100,8 +110,9 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
         _randomWalkLengthAction.setEnabled(enabled);
         _numWalksForAreaOfInfluenceAction.setEnabled(enabled);
         _minWalksRequiredAction.setEnabled(enabled);
-        _numChecksAknnAction.setEnabled(enabled);
         _useOutOfCoreComputationAction.setEnabled(enabled);
+        _useMonteCarloSamplingAction.setEnabled(enabled);
+        _seedAction.setEnabled(enabled);
     };
 
     connect(&_numWalksForLandmarkSelectionAction, &IntegralAction::valueChanged, this, [this, updateNumWalksForLandmarkSelectionAction]() {
@@ -124,12 +135,16 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
         updateMinWalksRequired();
     });
 
-    connect(&_numChecksAknnAction, &IntegralAction::valueChanged, this, [this, updateNumChecksAknn]() {
-        updateNumChecksAknn();
-    });
-
     connect(&_useOutOfCoreComputationAction, &ToggleAction::toggled, this, [this, updateUseOutOfCoreComputation]() {
         updateUseOutOfCoreComputation();
+    });
+
+    connect(&_useMonteCarloSamplingAction, &ToggleAction::toggled, this, [this, updateUseMonteCarloSampling]() {
+        updateUseMonteCarloSampling();
+    });
+
+    connect(&_seedAction, &IntegralAction::valueChanged, this, [this, updateSeed]() {
+        updateSeed();
     });
 
     connect(&_saveHierarchyToDiskAction, &ToggleAction::toggled, this, [this, updateSaveHierarchyToDiskAction]() {
@@ -145,13 +160,14 @@ AdvancedHsneSettingsAction::AdvancedHsneSettingsAction(HsneSettingsAction& hsneS
     updateRandomWalkLength();
     updateNumWalksForAreaOfInfluence();
     updateMinWalksRequired();
-    updateNumChecksAknn();
     updateUseOutOfCoreComputation();
+    updateUseMonteCarloSampling();
+    updateSeed();
     updateSaveHierarchyToDiskAction();
     updateReadOnly();
 }
 
-void AdvancedHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
+void HierarchyConstructionSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 {
     GroupAction::fromVariantMap(variantMap);
 
@@ -160,13 +176,14 @@ void AdvancedHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
     _randomWalkLengthAction.fromParentVariantMap(variantMap);
     _numWalksForAreaOfInfluenceAction.fromParentVariantMap(variantMap);
     _minWalksRequiredAction.fromParentVariantMap(variantMap);
-    _numChecksAknnAction.fromParentVariantMap(variantMap);
+    _useMonteCarloSamplingAction.fromParentVariantMap(variantMap);
     _useOutOfCoreComputationAction.fromParentVariantMap(variantMap);
+    _seedAction.fromParentVariantMap(variantMap);
     _saveHierarchyToDiskAction.fromParentVariantMap(variantMap);
     _saveHierarchyToProjectAction.fromParentVariantMap(variantMap);
 }
 
-QVariantMap AdvancedHsneSettingsAction::toVariantMap() const
+QVariantMap HierarchyConstructionSettingsAction::toVariantMap() const
 {
     QVariantMap variantMap = GroupAction::toVariantMap();
 
@@ -175,8 +192,9 @@ QVariantMap AdvancedHsneSettingsAction::toVariantMap() const
     _randomWalkLengthAction.insertIntoVariantMap(variantMap);
     _numWalksForAreaOfInfluenceAction.insertIntoVariantMap(variantMap);
     _minWalksRequiredAction.insertIntoVariantMap(variantMap);
-    _numChecksAknnAction.insertIntoVariantMap(variantMap);
+    _useMonteCarloSamplingAction.insertIntoVariantMap(variantMap);
     _useOutOfCoreComputationAction.insertIntoVariantMap(variantMap);
+    _seedAction.insertIntoVariantMap(variantMap);
     _saveHierarchyToDiskAction.insertIntoVariantMap(variantMap);
     _saveHierarchyToProjectAction.insertIntoVariantMap(variantMap);
 

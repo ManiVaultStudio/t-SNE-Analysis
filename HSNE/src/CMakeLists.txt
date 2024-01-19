@@ -16,11 +16,11 @@ set(HSNE_ACTIONS_SOURCES
     ${DIR}/HsneSettingsAction.cpp
     ${DIR}/GeneralHsneSettingsAction.h
     ${DIR}/GeneralHsneSettingsAction.cpp
-    ${DIR}/AdvancedHsneSettingsAction.h
-    ${DIR}/AdvancedHsneSettingsAction.cpp
-	${DIR}/HsneScaleAction.h
+    ${DIR}/HierarchyConstructionSettingsAction.h
+    ${DIR}/HierarchyConstructionSettingsAction.cpp
+    ${DIR}/HsneScaleAction.h
     ${DIR}/HsneScaleAction.cpp
-	PARENT_SCOPE
+    PARENT_SCOPE
 )
 
 set(HSNE_RESOURCES

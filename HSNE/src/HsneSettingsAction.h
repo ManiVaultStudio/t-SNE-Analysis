@@ -1,11 +1,12 @@
 #pragma once
 
-#include "AdvancedHsneSettingsAction.h"
 #include "GeneralHsneSettingsAction.h"
+#include "GradientDescentSettingsAction.h"
+#include "HierarchyConstructionSettingsAction.h"
 #include "HsneParameters.h"
 #include "HsneScaleAction.h"
+#include "KnnSettingsAction.h"
 #include "TsneParameters.h"
-#include "TsneSettingsAction.h"
 
 using namespace mv::gui;
 
@@ -29,15 +30,16 @@ public:
     HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin);
 
     /** Get HSNE/TSNE parameters */
-    HsneParameters& getHsneParameters();
-    TsneParameters& getTsneParameters();
+    HsneParameters& getHsneParameters() { return _hsneParameters;  }
+    TsneParameters& getTsneParameters() { return _tsneParameters; }
 
 public: // Action getters
 
     GeneralHsneSettingsAction& getGeneralHsneSettingsAction() { return _generalHsneSettingsAction; }
-    AdvancedHsneSettingsAction& getAdvancedHsneSettingsAction() { return _advancedHsneSettingsAction; }
+    HierarchyConstructionSettingsAction& getAdvancedHsneSettingsAction() { return _hierarchyConstructionSettingsAction; }
     HsneScaleAction& getTopLevelScaleAction() { return _topLevelScaleAction; }
-    TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
+    GradientDescentSettingsAction& getGradientDescentSettingsAction() { return _gradientDescentSettingsAction; }
+    KnnSettingsAction& getKnnSettingsAction() { return _knnSettingsAction; }
 
 public: // Serialization
 
@@ -53,13 +55,15 @@ public: // Serialization
      */
     QVariantMap toVariantMap() const override;
 
-protected:
-    HsneAnalysisPlugin*             _hsneAnalysisPlugin;            /** Pointer to HSNE analysis plugin */
-    HsneParameters                  _hsneParameters;                /** HSNE parameters */
-    GeneralHsneSettingsAction       _generalHsneSettingsAction;     /** General HSNE settings action */
-    AdvancedHsneSettingsAction      _advancedHsneSettingsAction;    /** Advanced HSNE settings action */
-    HsneScaleAction                 _topLevelScaleAction;           /** Top level scale action */
-    TsneSettingsAction              _tsneSettingsAction;            /** TSNE settings action */
+private:
+    HsneParameters                          _hsneParameters;                        /** HSNE parameters */
+    TsneParameters                          _tsneParameters;                        /** TSNE parameters */
 
-    friend class Widget;
+private:
+    HsneAnalysisPlugin*                     _hsneAnalysisPlugin;                    /** Pointer to HSNE analysis plugin */
+    GeneralHsneSettingsAction               _generalHsneSettingsAction;             /** General HSNE settings action */
+    HierarchyConstructionSettingsAction     _hierarchyConstructionSettingsAction;   /** Hierarchy Construction settings action */
+    GradientDescentSettingsAction           _gradientDescentSettingsAction;         /** Gradient descent settings action */
+    KnnSettingsAction                       _knnSettingsAction;                     /** knn settings action */
+    HsneScaleAction                         _topLevelScaleAction;                   /** Top level scale action */
 };

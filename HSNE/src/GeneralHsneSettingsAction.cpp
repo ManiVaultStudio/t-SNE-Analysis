@@ -5,33 +5,25 @@
 using namespace mv::gui;
 
 GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
-    GroupAction(&hsneSettingsAction, "General HSNE", true),
+    GroupAction(&hsneSettingsAction, "HSNE", true),
     _hsneSettingsAction(hsneSettingsAction),
     _knnTypeAction(this, "KNN Type"),
     _numScalesAction(this, "Number of Hierarchy Scales"),
-    _seedAction(this, "Random seed"),
-    _useMonteCarloSamplingAction(this, "Use Monte Carlo sampling"),
     _startAction(this, "Start")
 {
-    setSerializationName("generalHsneSettings");
+    setObjectName("HSNE");
 
     addAction(&_knnTypeAction);
     addAction(&_numScalesAction);
-    addAction(&_seedAction);
-    addAction(&_useMonteCarloSamplingAction);
     addAction(&_startAction);
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
 
     _knnTypeAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _numScalesAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
-    _seedAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
-    _useMonteCarloSamplingAction.setDefaultWidgetFlags(ToggleAction::CheckBox);
 
     _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
     _numScalesAction.initialize(1, 10, hsneParameters.getNumScales());
-    _seedAction.initialize(-1000, 1000, hsneParameters.getSeed());
-    _useMonteCarloSamplingAction.setChecked(hsneParameters.useMonteCarloSampling());
 
     _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 
@@ -50,22 +42,12 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
         _hsneSettingsAction.getHsneParameters().setNumScales(_numScalesAction.getValue());
     };
 
-    const auto updateSeed = [this]() -> void {
-        _hsneSettingsAction.getHsneParameters().setSeed(_seedAction.getValue());
-    };
-
-    const auto updateUseMonteCarloSampling = [this]() -> void {
-        _hsneSettingsAction.getHsneParameters().useMonteCarloSampling(_useMonteCarloSamplingAction.isChecked());
-    };
-
     const auto updateReadOnly = [this]() -> void {
         const auto enabled = !isReadOnly();
 
         _startAction.setEnabled(enabled);
         _knnTypeAction.setEnabled(enabled);
         _numScalesAction.setEnabled(enabled);
-        _seedAction.setEnabled(enabled);
-        _useMonteCarloSamplingAction.setEnabled(enabled);
     };
 
     connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm]() {
@@ -74,14 +56,6 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
 
     connect(&_numScalesAction, &IntegralAction::valueChanged, this, [this, updateNumScales]() {
         updateNumScales();
-    });
-
-    connect(&_seedAction, &IntegralAction::valueChanged, this, [this, updateSeed]() {
-        updateSeed();
-    });
-
-    connect(&_useMonteCarloSamplingAction, &ToggleAction::toggled, this, [this, updateUseMonteCarloSampling]() {
-        updateUseMonteCarloSampling();
     });
 
     connect(&_startAction, &ToggleAction::toggled, this, [this](bool toggled) {
@@ -94,8 +68,6 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
 
     updateKnnAlgorithm();
     updateNumScales();
-    updateSeed();
-    updateUseMonteCarloSampling();
     updateReadOnly();
 }
 
@@ -113,8 +85,6 @@ void GeneralHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 
     _knnTypeAction.fromParentVariantMap(variantMap);
     _numScalesAction.fromParentVariantMap(variantMap);
-    _seedAction.fromParentVariantMap(variantMap);
-    _useMonteCarloSamplingAction.fromParentVariantMap(variantMap);
     _startAction.fromParentVariantMap(variantMap);
 }
 
@@ -124,8 +94,6 @@ QVariantMap GeneralHsneSettingsAction::toVariantMap() const
 
     _knnTypeAction.insertIntoVariantMap(variantMap);
     _numScalesAction.insertIntoVariantMap(variantMap);
-    _seedAction.insertIntoVariantMap(variantMap);
-    _useMonteCarloSamplingAction.insertIntoVariantMap(variantMap);
     _startAction.insertIntoVariantMap(variantMap);
 
     return variantMap;

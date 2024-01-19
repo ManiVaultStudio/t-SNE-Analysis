@@ -5,29 +5,20 @@
 using namespace mv::gui;
 
 HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
-    GroupAction(hsneAnalysisPlugin, "HSNE", true),
-    _hsneAnalysisPlugin(hsneAnalysisPlugin),
+    GroupAction(hsneAnalysisPlugin, "HSNE Settings", true),
     _hsneParameters(),
+    _tsneParameters(),
+    _hsneAnalysisPlugin(hsneAnalysisPlugin),
     _generalHsneSettingsAction(*this),
-    _advancedHsneSettingsAction(*this),
-    _topLevelScaleAction(this, _tsneSettingsAction, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDataset<Points>(), hsneAnalysisPlugin->getOutputDataset<Points>()),
-    _tsneSettingsAction(this)
+    _hierarchyConstructionSettingsAction(*this),
+    _gradientDescentSettingsAction(this, _tsneParameters),
+    _knnSettingsAction(this, _tsneParameters),
+    _topLevelScaleAction(this, _tsneParameters, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDataset<Points>(), hsneAnalysisPlugin->getOutputDataset<Points>())
 {
-    setText("HSNE");
-    setSerializationName("hsneSettings");
-    setObjectName("Settings");
-
-    _tsneSettingsAction.setObjectName("TSNE");
-
-    const auto updateReadOnly = [this]() -> void {
-        _generalHsneSettingsAction.setReadOnly(isReadOnly());
-        _advancedHsneSettingsAction.setReadOnly(isReadOnly());
-        _topLevelScaleAction.setReadOnly(isReadOnly());
-        _tsneSettingsAction.setReadOnly(isReadOnly());
-    };
+    //setObjectName("HSNE Settings");
 
     const auto updateDistanceMetric = [this]() -> void {
-        auto currentText = _tsneSettingsAction.getGeneralTsneSettingsAction().getDistanceMetricAction().getCurrentText();
+        auto currentText = _generalHsneSettingsAction.getDistanceMetricAction().getCurrentText();
         auto metric = hdi::dr::knn_distance_metric::KNN_METRIC_EUCLIDEAN;
 
         if (currentText == "Euclidean")
@@ -52,6 +43,12 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
 
     };
 
+    const auto updateReadOnly = [this]() -> void {
+        _generalHsneSettingsAction.setReadOnly(isReadOnly());
+        _advancedHsneSettingsAction.setReadOnly(isReadOnly());
+        _topLevelScaleAction.setReadOnly(isReadOnly());
+        _tsneSettingsAction.setReadOnly(isReadOnly());
+        };
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
@@ -70,11 +67,6 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     updateDistanceMetric();
 }
 
-HsneParameters& HsneSettingsAction::getHsneParameters()
-{
-    return _hsneParameters;
-}
-
 TsneParameters& HsneSettingsAction::getTsneParameters()
 {
     return _tsneSettingsAction.getTsneParameters();
@@ -84,15 +76,15 @@ void HsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 {
     GroupAction::fromVariantMap(variantMap);
 
-    variantMapMustContain(variantMap, "generalHsneSettings");
-    variantMapMustContain(variantMap, "advancedHsneSettings");
-    variantMapMustContain(variantMap, "tsneSettings");
-    variantMapMustContain(variantMap, "topLevelScale");
+    variantMapMustContain(variantMap, "HSNE");
+    variantMapMustContain(variantMap, "Hierarchy Construction");
+    variantMapMustContain(variantMap, "TSNE");
+    variantMapMustContain(variantMap, "HSNE Scale");
 
-    _tsneSettingsAction.fromVariantMap(variantMap["tsneSettings"].toMap());
-    _generalHsneSettingsAction.fromVariantMap(variantMap["generalHsneSettings"].toMap());
-    _advancedHsneSettingsAction.fromVariantMap(variantMap["advancedHsneSettings"].toMap());
-    _topLevelScaleAction.fromVariantMap(variantMap["topLevelScale"].toMap());
+    _tsneSettingsAction.fromVariantMap(variantMap["TSNE"].toMap());
+    _generalHsneSettingsAction.fromVariantMap(variantMap["HierarchyConstruction"].toMap());
+    _advancedHsneSettingsAction.fromVariantMap(variantMap["HSNE"].toMap());
+    _topLevelScaleAction.fromVariantMap(variantMap["HSNEScale"].toMap());
     
     _hsneParameters.setKnnLibrary(static_cast<hdi::dr::knn_library>(variantMap["KnnLibrary"].toInt()));
     _hsneParameters.setKnnMetric(static_cast<hdi::dr::knn_distance_metric>(variantMap["KnnMetric"].toInt()));

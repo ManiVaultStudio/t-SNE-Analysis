@@ -2,7 +2,7 @@
 
 #include "DataHierarchyItem.h"
 #include "HsneHierarchy.h"
-#include "TsneSettingsAction.h"
+#include "TsneParameters.h"
 
 #include <event/Event.h>
 
@@ -12,9 +12,9 @@
 using namespace mv;
 using namespace mv::gui;
 
-HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
+HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
     GroupAction(parent, "HSNE scale", true),
-    _tsneSettingsAction(tsneSettingsAction),
+    _tsneParameters(tsneParameters),
     _tsneAnalysis(),
     _hsneHierarchy(hsneHierarchy),
     _input(inputDataset),
@@ -25,8 +25,6 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     _isTopScale(true),
     _currentScaleLevel(0)
 {
-    setSerializationName("topLevelScale");
-
     addAction(&_refineAction);
 
     _refineAction.setToolTip("Refine the selected landmarks");
@@ -157,7 +155,7 @@ void HsneScaleAction::refine()
     // Only add a new scale action if the drill scale is higher than data level
     if (refinedScaleLevel > 0)
     {
-        auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, _input, _refineEmbedding);
+        auto hsneScaleAction = new HsneScaleAction(this, _tsneParameters, _hsneHierarchy, _input, _refineEmbedding);
         hsneScaleAction->setDrillIndices(refinedLandmarks);
         hsneScaleAction->setScale(refinedScaleLevel);
 
@@ -218,7 +216,7 @@ void HsneScaleAction::refine()
     _initializationTask.setFinished();
 
     // Start the embedding process
-    _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), transitionMatrix, refinedLandmarks.size(), _hsneHierarchy.getNumDimensions());
+    _tsneAnalysis.startComputation(_tsneParameters, transitionMatrix, refinedLandmarks.size(), _hsneHierarchy.getNumDimensions());
 }
 
 void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
