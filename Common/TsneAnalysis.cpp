@@ -17,6 +17,7 @@ using namespace mv;
 TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions) :
     _currentIteration(0),
     _parameters(parameters),
+    _knnParameters(),
     _probabilityDistribution(probDist),
     _numPoints(numPoints),
     _numDimensions(numDimensions),
@@ -30,9 +31,10 @@ TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::M
     _offscreenBuffer = new OffscreenBuffer();
 }
 
-TsneWorker::TsneWorker(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions) :
+TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions) :
     _currentIteration(0),
     _parameters(parameters),
+    _knnParameters(knnParameters),
     _data(data),
     _numPoints(data.size() / numDimensions),
     _numDimensions(numDimensions),
@@ -92,10 +94,12 @@ void TsneWorker::computeSimilarities()
 
     probGenParams._perplexity               = _parameters.getPerplexity();
     probGenParams._perplexity_multiplier    = 3;
-    probGenParams._num_trees                = _parameters.getNumTrees();
-    probGenParams._num_checks               = _parameters.getNumChecks();
-    probGenParams._aknn_algorithm           = _parameters.getKnnAlgorithm();
-    probGenParams._aknn_metric              = _parameters.getKnnDistanceMetric();
+    probGenParams._num_trees                = _knnParameters.getAnnoyNumTrees();
+    probGenParams._num_checks               = _knnParameters.getAnnoyNumChecks();
+    probGenParams._aknn_algorithmP1         = _knnParameters.getHNSWm();
+    probGenParams._aknn_algorithmP2         = _knnParameters.getHNSWef();
+    probGenParams._aknn_algorithm           = _knnParameters.getKnnAlgorithm();
+    probGenParams._aknn_metric              = _knnParameters.getKnnDistanceMetric();
 
     qDebug() << "tSNE initialized.";
 
@@ -322,7 +326,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, const std::vector
     startComputation(_tsneWorker);
 }
 
-void TsneAnalysis::startComputation(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions)
+void TsneAnalysis::startComputation(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions)
 {
     if (_tsneWorker)
     {
@@ -330,7 +334,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, /*const*/ std::ve
         delete _tsneWorker;
     }
 
-    _tsneWorker = new TsneWorker(parameters, data, numDimensions);
+    _tsneWorker = new TsneWorker(parameters, knnParameters, data, numDimensions);
     
     _tsneWorker->setParentTask(_task);
 

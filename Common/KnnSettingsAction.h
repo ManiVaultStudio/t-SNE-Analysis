@@ -5,7 +5,7 @@
 
 using namespace mv::gui;
 
-class TsneParameters;
+class KnnParameters;
 
 /**
  * kNN Settings setting action class
@@ -22,12 +22,14 @@ public:
      * Constructor
      * @param tsneSettingsAction Reference to TSNE settings action
      */
-    KnnSettingsAction(QObject* parent, TsneParameters& tsneParameters);
+    KnnSettingsAction(QObject* parent, KnnParameters& knnParameters);
 
 public: // Action getters
 
     IntegralAction& getNumTreesAction() { return _numTreesAction; };
     IntegralAction& getNumChecksAction() { return _numChecksAction; };
+    IntegralAction& getMAction() { return _mAction; };
+    IntegralAction& getEfAction() { return _efAction; };
 
 public: // Serialization
 
@@ -44,9 +46,11 @@ public: // Serialization
     QVariantMap toVariantMap() const override;
 
 protected:
-    TsneParameters&         _tsneParameters;            /** Pointer to tSNE parameters */
-    IntegralAction          _numTreesAction;            /** Exponential decay action */
-    IntegralAction          _numChecksAction;           /** Exponential decay action */
+    KnnParameters&          _knnParameters;             /** Pointer to Knn parameters */
+    IntegralAction          _numTreesAction;            /** Annoy parameter Trees  action */
+    IntegralAction          _numChecksAction;           /** Annoy parameter Checks action */
+    IntegralAction          _mAction;                   /** HNSW parameter M action */
+    IntegralAction          _efAction;                  /** HNSW parameter ef action */
 
     friend class Widget;
 };

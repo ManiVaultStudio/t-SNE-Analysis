@@ -13,7 +13,7 @@ using namespace mv;
 using namespace mv::gui;
 
 HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
-    GroupAction(parent, "HSNE scale", true),
+    GroupAction(parent, "HSNE Scale", true),
     _tsneParameters(tsneParameters),
     _tsneAnalysis(),
     _hsneHierarchy(hsneHierarchy),
@@ -21,26 +21,63 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
     _embedding(embeddingDataset),
     _refineEmbedding(),
     _refineAction(this, "Refine selection"),
+    _numIterationsAction(this, "Number of iterations"),
+    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0),
+    _updateIterationsAction(this, "Core update every"),
+    _computationAction(this),
     _initializationTask(this, "Preparing HSNE scale"),
     _isTopScale(true),
     _currentScaleLevel(0)
 {
     addAction(&_refineAction);
+    addAction(&_numIterationsAction);
+    addAction(&_numberOfComputatedIterationsAction);
+    addAction(&_updateIterationsAction);
+    addAction(&_computationAction);
+
+    _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _numberOfComputatedIterationsAction.setDefaultWidgetFlags(IntegralAction::LineEdit);
+    _updateIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
+
+    _numIterationsAction.initialize(1, 10000, 1000);
+    _updateIterationsAction.initialize(0, 10000, 10);
 
     _refineAction.setToolTip("Refine the selected landmarks");
+    _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
+
+    _computationAction.getStartComputationAction().setEnabled(false);
 
     connect(&_refineAction, &TriggerAction::triggered, this, [this]() {
         refine();
     });
 
+    const auto updateNumIterations = [this]() -> void {
+        _tsneParameters.setNumIterations(_numIterationsAction.getValue());
+    };
+
+    const auto updateCoreUpdate = [this]() -> void {
+        _tsneParameters.setUpdateCore(_updateIterationsAction.getValue());
+    };
+
     const auto updateReadOnly = [this]() -> void {
         auto selection = _input->getSelection<Points>();
+        const auto enabled = !isReadOnly();
 
         _refineAction.setEnabled(!isReadOnly() && !selection->indices.empty());
+        _numIterationsAction.setEnabled(enabled);
+        _updateIterationsAction.setEnabled(enabled);
     };
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
+    });
+
+    connect(&_numIterationsAction, &IntegralAction::valueChanged, this, [this, updateNumIterations](const std::int32_t& value) {
+        updateNumIterations();
+    });
+
+    connect(&_updateIterationsAction, &IntegralAction::valueChanged, this, [this, updateCoreUpdate](const std::int32_t& value) {
+        updateCoreUpdate();
     });
 
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetDataSelectionChanged));
@@ -242,6 +279,10 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
     _currentScaleLevel = variantMap["currentScaleLevel"].toUInt();
 
     _refineAction.fromParentVariantMap(variantMap);
+    _numIterationsAction.fromParentVariantMap(variantMap);
+    _numberOfComputatedIterationsAction.fromParentVariantMap(variantMap);
+    _updateIterationsAction.fromParentVariantMap(variantMap);
+    _computationAction.fromParentVariantMap(variantMap);
 
 }
 
@@ -250,6 +291,10 @@ QVariantMap HsneScaleAction::toVariantMap() const
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _refineAction.insertIntoVariantMap(variantMap);
+    _numIterationsAction.insertIntoVariantMap(variantMap);
+    _numberOfComputatedIterationsAction.insertIntoVariantMap(variantMap);
+    _updateIterationsAction.insertIntoVariantMap(variantMap);
+    _computationAction.insertIntoVariantMap(variantMap);
 
     variantMap.insert({ { "inputGUID", QVariant::fromValue(_input.get<Points>()->getId()) } });
     variantMap.insert({ { "embeddingGUID", QVariant::fromValue(_embedding.get<Points>()->getId()) } });

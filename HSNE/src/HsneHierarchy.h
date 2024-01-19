@@ -65,9 +65,9 @@ public:
      * @param  data        The high-dimensional data
      * @param  parameters  Parameters with which to run the HSNE algorithm
      */
-    void initialize(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters);
+    void initialize(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters);
 
-    void setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters);
+    void setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters);
 
     HsneMatrix getTransitionMatrixAtScale(int scale) { return _hsne->scale(scale)._transition_matrix; }
 

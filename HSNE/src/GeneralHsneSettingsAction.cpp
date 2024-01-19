@@ -7,50 +7,80 @@ using namespace mv::gui;
 GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
     GroupAction(&hsneSettingsAction, "HSNE", true),
     _hsneSettingsAction(hsneSettingsAction),
-    _knnTypeAction(this, "KNN Type"),
     _numScalesAction(this, "Number of Hierarchy Scales"),
+    _knnAlgorithmAction(this, "KNN Type"),
+    _distanceMetricAction(this, "Distance metric"),
+    _numKnnAction(this, "Number of NN"),
     _startAction(this, "Start")
 {
-    setObjectName("HSNE");
+    //setObjectName("HSNE");
 
-    addAction(&_knnTypeAction);
     addAction(&_numScalesAction);
+    addAction(&_knnAlgorithmAction);
+    addAction(&_distanceMetricAction);
+    addAction(&_numKnnAction);
     addAction(&_startAction);
 
-    const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
-
-    _knnTypeAction.setDefaultWidgetFlags(OptionAction::ComboBox);
+    _knnAlgorithmAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _numScalesAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _distanceMetricAction.setDefaultWidgetFlags(OptionAction::ComboBox);
+    _numKnnAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
-    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
-    _numScalesAction.initialize(1, 10, hsneParameters.getNumScales());
+    _numScalesAction.initialize(1, 10, hsneSettingsAction.getHsneParameters().getNumScales());
+    _knnAlgorithmAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
+    _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
+    _numKnnAction.initialize(2, 300, 30);
 
     _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 
-    const auto updateKnnAlgorithm = [this]() -> void {
-        if (_knnTypeAction.getCurrentText() == "FLANN")
-            _hsneSettingsAction.getHsneParameters().setKnnLibrary(hdi::dr::knn_library::KNN_FLANN);
-
-        if (_knnTypeAction.getCurrentText() == "HNSW")
-            _hsneSettingsAction.getHsneParameters().setKnnLibrary(hdi::dr::knn_library::KNN_HNSW);
-
-        if (_knnTypeAction.getCurrentText() == "ANNOY")
-            _hsneSettingsAction.getHsneParameters().setKnnLibrary(hdi::dr::knn_library::KNN_ANNOY);
-    };
-
     const auto updateNumScales = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setNumScales(_numScalesAction.getValue());
+        };
+
+    const auto updateKnnAlgorithm = [this]() -> void {
+        if (_knnAlgorithmAction.getCurrentText() == "FLANN")
+            _hsneSettingsAction.getKnnParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_FLANN);
+
+        if (_knnAlgorithmAction.getCurrentText() == "HNSW")
+            _hsneSettingsAction.getKnnParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_HNSW);
+
+        if (_knnAlgorithmAction.getCurrentText() == "ANNOY")
+            _hsneSettingsAction.getKnnParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_ANNOY);
     };
+
+    const auto updateDistanceMetric = [this]() -> void {
+        if (_distanceMetricAction.getCurrentText() == "Euclidean")
+            _hsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_EUCLIDEAN);
+
+        if (_distanceMetricAction.getCurrentText() == "Cosine")
+            _hsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_COSINE);
+
+        if (_distanceMetricAction.getCurrentText() == "Inner Product")
+            _hsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_INNER_PRODUCT);
+
+        if (_distanceMetricAction.getCurrentText() == "Manhattan")
+            _hsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_MANHATTAN);
+
+        if (_distanceMetricAction.getCurrentText() == "Hamming")
+            _hsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_HAMMING);
+
+        if (_distanceMetricAction.getCurrentText() == "Dot")
+            _hsneSettingsAction.getKnnParameters().setKnnDistanceMetric(hdi::dr::knn_distance_metric::KNN_METRIC_DOT);
+        };
+
+    const auto updateNumKnn = [this]() -> void {
+        _hsneSettingsAction.getHsneParameters().setNumNearestNeighbors(_numKnnAction.getValue());
+        };
 
     const auto updateReadOnly = [this]() -> void {
         const auto enabled = !isReadOnly();
 
-        _startAction.setEnabled(enabled);
-        _knnTypeAction.setEnabled(enabled);
+        _knnAlgorithmAction.setEnabled(enabled);
         _numScalesAction.setEnabled(enabled);
+        _numKnnAction.setEnabled(enabled);
     };
 
-    connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm]() {
+    connect(&_knnAlgorithmAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm]() {
         updateKnnAlgorithm();
     });
 
@@ -58,8 +88,12 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
         updateNumScales();
     });
 
-    connect(&_startAction, &ToggleAction::toggled, this, [this](bool toggled) {
-        setReadOnly(toggled);
+    connect(&_distanceMetricAction, &OptionAction::currentIndexChanged, this, [this, updateDistanceMetric](const std::int32_t& currentIndex) {
+        updateDistanceMetric();
+    });
+
+    connect(&_numKnnAction, &IntegralAction::valueChanged, this, [this, updateNumKnn](const std::int32_t& value) {
+        updateNumKnn();
     });
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
@@ -67,24 +101,20 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     });
 
     updateKnnAlgorithm();
+    updateDistanceMetric();
     updateNumScales();
+    updateNumKnn();
     updateReadOnly();
-}
-
-void GeneralHsneSettingsAction::setPerplexity(const int32_t& perplexity) {
-    _hsneSettingsAction.getHsneParameters().setNumNearestNeighbors(perplexity * 3);
-}
-
-void GeneralHsneSettingsAction::setDistanceMetric(const hdi::dr::knn_distance_metric& metric) {
-    _hsneSettingsAction.getHsneParameters().setKnnMetric(metric);
 }
 
 void GeneralHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 {
     GroupAction::fromVariantMap(variantMap);
 
-    _knnTypeAction.fromParentVariantMap(variantMap);
     _numScalesAction.fromParentVariantMap(variantMap);
+    _knnAlgorithmAction.fromParentVariantMap(variantMap);
+    _distanceMetricAction.fromParentVariantMap(variantMap);
+    _numKnnAction.fromParentVariantMap(variantMap);
     _startAction.fromParentVariantMap(variantMap);
 }
 
@@ -92,8 +122,10 @@ QVariantMap GeneralHsneSettingsAction::toVariantMap() const
 {
     QVariantMap variantMap = GroupAction::toVariantMap();
 
-    _knnTypeAction.insertIntoVariantMap(variantMap);
     _numScalesAction.insertIntoVariantMap(variantMap);
+    _knnAlgorithmAction.insertIntoVariantMap(variantMap);
+    _distanceMetricAction.insertIntoVariantMap(variantMap);
+    _numKnnAction.insertIntoVariantMap(variantMap);
     _startAction.insertIntoVariantMap(variantMap);
 
     return variantMap;

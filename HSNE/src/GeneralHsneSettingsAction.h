@@ -3,10 +3,7 @@
 #include "actions/GroupAction.h"
 #include "actions/IntegralAction.h"
 #include "actions/OptionAction.h"
-#include "actions/ToggleAction.h"
 #include "actions/TriggerAction.h"
-
-#include "hdi/dimensionality_reduction/knn_utils.h"
 
 using namespace mv::gui;
 
@@ -29,14 +26,12 @@ public:
      */
     GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction);
 
-public slots:
-    void setPerplexity(const int32_t& perplexity);
-    void setDistanceMetric(const hdi::dr::knn_distance_metric& metric);
-
 public: // Action getters
 
     HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
-    OptionAction& getKnnTypeAction() { return _knnTypeAction; }
+    OptionAction& getKnnAlgorithmAction() { return _knnAlgorithmAction; }
+    IntegralAction& getNumKnnAction() { return _numKnnAction; };
+    OptionAction& getDistanceMetricAction() { return _distanceMetricAction; }
     IntegralAction& getNumScalesAction() { return _numScalesAction; }
     TriggerAction& getStartAction() { return _startAction; }
 
@@ -55,10 +50,10 @@ public: // Serialization
     QVariantMap toVariantMap() const override;
 
 protected:
-    HsneSettingsAction&     _hsneSettingsAction;                /** Reference to HSNE settings action */
-    OptionAction            _knnTypeAction;                     /** KNN action */
-    IntegralAction          _numScalesAction;                   /** Num scales action */
-    TriggerAction           _startAction;                       /** Start action */
-
-    friend class Widget;
+    HsneSettingsAction&     _hsneSettingsAction;                    /** Reference to HSNE settings action */
+    IntegralAction          _numScalesAction;                       /** Num scales action */
+    OptionAction            _knnAlgorithmAction;                    /** KNN algorithm action */
+    OptionAction            _distanceMetricAction;                  /** Distance metric action */
+    IntegralAction          _numKnnAction;                          /** Number of Knn action */
+    TriggerAction           _startAction;                           /** Start action */
 };

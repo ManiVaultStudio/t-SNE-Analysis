@@ -1,22 +1,18 @@
 set(DIR ${CMAKE_CURRENT_SOURCE_DIR}/Common)
 
-set(TSNE_COMMON_SOURCES
+set(COMMON_TSNE_SOURCES
     ${DIR}/TsneAnalysis.h
     ${DIR}/TsneAnalysis.cpp
     ${DIR}/TsneData.h
     ${DIR}/TsneParameters.h
-    ${DIR}/TsneOptions.h
+    ${DIR}/KnnParameters.h
     ${DIR}/OffscreenBuffer.h
     ${DIR}/OffscreenBuffer.cpp
 )
 
-set(TSNE_ACTIONS_SOURCES
-	${DIR}/TsneComputationAction.h
+set(COMMON_ACTIONS_SOURCES
+    ${DIR}/TsneComputationAction.h
     ${DIR}/TsneComputationAction.cpp
-    ${DIR}/TsneSettingsAction.h
-    ${DIR}/TsneSettingsAction.cpp
-    ${DIR}/GeneralTsneSettingsAction.h
-    ${DIR}/GeneralTsneSettingsAction.cpp
     ${DIR}/GradientDescentSettingsAction.h
     ${DIR}/GradientDescentSettingsAction.cpp
     ${DIR}/KnnSettingsAction.h

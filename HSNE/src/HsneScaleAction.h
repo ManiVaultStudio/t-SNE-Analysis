@@ -1,8 +1,14 @@
 #pragma once
 
+
+#include "actions/GroupAction.h"
+#include "actions/IntegralAction.h"
+#include "actions/TriggerAction.h"
+
 #include "event/EventListener.h"
 
 #include "TsneAnalysis.h"
+#include "TsneComputationAction.h"
 
 #include "PointData/PointData.h"
 
@@ -54,8 +60,10 @@ private:
 
 public: // Action getters
 
-    //TsneParameters& getTsneParameters() { return _tsneParameters; }
     TriggerAction& getRefineAction() { return _refineAction; }
+    IntegralAction& getNumIterationsAction() { return _numIterationsAction; };
+    IntegralAction& getNumberOfComputatedIterationsAction() { return _numberOfComputatedIterationsAction; };
+    TsneComputationAction& getComputationAction() { return _computationAction; }
 
 public: // Setters
     void setScale(unsigned int scale)
@@ -91,7 +99,12 @@ private:
     Dataset<Points>         _embedding;             /** Embedding dataset reference */
     Dataset<Points>         _refineEmbedding;       /** Refine embedding dataset reference */
 
-    TriggerAction           _refineAction;          /** Refine action */
+private:
+    TriggerAction           _refineAction;                          /** Refine action */
+    IntegralAction          _numIterationsAction;                   /** Number of iterations action */
+    IntegralAction          _numberOfComputatedIterationsAction;    /** Number of computed iterations action */
+    IntegralAction          _updateIterationsAction;                /** Number of update iterations (copying embedding to ManiVault core) */
+    TsneComputationAction   _computationAction;                     /** Computation action */
 
     EventListener           _eventListener;         /** Listen to HDPS events */
     mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */

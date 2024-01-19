@@ -1,5 +1,6 @@
 #pragma once
 
+#include "KnnParameters.h"
 #include "TsneData.h"
 #include "TsneParameters.h"
 
@@ -37,7 +38,7 @@ class TsneWorker : public QObject
     Q_OBJECT
 public:
     // The tsne object will compute knn and a probablility distribution before starting the embedding 
-    TsneWorker(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions);
+    TsneWorker(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions);
     // The tsne object expects a probDist that is not symmetrized, no knn are computed
     TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions);
     ~TsneWorker();
@@ -69,6 +70,9 @@ private:
 private:
     /** Parameters for the execution of the similarity computation and gradient descent */
     TsneParameters _parameters;
+
+    /** Parameters for the aknn search */
+    KnnParameters _knnParameters;
 
     /** Current iteration in the embedding / gradient descent process */
     int _currentIteration;
@@ -114,7 +118,7 @@ public:
     ~TsneAnalysis() override;
 
     void startComputation(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions);
-    void startComputation(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions);
+    void startComputation(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions);
     void continueComputation(int iterations);
     void stopComputation();
     bool canContinue() const;

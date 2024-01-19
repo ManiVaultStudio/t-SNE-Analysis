@@ -5,6 +5,7 @@
 #include "HierarchyConstructionSettingsAction.h"
 #include "HsneParameters.h"
 #include "HsneScaleAction.h"
+#include "KnnParameters.h"
 #include "KnnSettingsAction.h"
 #include "TsneParameters.h"
 
@@ -32,11 +33,12 @@ public:
     /** Get HSNE/TSNE parameters */
     HsneParameters& getHsneParameters() { return _hsneParameters;  }
     TsneParameters& getTsneParameters() { return _tsneParameters; }
+    KnnParameters& getKnnParameters() { return _knnParameters; }
 
 public: // Action getters
 
     GeneralHsneSettingsAction& getGeneralHsneSettingsAction() { return _generalHsneSettingsAction; }
-    HierarchyConstructionSettingsAction& getAdvancedHsneSettingsAction() { return _hierarchyConstructionSettingsAction; }
+    HierarchyConstructionSettingsAction& getHierarchyConstructionSettingsAction() { return _hierarchyConstructionSettingsAction; }
     HsneScaleAction& getTopLevelScaleAction() { return _topLevelScaleAction; }
     GradientDescentSettingsAction& getGradientDescentSettingsAction() { return _gradientDescentSettingsAction; }
     KnnSettingsAction& getKnnSettingsAction() { return _knnSettingsAction; }
@@ -58,6 +60,7 @@ public: // Serialization
 private:
     HsneParameters                          _hsneParameters;                        /** HSNE parameters */
     TsneParameters                          _tsneParameters;                        /** TSNE parameters */
+    KnnParameters                           _knnParameters;                         /** Knn parameters */
 
 private:
     HsneAnalysisPlugin*                     _hsneAnalysisPlugin;                    /** Pointer to HSNE analysis plugin */

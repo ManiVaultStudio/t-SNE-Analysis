@@ -63,9 +63,11 @@ HierarchyConstructionSettingsAction::HierarchyConstructionSettingsAction(HsneSet
     _useOutOfCoreComputationAction.setChecked(hsneParameters.useOutOfCoreComputation());
     _useMonteCarloSamplingAction.setChecked(hsneParameters.useMonteCarloSampling());
     _seedAction.initialize(-1000, 1000, hsneParameters.getSeed());
-    _saveHierarchyToDiskAction.setChecked(true);
+    _saveHierarchyToDiskAction.setChecked(hsneParameters.getSaveHierarchyToDisk());
     _saveHierarchyToProjectAction.setChecked(true);
     
+    collapse();
+
     const auto updateNumWalksForLandmarkSelectionAction = [this]() -> void {
         _hsneSettingsAction.getHsneParameters().setNumWalksForLandmarkSelection(_numWalksForLandmarkSelectionAction.getValue());
     };

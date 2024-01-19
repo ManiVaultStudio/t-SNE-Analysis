@@ -10,7 +10,7 @@ using namespace mv::gui;
 GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSettingsAction) :
     GroupAction(&tsneSettingsAction, "TSNE", true),
     _tsneSettingsAction(tsneSettingsAction),
-    _knnTypeAction(this, "KNN Type"),
+    _knnAlgorithmAction(this, "KNN Type"),
     _distanceMetricAction(this, "Distance metric"),
     _numIterationsAction(this, "Number of iterations"),
     _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0),
@@ -18,7 +18,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _updateIterationsAction(this, "Core update every"),
     _computationAction(this)
 {
-    addAction(&_knnTypeAction);
+    addAction(&_knnAlgorithmAction);
     addAction(&_distanceMetricAction);
     addAction(&_numIterationsAction);
     addAction(&_numberOfComputatedIterationsAction);
@@ -29,14 +29,14 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 
     _numberOfComputatedIterationsAction.setEnabled(false);
 
-    _knnTypeAction.setDefaultWidgetFlags(OptionAction::ComboBox);
+    _knnAlgorithmAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _distanceMetricAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numberOfComputatedIterationsAction.setDefaultWidgetFlags(IntegralAction::LineEdit);
     _perplexityAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
     _updateIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
-    _knnTypeAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
+    _knnAlgorithmAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
     _numIterationsAction.initialize(1, 10000, 1000);
     _perplexityAction.initialize(2, 50, 30);
@@ -44,15 +44,14 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 
     _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
 
-
     const auto updateKnnAlgorithm = [this]() -> void {
-        if (_knnTypeAction.getCurrentText() == "FLANN")
+        if (_knnAlgorithmAction.getCurrentText() == "FLANN")
             _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_FLANN);
 
-        if (_knnTypeAction.getCurrentText() == "HNSW")
+        if (_knnAlgorithmAction.getCurrentText() == "HNSW")
             _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_HNSW);
 
-        if (_knnTypeAction.getCurrentText() == "ANNOY")
+        if (_knnAlgorithmAction.getCurrentText() == "ANNOY")
             _tsneSettingsAction.getTsneParameters().setKnnAlgorithm(hdi::dr::knn_library::KNN_ANNOY);
     };
 
@@ -89,7 +88,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     };
 
     const auto isResettable = [this]() -> bool {
-        if (_knnTypeAction.isResettable())
+        if (_knnAlgorithmAction.isResettable())
             return true;
 
         if (_distanceMetricAction.isResettable())
@@ -110,14 +109,14 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     const auto updateReadOnly = [this]() -> void {
         const auto enable = !isReadOnly();
 
-        _knnTypeAction.setEnabled(enable);
+        _knnAlgorithmAction.setEnabled(enable);
         _distanceMetricAction.setEnabled(enable);
         _numIterationsAction.setEnabled(enable);
         _perplexityAction.setEnabled(enable);
         _updateIterationsAction.setEnabled(enable);
     };
 
-    connect(&_knnTypeAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm](const std::int32_t& currentIndex) {
+    connect(&_knnAlgorithmAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm](const std::int32_t& currentIndex) {
         updateKnnAlgorithm();
     });
 
@@ -153,7 +152,7 @@ void GeneralTsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 {
     GroupAction::fromVariantMap(variantMap);
 
-    _knnTypeAction.fromParentVariantMap(variantMap);
+    _knnAlgorithmAction.fromParentVariantMap(variantMap);
     _distanceMetricAction.fromParentVariantMap(variantMap);
     _numIterationsAction.fromParentVariantMap(variantMap);
     _numberOfComputatedIterationsAction.fromParentVariantMap(variantMap);
@@ -168,7 +167,7 @@ QVariantMap GeneralTsneSettingsAction::toVariantMap() const
 
     QVariantMap variantMap = GroupAction::toVariantMap();
 
-    _knnTypeAction.insertIntoVariantMap(variantMap);
+    _knnAlgorithmAction.insertIntoVariantMap(variantMap);
     _distanceMetricAction.insertIntoVariantMap(variantMap);
     _numIterationsAction.insertIntoVariantMap(variantMap);
     _numberOfComputatedIterationsAction.insertIntoVariantMap(variantMap);

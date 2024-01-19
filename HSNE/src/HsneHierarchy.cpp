@@ -23,11 +23,16 @@ constexpr auto _PARAMETERS_CACHE_VERSION_ = "1.0";
 
 namespace
 {
-    Hsne::Parameters setParameters(HsneParameters parameters)
+    Hsne::Parameters setParameters(HsneParameters parameters, KnnParameters knnParameters)
     {
         Hsne::Parameters params;
-        params._aknn_algorithm = parameters.getKnnLibrary();
-        params._aknn_metric = parameters.getKnnMetric();
+        params._aknn_algorithm = knnParameters.getKnnAlgorithm();
+        params._aknn_metric = knnParameters.getKnnDistanceMetric();
+        params._aknn_num_checks = static_cast<uint32_t>(knnParameters.getAnnoyNumChecks());
+        params._aknn_num_trees = static_cast<uint32_t>(knnParameters.getAnnoyNumTrees());
+        params._aknn_algorithmP1 = static_cast<double>(knnParameters.getHNSWm());
+        params._aknn_algorithmP2 = static_cast<double>(knnParameters.getHNSWef());
+
         params._seed = parameters.getSeed();
         params._num_walks_per_landmark = parameters.getNumWalksForAreaOfInfluence();
         params._monte_carlo_sampling = parameters.useMonteCarloSampling();
@@ -35,7 +40,6 @@ namespace
         params._mcmcs_landmark_thresh = parameters.getNumWalksForLandmarkSelectionThreshold();
         params._mcmcs_walk_length = parameters.getRandomWalkLength();
         params._transition_matrix_prune_thresh = parameters.getMinWalksRequired();
-        params._aknn_num_checks = parameters.getNumChecksAKNN();
         params._out_of_core_computation = parameters.useOutOfCoreComputation();
         params._num_neighbors = parameters.getNumNearestNeighbors();
         return params;
@@ -122,10 +126,10 @@ void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
     }
 }
 
-void HsneHierarchy::setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters)
+void HsneHierarchy::setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters)
 {
     // Convert our own HSNE parameters to the HDI parameters
-    _params = setParameters(parameters);
+    _params = setParameters(parameters, knnParameters);
 
     // Extract the enabled dimensions from the data
     unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
@@ -167,9 +171,9 @@ void HsneHierarchy::setDataAndParameters(const Points& inputData, const std::vec
     _hsne = std::make_unique<Hsne>();
 }
 
-void HsneHierarchy::initialize(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters)
+void HsneHierarchy::initialize(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters)
 {
-    setDataAndParameters(inputData, enabledDimensions, parameters);
+    setDataAndParameters(inputData, enabledDimensions, parameters, knnParameters);
 
     hdi::utils::CoutLog log;
 
