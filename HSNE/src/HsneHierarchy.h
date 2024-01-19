@@ -1,23 +1,21 @@
 #pragma once
 
-#include "TsneAnalysis.h"
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
-#include "hdi/utils/graph_algorithms.h"
 #include "hdi/utils/cout_log.h"
+#include "hdi/utils/graph_algorithms.h"
 
-#include <QString>
-#include <QDebug>
-
-#include <vector>
-#include <unordered_map>
-#include <memory>
 #include <filesystem>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 using HsneMatrix = std::vector<hdi::data::MapMemEff<uint32_t, float>>;
 using Hsne = hdi::dr::HierarchicalSNE<float, HsneMatrix>;
 
 class Points;
 class HsneParameters;
+class KnnParameters;
 class HsneHierarchy;
 
 namespace mv {
@@ -55,9 +53,8 @@ private:
  *
  * @author Julian Thijssen
  */
-class HsneHierarchy : public QObject
+class HsneHierarchy
 {
-    Q_OBJECT
 public:
     /**
      * Initialize the HSNE hierarchy with a data-level scale.
@@ -71,13 +68,7 @@ public:
 
     HsneMatrix getTransitionMatrixAtScale(int scale) { return _hsne->scale(scale)._transition_matrix; }
 
-    void printScaleInfo()
-    {
-        std::cout << "Landmark to Orig size: " << _hsne->scale(getNumScales() - 1)._landmark_to_original_data_idx.size() << std::endl;
-        std::cout << "Landmark to Prev size: " << _hsne->scale(getNumScales() - 1)._landmark_to_previous_scale_idx.size() << std::endl;
-        std::cout << "Prev to Landmark size: " << _hsne->scale(getNumScales() - 1)._previous_scale_to_landmark_idx.size() << std::endl;
-        std::cout << "AoI size: " << _hsne->scale(getNumScales() - 1)._area_of_influence.size() << std::endl;
-    }
+    void printScaleInfo() const;
 
     bool itInitialized() const { return _itInit; }
 
@@ -120,7 +111,7 @@ public:
 
     int getNumScales() const { return _numScales; }
     int getTopScale() const { return _numScales - 1; }
-    QString getInputDataName() const { return _inputDataName; }
+    std::string getInputDataName() const { return _inputDataName; }
     int getNumPoints() const { return _numPoints; }
     int getNumDimensions() const { return _numDimensions; }
 
@@ -158,7 +149,7 @@ private:
 
     Path                    _cachePath;                            /** Path for saving and loading cache */
     Path                    _cachePathFileName;                    /** cachePath() + data name */
-    QString                 _inputDataName;
+    std::string             _inputDataName;
 
     friend class HsneAnalysisPlugin;
 };

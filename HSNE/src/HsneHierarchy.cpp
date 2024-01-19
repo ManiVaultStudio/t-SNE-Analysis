@@ -1,7 +1,9 @@
 #include "HsneHierarchy.h"
 
-#include "DataHierarchyItem.h"
 #include "HsneParameters.h"
+#include "KnnParameters.h"
+
+#include "DataHierarchyItem.h"
 #include "ImageData/Images.h"
 #include "PointData/PointData.h"
 
@@ -13,7 +15,7 @@
 #include "nlohmann/json.hpp"
 
 #include <QFileInfo>
-#include <QStringList>
+#include <QString>
 
 // set suffix strings for cache
 constexpr auto _CACHE_SUBFOLDER_ = "hsne-cache";
@@ -127,6 +129,14 @@ void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
     }
 }
 
+void HsneHierarchy::printScaleInfo() const
+{
+    std::cout << "Landmark to Orig size: " << _hsne->scale(getNumScales() - 1)._landmark_to_original_data_idx.size() << std::endl;
+    std::cout << "Landmark to Prev size: " << _hsne->scale(getNumScales() - 1)._landmark_to_previous_scale_idx.size() << std::endl;
+    std::cout << "Prev to Landmark size: " << _hsne->scale(getNumScales() - 1)._previous_scale_to_landmark_idx.size() << std::endl;
+    std::cout << "AoI size: " << _hsne->scale(getNumScales() - 1)._area_of_influence.size() << std::endl;
+}
+
 void HsneHierarchy::setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters)
 {
     // Convert our own HSNE parameters to the HDI parameters
@@ -166,8 +176,8 @@ void HsneHierarchy::setDataAndParameters(const Points& inputData, const std::vec
     else
         _cachePath = std::filesystem::path(inputLoadPath) / _CACHE_SUBFOLDER_;
 
-    _inputDataName = inputData.text();
-    _cachePathFileName = _cachePath / _inputDataName.toStdString();
+    _inputDataName = inputData.text().toStdString();
+    _cachePathFileName = _cachePath / _inputDataName;
 
     _hsne = std::make_unique<Hsne>();
 }
@@ -295,7 +305,7 @@ void HsneHierarchy::saveCacheParameters(std::string fileName, const Hsne::Parame
     nlohmann::json parameters;
     parameters["## VERSION ##"] = _PARAMETERS_CACHE_VERSION_;
 
-    parameters["Input data name"] = _inputDataName.toStdString();
+    parameters["Input data name"] = _inputDataName;
     parameters["Number of points"] = _numPoints;
     parameters["Number of dimensions"] = _numDimensions;
 
@@ -459,7 +469,7 @@ bool HsneHierarchy::checkCacheParameters(const std::string fileName, const Hsne:
         return true;
     };
 
-    if (!checkParam("Input data name", _inputDataName.toStdString())) return false;
+    if (!checkParam("Input data name", _inputDataName)) return false;
     if (!checkParam("Number of points", _numPoints)) return false;
     if (!checkParam("Number of dimensions", _numDimensions)) return false;
 
