@@ -182,6 +182,7 @@ void HsneScaleAction::refine()
         _refineEmbedding->setData(nullptr, 0, 2);
         events().notifyDatasetDataChanged(_refineEmbedding);
 
+        mv::dataHierarchy().clearSelection();
         _refineEmbedding->getDataHierarchyItem().select();
 
         auto& datasetTask = _refineEmbedding->getTask();
