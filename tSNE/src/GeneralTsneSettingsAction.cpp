@@ -16,10 +16,10 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 {
     addAction(&_knnAlgorithmAction);
     addAction(&_distanceMetricAction);
+    addAction(&_perplexityAction);
     addAction(&_numIterationsAction);
     addAction(&_numberOfComputatedIterationsAction);
 //    addAction(&_updateIterationsAction);
-    addAction(&_perplexityAction);
     addAction(&_computationAction);
 
     const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
