@@ -6,6 +6,8 @@
 
 #include <event/Event.h>
 
+#include <PointData/InfoAction.h>
+
 #include <limits>
 
 #include <QMenu>
@@ -26,6 +28,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
     _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, std::numeric_limits<int>::max(), 0),
     _updateIterationsAction(this, "Core update every"),
     _computationAction(this),
+    _refinedScaledAction(),
     _initializationTask(this, "Preparing HSNE scale"),
     _isTopScale(true),
     _currentScaleLevel(0)
@@ -183,6 +186,7 @@ void HsneScaleAction::refine()
 
         mv::dataHierarchy().clearSelection();
         _refineEmbedding->getDataHierarchyItem().select();
+        _refineEmbedding->_infoAction->collapse();
 
         auto& datasetTask = _refineEmbedding->getTask();
         datasetTask.setName("HSNE scale computation");
@@ -194,11 +198,11 @@ void HsneScaleAction::refine()
     // Only add a new scale action if the drill scale is higher than data level
     if (refinedScaleLevel > 0)
     {
-        auto hsneScaleAction = new HsneScaleAction(this, _tsneParameters, _hsneHierarchy, _input, _refineEmbedding);
-        hsneScaleAction->setDrillIndices(refinedLandmarks);
-        hsneScaleAction->setScale(refinedScaleLevel);
+        _refinedScaledAction = std::make_unique<HsneScaleAction>(this, _tsneParameters, _hsneHierarchy, _input, _refineEmbedding);
+        _refinedScaledAction->setDrillIndices(refinedLandmarks);
+        _refinedScaledAction->setScale(refinedScaleLevel);
 
-        _refineEmbedding->addAction(*hsneScaleAction);
+        _refineEmbedding->addAction(*_refinedScaledAction.get());
     }
 
     ///////////////////////////////////
@@ -268,11 +272,26 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
 
     QString refineEmbeddingGUID = variantMap["refineEmbeddingGUID"].toString();
     if(refineEmbeddingGUID != "")
+    {
         _refineEmbedding = mv::data().getDataset(refineEmbeddingGUID);
+        _refineEmbedding->_infoAction->collapse();
+
+        _refinedScaledAction = std::make_unique<HsneScaleAction>(this, _tsneParameters, _hsneHierarchy, _input, _refineEmbedding);
+
+        const auto refinedDrillIndices = variantMap["refinedDrillIndices"].toMap();
+        std::vector<uint32_t> refinedDrillIndicesVec;
+        refinedDrillIndicesVec.resize(static_cast<size_t>(variantMap["refinedDrillIndicesSize"].toInt()));
+        populateDataBufferFromVariantMap(refinedDrillIndices, (char*)refinedDrillIndicesVec.data());
+        _refinedScaledAction->setDrillIndices(std::move(refinedDrillIndicesVec));
+        _refinedScaledAction->setScale(variantMap["refinedCurrentScaleLevel"].toUInt());    // sets _isTopScale = false
+
+        _refineEmbedding->addAction(*_refinedScaledAction.get());
+    }
 
     {
         const auto drillIndices = variantMap["drillIndices"].toMap();
         std::vector<uint32_t> drillIndicesVec;
+        drillIndicesVec.resize(static_cast<size_t>(variantMap["drillIndicesSize"].toInt()));
         populateDataBufferFromVariantMap(drillIndices, (char*)drillIndicesVec.data());
         _drillIndices = std::move(drillIndicesVec);
     }
@@ -302,12 +321,19 @@ QVariantMap HsneScaleAction::toVariantMap() const
     variantMap.insert({ { "embeddingGUID", QVariant::fromValue(_embedding.get<Points>()->getId()) } });
     
     QString refineEmbeddingGUID = "";
-    if(_refineEmbedding.isValid())
+    if (_refineEmbedding.isValid())
+    {
         refineEmbeddingGUID = _refineEmbedding.get<Points>()->getId();
+
+        variantMap["refinedDrillIndices"] = rawDataToVariantMap((char*)_refinedScaledAction->_drillIndices.data(), _refinedScaledAction->_drillIndices.size() * sizeof(uint32_t), true);
+        variantMap["refinedDrillIndicesSize"] = QVariant::fromValue(_refinedScaledAction->_drillIndices.size());
+        variantMap["refinedCurrentScaleLevel"] = QVariant::fromValue(_refinedScaledAction->_currentScaleLevel);
+    }
     
     variantMap.insert({ { "refineEmbeddingGUID", QVariant::fromValue(refineEmbeddingGUID) } });
 
     variantMap["drillIndices"] = rawDataToVariantMap((char*)_drillIndices.data(), _drillIndices.size() * sizeof(uint32_t), true);
+    variantMap["drillIndicesSize"] = QVariant::fromValue(_drillIndices.size());
     variantMap.insert({ { "isTopScale", QVariant::fromValue(_isTopScale) } });
     variantMap.insert({ { "currentScaleLevel", QVariant::fromValue(_currentScaleLevel) } });
 

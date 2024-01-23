@@ -12,6 +12,8 @@
 
 #include "PointData/PointData.h"
 
+#include <memory>
+
 using namespace mv;
 using namespace mv::gui;
 using namespace mv::util;
@@ -109,8 +111,12 @@ private:
     EventListener           _eventListener;         /** Listen to HDPS events */
     mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
 
-private:
+    std::unique_ptr<HsneScaleAction> _refinedScaledAction;          /** Scale action of the refined dataset */
+
+protected:
     std::vector<uint32_t>   _drillIndices;          /** Vector relating local indices to scale relative indices */
     bool                    _isTopScale;            /** Whether current scale is the top scale */
     unsigned int            _currentScaleLevel;     /** The scale the current embedding is a part of */
+
+    friend class HsneScaleAction;
 };
