@@ -136,6 +136,8 @@ protected:
     /** Check whether HSNE parameters of the cached values on disk correspond with the current settings */
     bool checkCacheParameters(const std::string fileName, const Hsne::Parameters& params) const;
 
+    void setIsInitialized(bool init) { _isInit = true; }
+
 private:
     std::unique_ptr<Hsne>   _hsne;
 
