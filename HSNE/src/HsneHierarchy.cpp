@@ -223,7 +223,7 @@ void HsneHierarchy::initialize(const Points& inputData, const std::vector<bool>&
             saveCacheHsne(_params); 
     }
 
-    _itInit = true;
+    _isInit = true;
 }
 
 
@@ -368,10 +368,10 @@ bool HsneHierarchy::loadCache(const Hsne::Parameters& internalParams, hdi::utils
         }
     };
 
-    _itInit = checkChache(loadCacheHsneHierarchy(pathHierarchy, log), pathHierarchy) &&
+    _isInit = checkChache(loadCacheHsneHierarchy(pathHierarchy, log), pathHierarchy) &&
               checkChache(loadCacheHsneInfluenceHierarchy(pathInfluenceTD, _influenceHierarchy.getMap()), pathInfluenceTD);
 
-    return _itInit;
+    return _isInit;
 }
 
 bool HsneHierarchy::loadCacheHsneHierarchy(std::string fileName, hdi::utils::CoutLog& log) {

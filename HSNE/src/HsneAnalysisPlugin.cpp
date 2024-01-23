@@ -173,7 +173,7 @@ void HsneAnalysisPlugin::init()
     updateComputationAction();
 
     // Before the hierarchy is initialized, no embedding re-init is possible
-    if (!_hierarchy.itInitialized())
+    if (!_hierarchy.isInitialized())
         computationAction.getStartComputationAction().setEnabled(false);
 
     auto& datasetTask = outputDataset->getTask();

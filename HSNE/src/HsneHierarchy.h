@@ -70,7 +70,7 @@ public:
 
     void printScaleInfo() const;
 
-    bool itInitialized() const { return _itInit; }
+    bool isInitialized() const { return _isInit; }
 
     Hsne& getHsne() { return *_hsne.get(); }
     const Hsne& getHsne() const { return *_hsne.get(); }
@@ -145,7 +145,7 @@ private:
     unsigned int            _numPoints;
     unsigned int            _numDimensions;
     Hsne::Parameters        _params;
-    bool                    _itInit = false;
+    bool                    _isInit = false;
 
     Path                    _cachePath;                            /** Path for saving and loading cache */
     Path                    _cachePathFileName;                    /** cachePath() + data name */
