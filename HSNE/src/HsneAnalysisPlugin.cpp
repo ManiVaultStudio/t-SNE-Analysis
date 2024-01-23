@@ -318,6 +318,9 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
             bool loadedInfluenceHierarchy = _hierarchy.loadCacheHsneInfluenceHierarchy(loadPathInfluenceHierarchy.toStdString(), _hierarchy.getInfluenceHierarchy().getMap());
 
             _hierarchy.setIsInitialized(true);
+
+            if(!loadedHierarchy || !loadedInfluenceHierarchy)
+                qWarning("HsneAnalysisPlugin::fromVariantMap: HSNE hierarchy was NOT loaded successfully");
         }
         else
             qWarning("HsneAnalysisPlugin::fromVariantMap: HSNE hierarchy cannot be loaded from project since the project file does not seem to contain a saved HSNE hierarchy");
