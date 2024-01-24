@@ -7,7 +7,10 @@ set(TSNE_PLUGIN_SOURCES
     PARENT_SCOPE
 )
 
-set(TSNE_RESOURCES
-    ${DIR}/../res/resources.qrc
+set(TSNE_ACTIONS_SOURCES
+    ${DIR}/TsneSettingsAction.h
+    ${DIR}/TsneSettingsAction.cpp
+    ${DIR}/GeneralTsneSettingsAction.h
+    ${DIR}/GeneralTsneSettingsAction.cpp
     PARENT_SCOPE
 )

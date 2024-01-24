@@ -1,8 +1,8 @@
 #pragma once
 
-#include <actions/VerticalGroupAction.h>
-#include <actions/TriggerAction.h>
 #include <actions/ToggleAction.h>
+#include <actions/TriggerAction.h>
+#include <actions/VerticalGroupAction.h>
 
 using namespace mv::gui;
 
@@ -40,11 +40,23 @@ public: // Action getters
     TriggerAction& getStopComputationAction() { return _stopComputationAction; }
     ToggleAction& getRunningAction() { return _runningAction; }
 
+public: // Serialization
+
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
+
 protected:
     TriggerAction   _startComputationAction;        /** Start computation action */
     TriggerAction   _continueComputationAction;     /** Continue computation action */
     TriggerAction   _stopComputationAction;         /** Stop computation action */
     ToggleAction    _runningAction;                 /** Running action */
-
-    friend class Widget;
 };

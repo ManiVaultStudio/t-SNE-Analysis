@@ -1,24 +1,21 @@
 #pragma once
 
-#include "CoreInterface.h"
-#include "TsneAnalysis.h"
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
-#include "hdi/utils/graph_algorithms.h"
 #include "hdi/utils/cout_log.h"
+#include "hdi/utils/graph_algorithms.h"
 
-#include <QString>
-#include <QDebug>
-
-#include <vector>
-#include <unordered_map>
-#include <memory>
 #include <filesystem>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 using HsneMatrix = std::vector<hdi::data::MapMemEff<uint32_t, float>>;
 using Hsne = hdi::dr::HierarchicalSNE<float, HsneMatrix>;
 
 class Points;
 class HsneParameters;
+class KnnParameters;
 class HsneHierarchy;
 
 namespace mv {
@@ -56,9 +53,8 @@ private:
  *
  * @author Julian Thijssen
  */
-class HsneHierarchy : public QObject
+class HsneHierarchy
 {
-    Q_OBJECT
 public:
     /**
      * Initialize the HSNE hierarchy with a data-level scale.
@@ -66,26 +62,24 @@ public:
      * @param  data        The high-dimensional data
      * @param  parameters  Parameters with which to run the HSNE algorithm
      */
-    void initialize(mv::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters);
+    void initialize(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters);
+
+    void setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters);
+
     HsneMatrix getTransitionMatrixAtScale(int scale) { return _hsne->scale(scale)._transition_matrix; }
 
-    void printScaleInfo()
-    {
-        std::cout << "Landmark to Orig size: " << _hsne->scale(getNumScales() - 1)._landmark_to_original_data_idx.size() << std::endl;
-        std::cout << "Landmark to Prev size: " << _hsne->scale(getNumScales() - 1)._landmark_to_previous_scale_idx.size() << std::endl;
-        std::cout << "Prev to Landmark size: " << _hsne->scale(getNumScales() - 1)._previous_scale_to_landmark_idx.size() << std::endl;
-        std::cout << "AoI size: " << _hsne->scale(getNumScales() - 1)._area_of_influence.size() << std::endl;
-    }
+    void printScaleInfo() const;
 
-    Hsne::scale_type& getScale(int scaleId)
-    {
-        return _hsne->scale(scaleId);
-    }
+    bool isInitialized() const { return _isInit; }
 
-    InfluenceHierarchy& getInfluenceHierarchy()
-    {
-        return _influenceHierarchy;
-    }
+    Hsne& getHsne() { return *_hsne.get(); }
+    const Hsne& getHsne() const { return *_hsne.get(); }
+
+    Hsne::scale_type& getScale(int scaleId) { return _hsne->scale(scaleId); }
+    const Hsne::scale_type& getScale(int scaleId) const { return _hsne->scale(scaleId); }
+
+    InfluenceHierarchy& getInfluenceHierarchy() { return _influenceHierarchy; }
+    const InfluenceHierarchy& getInfluenceHierarchy() const { return _influenceHierarchy; }
 
     /**
      * Returns a map of landmark indices and influences on the previous scale in the hierarchy,
@@ -115,11 +109,11 @@ public:
         hdi::utils::extractSubGraph(fullTransitionMatrix, landmarkIdxs, transitionMatrix, dummy, 1);
     }
 
-    int getNumScales() { return _numScales; }
-    int getTopScale() { return _numScales - 1; }
-    QString getInputDataName() { return _inputDataName; }
-    int getNumPoints() { return _numPoints; }
-    int getNumDimensions() { return _numDimensions; }
+    int getNumScales() const { return _numScales; }
+    int getTopScale() const { return _numScales - 1; }
+    std::string getInputDataName() const { return _inputDataName; }
+    int getNumPoints() const { return _numPoints; }
+    int getNumDimensions() const { return _numDimensions; }
 
     /** Save HSNE hierarchy from this class to disk */
     void saveCacheHsne(const Hsne::Parameters& internalParams) const;
@@ -127,7 +121,7 @@ public:
     /** Load HSNE hierarchy from disk */
     bool loadCache(const Hsne::Parameters& internalParams, hdi::utils::CoutLog& log);
 
-private:
+protected:
     /** Save HsneHierarchy to disk */
     void saveCacheHsneHierarchy(std::string fileName) const;
     /** Save InfluenceHierarchy to disk */
@@ -142,22 +136,22 @@ private:
     /** Check whether HSNE parameters of the cached values on disk correspond with the current settings */
     bool checkCacheParameters(const std::string fileName, const Hsne::Parameters& params) const;
 
+    void setIsInitialized(bool init) { _isInit = true; }
+
 private:
-    mv::CoreInterface* _core;
+    std::unique_ptr<Hsne>   _hsne;
 
-    std::unique_ptr<Hsne> _hsne;
+    InfluenceHierarchy      _influenceHierarchy;
 
-    InfluenceHierarchy _influenceHierarchy;
+    int                     _numScales = 1;
+    unsigned int            _numPoints;
+    unsigned int            _numDimensions;
+    Hsne::Parameters        _params;
+    bool                    _isInit = false;
 
-    QString _inputDataName;
-    QString _embeddingName;
+    Path                    _cachePath;                            /** Path for saving and loading cache */
+    Path                    _cachePathFileName;                    /** cachePath() + data name */
+    std::string             _inputDataName;
 
-    int _numScales = 1;
-
-    unsigned int _numPoints;
-    unsigned int _numDimensions;
-
-    Path _cachePath;                            /** Path for saving and loading cache */
-    Path _cachePathFileName;                    /** cachePath() + data name */
-
+    friend class HsneAnalysisPlugin;
 };

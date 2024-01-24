@@ -1,11 +1,12 @@
 #pragma once
 
-#include "actions/Actions.h"
-#include "hdi/dimensionality_reduction/knn_utils.h"
+#include "actions/GroupAction.h"
+#include "actions/IntegralAction.h"
+#include "actions/OptionAction.h"
+#include "actions/TriggerAction.h"
 
 using namespace mv::gui;
 
-class QMenu;
 class HsneSettingsAction;
 
 /**
@@ -25,26 +26,34 @@ public:
      */
     GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction);
 
-public slots:
-    void setPerplexity(const int32_t& perplexity);
-    void setDistanceMetric(const hdi::dr::knn_distance_metric& metric);
-
 public: // Action getters
 
     HsneSettingsAction& getHsneSettingsAction() { return _hsneSettingsAction; }
-    OptionAction& getKnnTypeAction() { return _knnTypeAction; }
+    OptionAction& getKnnAlgorithmAction() { return _knnAlgorithmAction; }
+    IntegralAction& getNumKnnAction() { return _numKnnAction; };
+    OptionAction& getDistanceMetricAction() { return _distanceMetricAction; }
     IntegralAction& getNumScalesAction() { return _numScalesAction; }
-    IntegralAction& getSeedAction() { return _seedAction; }
-    ToggleAction& getUseMonteCarloSamplingAction() { return _useMonteCarloSamplingAction; }
     TriggerAction& getStartAction() { return _startAction; }
 
-protected:
-    HsneSettingsAction&     _hsneSettingsAction;                /** Reference to HSNE settings action */
-    OptionAction            _knnTypeAction;                     /** KNN action */
-    IntegralAction          _numScalesAction;                   /** Num scales action */
-    IntegralAction          _seedAction;                        /** Random seed action */
-    ToggleAction            _useMonteCarloSamplingAction;       /** Use Monte Carlo sampling on/off action */
-    TriggerAction           _startAction;                       /** Start action */
+public: // Serialization
 
-    friend class Widget;
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
+
+protected:
+    HsneSettingsAction&     _hsneSettingsAction;                    /** Reference to HSNE settings action */
+    IntegralAction          _numScalesAction;                       /** Num scales action */
+    OptionAction            _knnAlgorithmAction;                    /** KNN algorithm action */
+    OptionAction            _distanceMetricAction;                  /** Distance metric action */
+    IntegralAction          _numKnnAction;                          /** Number of Knn action */
+    TriggerAction           _startAction;                           /** Start action */
 };

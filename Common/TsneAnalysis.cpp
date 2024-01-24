@@ -3,11 +3,11 @@
 #include "hdi/utils/glad/glad.h"
 #include "OffscreenBuffer.h"
 
+#include <cassert>
 #include <vector>
-#include <assert.h>
 
-#include <QDebug>
 #include <QCoreApplication>
+#include <QDebug>
 
 #include "hdi/dimensionality_reduction/tsne_parameters.h"
 #include "hdi/utils/scoped_timers.h"
@@ -17,6 +17,7 @@ using namespace mv;
 TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions) :
     _currentIteration(0),
     _parameters(parameters),
+    _knnParameters(),
     _probabilityDistribution(probDist),
     _numPoints(numPoints),
     _numDimensions(numDimensions),
@@ -25,15 +26,15 @@ TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::M
     _shouldStop(false),
     _parentTask(nullptr),
     _tasks(nullptr)
-    
 {
     // Offscreen buffer must be created in the UI thread because it is a QWindow, afterwards we move it
     _offscreenBuffer = new OffscreenBuffer();
 }
 
-TsneWorker::TsneWorker(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions) :
+TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions) :
     _currentIteration(0),
     _parameters(parameters),
+    _knnParameters(knnParameters),
     _data(data),
     _numPoints(data.size() / numDimensions),
     _numDimensions(numDimensions),
@@ -58,10 +59,13 @@ void TsneWorker::changeThread(QThread* targetThread)
     
     //_task->moveToThread(targetThread);
 
-    
-
     // Move the Offscreen buffer to the processing thread after creating it in the UI Thread
     _offscreenBuffer->moveToThread(targetThread);
+}
+
+void TsneWorker::resetThread()
+{
+    changeThread(QCoreApplication::instance()->thread());
 }
 
 int TsneWorker::getNumIterations() const
@@ -73,7 +77,6 @@ void TsneWorker::setParentTask(mv::Task* parentTask)
 {
     _parentTask = parentTask;
 
-    
     //_tasks->getComputeGradientDescentTask().setGuiScopes({ Task::GuiScope::Foreground });
 }
 
@@ -91,10 +94,12 @@ void TsneWorker::computeSimilarities()
 
     probGenParams._perplexity               = _parameters.getPerplexity();
     probGenParams._perplexity_multiplier    = 3;
-    probGenParams._num_trees                = _parameters.getNumTrees();
-    probGenParams._num_checks               = _parameters.getNumChecks();
-    probGenParams._aknn_algorithm           = _parameters.getKnnAlgorithm();
-    probGenParams._aknn_metric              = _parameters.getKnnDistanceMetric();
+    probGenParams._num_trees                = _knnParameters.getAnnoyNumTrees();
+    probGenParams._num_checks               = _knnParameters.getAnnoyNumChecks();
+    probGenParams._aknn_algorithmP1         = _knnParameters.getHNSWm();
+    probGenParams._aknn_algorithmP2         = _knnParameters.getHNSWef();
+    probGenParams._aknn_algorithm           = _knnParameters.getKnnAlgorithm();
+    probGenParams._aknn_metric              = _knnParameters.getKnnDistanceMetric();
 
     qDebug() << "tSNE initialized.";
 
@@ -221,7 +226,7 @@ void TsneWorker::computeGradientDescent(int iterations)
     }
 
     qDebug() << "--------------------------------------------------------------------------------";
-    qDebug() << "A-tSNE: Finished embedding of " << "tSNE Analysis" << " in: " << elapsed / 1000 << " seconds ";
+    qDebug() << "A-tSNE: Finished embedding in: " << elapsed / 1000 << " seconds, with " << _currentIteration << " total iterations";
     qDebug() << "================================================================================";
 
     emit finished();
@@ -256,6 +261,7 @@ void TsneWorker::compute()
 
         computeGradientDescent(_parameters.getNumIterations());
     }
+ 
     qDebug() << "t-SNE total compute time: " << t / 1000 << " seconds.";
 
     if (_shouldStop)
@@ -264,6 +270,8 @@ void TsneWorker::compute()
         _tasks->getComputeGradientDescentTask().setFinished();
 
     _parentTask->setFinished();
+
+    resetThread();
 }
 
 void TsneWorker::continueComputation(int iterations)
@@ -283,6 +291,8 @@ void TsneWorker::continueComputation(int iterations)
     }
 
     _parentTask->setFinished();
+
+    resetThread();
 }
 
 void TsneWorker::stop()
@@ -316,7 +326,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, const std::vector
     startComputation(_tsneWorker);
 }
 
-void TsneAnalysis::startComputation(TsneParameters parameters, /*const*/ std::vector<float>& data, int numDimensions)
+void TsneAnalysis::startComputation(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions)
 {
     if (_tsneWorker)
     {
@@ -324,7 +334,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, /*const*/ std::ve
         delete _tsneWorker;
     }
 
-    _tsneWorker = new TsneWorker(parameters, data, numDimensions);
+    _tsneWorker = new TsneWorker(parameters, knnParameters, data, numDimensions);
     
     _tsneWorker->setParentTask(_task);
 
@@ -333,6 +343,11 @@ void TsneAnalysis::startComputation(TsneParameters parameters, /*const*/ std::ve
 
 void TsneAnalysis::continueComputation(int iterations)
 {
+    if (_tsneWorker == nullptr)
+        return;
+
+    _tsneWorker->changeThread(&_workerThread);
+
     emit continueWorker(iterations);
 }
 
@@ -377,7 +392,7 @@ void TsneAnalysis::setTask(mv::Task* task)
 void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
 {
     tsneWorker->changeThread(&_workerThread);
-
+    
     // To-Worker signals
     connect(this, &TsneAnalysis::startWorker, tsneWorker, &TsneWorker::compute);
     connect(this, &TsneAnalysis::continueWorker, tsneWorker, &TsneWorker::continueComputation);

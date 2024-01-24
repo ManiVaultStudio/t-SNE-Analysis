@@ -1,32 +1,41 @@
 #include "HsneHierarchy.h"
 
 #include "HsneParameters.h"
-#include "PointData/PointData.h"
-#include "ImageData/Images.h"
+#include "KnnParameters.h"
+
 #include "DataHierarchyItem.h"
+#include "ImageData/Images.h"
+#include "PointData/PointData.h"
 
 #include "hdi/utils/cout_log.h"
-#include <iostream>
+
 #include <fstream>
+#include <iostream>
 
 #include "nlohmann/json.hpp"
+
 #include <QFileInfo>
-#include <QStringList>
+#include <QString>
 
 // set suffix strings for cache
-#define _CACHE_SUBFOLDER_ "hsne-cache"
-#define _HIERARCHY_CACHE_EXTENSION_ "_hierarchy.hsne"
-#define _INFLUENCE_TOPDOWN_CACHE_EXTENSION_ "_influence-tp-hierarchy.hsne"
-#define _PARAMETERS_CACHE_EXTENSION_ "_parameters.hsne"
-#define _PARAMETERS_CACHE_VERSION_ "1.0"
+constexpr auto _CACHE_SUBFOLDER_ = "hsne-cache";
+constexpr auto _HIERARCHY_CACHE_EXTENSION_ = "_hierarchy.hsne";
+constexpr auto _INFLUENCE_TOPDOWN_CACHE_EXTENSION_ = "_influence-tp-hierarchy.hsne";
+constexpr auto _PARAMETERS_CACHE_EXTENSION_ = "_parameters.hsne";
+constexpr auto _PARAMETERS_CACHE_VERSION_ = "1.0";
 
 namespace
 {
-    Hsne::Parameters setParameters(HsneParameters parameters)
+    Hsne::Parameters setParameters(HsneParameters parameters, KnnParameters knnParameters)
     {
         Hsne::Parameters params;
-        params._aknn_algorithm = parameters.getKnnLibrary();
-        params._aknn_metric = parameters.getKnnMetric();
+        params._aknn_algorithm = knnParameters.getKnnAlgorithm();
+        params._aknn_metric = knnParameters.getKnnDistanceMetric();
+        params._aknn_num_checks = static_cast<uint32_t>(knnParameters.getAnnoyNumChecks());
+        params._aknn_num_trees = static_cast<uint32_t>(knnParameters.getAnnoyNumTrees());
+        params._aknn_algorithmP1 = static_cast<double>(knnParameters.getHNSWm());
+        params._aknn_algorithmP2 = static_cast<double>(knnParameters.getHNSWef());
+
         params._seed = parameters.getSeed();
         params._num_walks_per_landmark = parameters.getNumWalksForAreaOfInfluence();
         params._monte_carlo_sampling = parameters.useMonteCarloSampling();
@@ -34,7 +43,6 @@ namespace
         params._mcmcs_landmark_thresh = parameters.getNumWalksForLandmarkSelectionThreshold();
         params._mcmcs_walk_length = parameters.getRandomWalkLength();
         params._transition_matrix_prune_thresh = parameters.getMinWalksRequired();
-        params._aknn_num_checks = parameters.getNumChecksAKNN();
         params._out_of_core_computation = parameters.useOutOfCoreComputation();
         params._num_neighbors = parameters.getNumNearestNeighbors();
         return params;
@@ -121,12 +129,18 @@ void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
     }
 }
 
-void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters)
+void HsneHierarchy::printScaleInfo() const
 {
-    _core = core;
+    std::cout << "Landmark to Orig size: " << _hsne->scale(getNumScales() - 1)._landmark_to_original_data_idx.size() << std::endl;
+    std::cout << "Landmark to Prev size: " << _hsne->scale(getNumScales() - 1)._landmark_to_previous_scale_idx.size() << std::endl;
+    std::cout << "Prev to Landmark size: " << _hsne->scale(getNumScales() - 1)._previous_scale_to_landmark_idx.size() << std::endl;
+    std::cout << "AoI size: " << _hsne->scale(getNumScales() - 1)._area_of_influence.size() << std::endl;
+}
 
+void HsneHierarchy::setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters)
+{
     // Convert our own HSNE parameters to the HDI parameters
-    Hsne::Parameters internalParams = setParameters(parameters);
+    _params = setParameters(parameters, knnParameters);
 
     // Extract the enabled dimensions from the data
     unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
@@ -135,10 +149,6 @@ void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData,
     _numScales = parameters.getNumScales();
     _numPoints = inputData.getNumPoints();
     _numDimensions = numEnabledDimensions;
-
-    // Initialize hierarchy
-    _hsne = std::make_unique<Hsne>();
-    hdi::utils::CoutLog _log;
 
     // Check for source data file path
     std::string inputLoadPath = std::string();
@@ -154,7 +164,9 @@ void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData,
 
         if (inputdataImage.isValid())
         {
-            inputLoadPath = QFileInfo(inputdataImage->getImageFilePaths().first()).dir().absolutePath().toStdString();
+            auto imageFilePath = inputdataImage->getImageFilePaths();
+            if(!imageFilePath.isEmpty())
+                inputLoadPath = QFileInfo(imageFilePath.first()).dir().absolutePath().toStdString();
         }
     }
 
@@ -164,31 +176,40 @@ void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData,
     else
         _cachePath = std::filesystem::path(inputLoadPath) / _CACHE_SUBFOLDER_;
 
-    _inputDataName = inputData.text();
-    _cachePathFileName = _cachePath / _inputDataName.toStdString();
+    _inputDataName = inputData.text().toStdString();
+    _cachePathFileName = _cachePath / _inputDataName;
+
+    _hsne = std::make_unique<Hsne>();
+}
+
+void HsneHierarchy::initialize(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters)
+{
+    setDataAndParameters(inputData, enabledDimensions, parameters, knnParameters);
+
+    hdi::utils::CoutLog log;
 
     // Check of hsne data can be loaded from cache on disk, otherwise compute hsne hierarchy
-    bool hsneLoadedFromCache = loadCache(internalParams, _log);
+    bool hsneLoadedFromCache = loadCache(_params, log);
     if (hsneLoadedFromCache == false) {
         std::cout << "Initializing HSNE hierarchy " << std::endl;
 
         // Set up a logger
-        _hsne->setLogger(&_log);
+        _hsne->setLogger(&log);
 
         // Set the dimensionality of the data in the HSNE object
-        _hsne->setDimensionality(numEnabledDimensions);
+        _hsne->setDimensionality(_numDimensions);
 
         // Load data and enabled dimensions
         std::vector<float> data;
         std::vector<unsigned int> dimensionIndices;
-        data.resize((inputData.isFull() ? inputData.getNumPoints() : inputData.indices.size()) * numEnabledDimensions);
+        data.resize((inputData.isFull() ? inputData.getNumPoints() : inputData.indices.size()) * _numDimensions);
         for (int i = 0; i < inputData.getNumDimensions(); i++)
             if (enabledDimensions[i]) dimensionIndices.push_back(i);
 
         inputData.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, dimensionIndices);
 
         // Initialize HSNE with the input data and the given parameters
-        _hsne->initialize((Hsne::scalar_type*)data.data(), _numPoints, internalParams);
+        _hsne->initialize((Hsne::scalar_type*)data.data(), _numPoints, _params);
 
         // Add a number of scales as indicated by the user
         for (int s = 0; s < _numScales - 1; ++s) {
@@ -199,8 +220,10 @@ void HsneHierarchy::initialize(mv::CoreInterface* core, const Points& inputData,
 
         // Write HSNE hierarchy to disk
         if(parameters.getSaveHierarchyToDisk())
-            saveCacheHsne(internalParams); 
+            saveCacheHsne(_params); 
     }
+
+    _isInit = true;
 }
 
 
@@ -282,7 +305,7 @@ void HsneHierarchy::saveCacheParameters(std::string fileName, const Hsne::Parame
     nlohmann::json parameters;
     parameters["## VERSION ##"] = _PARAMETERS_CACHE_VERSION_;
 
-    parameters["Input data name"] = _inputDataName.toStdString();
+    parameters["Input data name"] = _inputDataName;
     parameters["Number of points"] = _numPoints;
     parameters["Number of dimensions"] = _numDimensions;
 
@@ -345,8 +368,10 @@ bool HsneHierarchy::loadCache(const Hsne::Parameters& internalParams, hdi::utils
         }
     };
 
-    return checkChache(loadCacheHsneHierarchy(pathHierarchy, log), pathHierarchy) &&
-        checkChache(loadCacheHsneInfluenceHierarchy(pathInfluenceTD, _influenceHierarchy.getMap()), pathInfluenceTD);
+    _isInit = checkChache(loadCacheHsneHierarchy(pathHierarchy, log), pathHierarchy) &&
+              checkChache(loadCacheHsneInfluenceHierarchy(pathInfluenceTD, _influenceHierarchy.getMap()), pathInfluenceTD);
+
+    return _isInit;
 }
 
 bool HsneHierarchy::loadCacheHsneHierarchy(std::string fileName, hdi::utils::CoutLog& log) {
@@ -444,7 +469,7 @@ bool HsneHierarchy::checkCacheParameters(const std::string fileName, const Hsne:
         return true;
     };
 
-    if (!checkParam("Input data name", _inputDataName.toStdString())) return false;
+    if (!checkParam("Input data name", _inputDataName)) return false;
     if (!checkParam("Number of points", _numPoints)) return false;
     if (!checkParam("Number of dimensions", _numDimensions)) return false;
 

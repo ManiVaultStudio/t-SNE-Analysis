@@ -1,52 +1,87 @@
 #include "HsneScaleAction.h"
-#include "HsneHierarchy.h"
-#include "TsneSettingsAction.h"
+
 #include "DataHierarchyItem.h"
+#include "HsneHierarchy.h"
+#include "TsneParameters.h"
 
 #include <event/Event.h>
 
-#include <QGridLayout>
+#include <PointData/InfoAction.h>
+
+#include <limits>
+
 #include <QMenu>
 
 using namespace mv;
 using namespace mv::gui;
 
-CoreInterface* HsneScaleAction::core = nullptr;
-
-HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
-    GroupAction(parent, "HSNE scale", true),
-    _tsneSettingsAction(tsneSettingsAction),
+HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset) :
+    GroupAction(parent, "HSNE Scale", true),
+    _tsneParameters(tsneParameters),
     _tsneAnalysis(),
     _hsneHierarchy(hsneHierarchy),
     _input(inputDataset),
     _embedding(embeddingDataset),
-    _refineEmbedding(),
-    _refineAction(this, "Refine..."),
-    _datasetPickerAction(this, "Selection IDs"),
-    _reloadDatasetsAction(this, "Reload dataset"),
-    _setSelectionAction(this, "Set selection"),
+    _refineEmbeddings(),
+    _refineAction(this, "Refine selection"),
+    _numIterationsAction(this, "Number of iterations"),
+    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, std::numeric_limits<int>::max(), 0),
+    _updateIterationsAction(this, "Core update every"),
+    _computationAction(this),
+    _refinedScaledActions(),
     _initializationTask(this, "Preparing HSNE scale"),
-    _isTopScale(true)
+    _isTopScale(true),
+    _currentScaleLevel(0)
 {
     addAction(&_refineAction);
-    addAction(&_datasetPickerAction);
-    addAction(&_reloadDatasetsAction);
-    addAction(&_setSelectionAction);
+    addAction(&_numIterationsAction);
+    addAction(&_numberOfComputatedIterationsAction);
+//    addAction(&_updateIterationsAction);
+    addAction(&_computationAction);
+
+    _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
+    _numberOfComputatedIterationsAction.setDefaultWidgetFlags(IntegralAction::LineEdit);
+    _updateIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
+
+    _numIterationsAction.initialize(1, 10000, 1000);
+    _updateIterationsAction.initialize(0, 10000, 10);
 
     _refineAction.setToolTip("Refine the selected landmarks");
+    _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
+
+    _numberOfComputatedIterationsAction.setEnabled(false);
 
     connect(&_refineAction, &TriggerAction::triggered, this, [this]() {
         refine();
     });
 
+    const auto updateNumIterations = [this]() -> void {
+        _tsneParameters.setNumIterations(_numIterationsAction.getValue());
+    };
+
+    const auto updateCoreUpdate = [this]() -> void {
+        _tsneParameters.setUpdateCore(_updateIterationsAction.getValue());
+    };
+
     const auto updateReadOnly = [this]() -> void {
         auto selection = _input->getSelection<Points>();
+        const auto enabled = !isReadOnly();
 
         _refineAction.setEnabled(!isReadOnly() && !selection->indices.empty());
+        _numIterationsAction.setEnabled(enabled);
+        _updateIterationsAction.setEnabled(enabled);
     };
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
+    });
+
+    connect(&_numIterationsAction, &IntegralAction::valueChanged, this, [this, updateNumIterations](const std::int32_t& value) {
+        updateNumIterations();
+    });
+
+    connect(&_updateIterationsAction, &IntegralAction::valueChanged, this, [this, updateCoreUpdate](const std::int32_t& value) {
+        updateCoreUpdate();
     });
 
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetDataSelectionChanged));
@@ -56,53 +91,6 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettin
     });
 
     updateReadOnly();
-
-    /*
-    // Connect the progress percentage of the t-SNE process to the data hierarchy item associated with this embedding
-    connect(&_tsneAnalysis, &TsneAnalysis::progressPercentage, this, [this](const float& percentage) {
-        _refineEmbedding->getDataHierarchyItem().setTaskProgress(percentage);
-    });
-
-    // Connect the progress description of the t-SNE process to the data hierarchy item associated with this embedding
-    connect(&_tsneAnalysis, &TsneAnalysis::progressSection, this, [this](const QString& section) {
-        _refineEmbedding->getDataHierarchyItem().setTaskDescription(section);
-    });
-
-    // Connect the finishing of the t-SNE process to the data hierarchy item associated with this embedding
-    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this]() {
-        _refineEmbedding->getDataHierarchyItem().setTaskFinished();
-    });
-    */
-
-    auto setDatasets = [this]() ->void {
-        // Get unique identifier and gui names from all point data sets in the core
-        auto dataSets = mv::data().getAllDatasets(std::vector<mv::DataType> {PointType});
-
-        // Assign found dataset(s)
-        _datasetPickerAction.setDatasets(dataSets);
-
-    };
-
-    setDatasets();
-
-    connect(&_reloadDatasetsAction, &TriggerAction::triggered, this, [this, setDatasets]() {
-        setDatasets();
-        });
-
-    connect(&_setSelectionAction, &TriggerAction::triggered, this, [this]() {
-        
-        auto selectionDataset = Dataset<Points>(_datasetPickerAction.getCurrentDataset().get<Points>());
-
-        std::vector<unsigned int> selectionIDs;
-        selectionIDs.resize(selectionDataset->getNumPoints());
-        selectionDataset->populateDataForDimensions < std::vector<unsigned int>, std::vector<unsigned int>>(selectionIDs, std::vector<unsigned int>{ 0 });
-
-        //_embedding->setSelectionIndices(selectionIDs);
-        //events().notifyDatasetSelectionChanged(_embedding->getSourceDataset<Points>());
-        _input->setSelectionIndices(selectionIDs);
-        events().notifyDatasetDataSelectionChanged(_input->getSourceDataset<Points>());
-
-        });
 }
 
 QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
@@ -116,6 +104,8 @@ QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
 
 void HsneScaleAction::refine()
 {
+    _initializationTask.setRunning();
+
     // Get the selection of points that are to be refined
     auto selection = _embedding->getSelection<Points>();
 
@@ -143,7 +133,7 @@ void HsneScaleAction::refine()
     // Threshold neighbours with enough influence, these represent the indices of the refined points relative to their HSNE scale
     std::vector<uint32_t> refinedLandmarks; // Scale-relative indices
     refinedLandmarks.clear();
-    for (auto n : neighbors) {
+    for (const auto& n : neighbors) {
         if (n.second > 0.5) //QUICKPAPER
         {
             refinedLandmarks.push_back(n.first);
@@ -184,37 +174,39 @@ void HsneScaleAction::refine()
         }
 
         // Create HSNE scale subset
-        auto hsneScaleSubset = _input->createSubsetFromSelection("hsne_scale", _input, false);
+        auto selectionHelperCount = _input->getProperty("selectionHelperCount").toInt();
+        _input->setProperty("selectionHelperCount", ++selectionHelperCount);
+        auto hsneScaleSubset = _input->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), _input, /* visible = */ false);
 
         // And the derived data for the embedding
-        _refineEmbedding = mv::data().createDerivedDataset<Points>(QString("%1_embedding").arg(_input->text()), hsneScaleSubset, _embedding);
+        _refineEmbeddings.push_back(mv::data().createDerivedDataset<Points>(QString("Hsne scale %1").arg(refinedScaleLevel), hsneScaleSubset, _embedding));
+        auto& refineEmbedding = _refineEmbeddings.back();
 
-        _refineEmbedding->setText("HSNE Scale");
-        _refineEmbedding->getDataHierarchyItem().select();
+        refineEmbedding->setData(nullptr, 0, 2);
+        events().notifyDatasetDataChanged(refineEmbedding);
 
-        auto& datasetTask = _refineEmbedding->getTask();
+        mv::dataHierarchy().clearSelection();
+        refineEmbedding->getDataHierarchyItem().select();
+        refineEmbedding->_infoAction->collapse();
 
+        auto& datasetTask = refineEmbedding->getTask();
         datasetTask.setName("HSNE scale computation");
         datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
 
         _tsneAnalysis.setTask(&datasetTask);
     }
 
-    _refineEmbedding->setData(nullptr, 0, 2);
-
-    auto hsneScaleSubset = _refineEmbedding->getSourceDataset<Points>();
-
     // Only add a new scale action if the drill scale is higher than data level
     if (refinedScaleLevel > 0)
     {
-        auto hsneScaleAction = new HsneScaleAction(this, _tsneSettingsAction, _hsneHierarchy, _input, _refineEmbedding);
-        hsneScaleAction->setDrillIndices(refinedLandmarks);
-        hsneScaleAction->setScale(refinedScaleLevel);
+        auto& refineEmbedding = _refineEmbeddings.back();
+        _refinedScaledActions.push_back(std::make_unique<HsneScaleAction>(this, _tsneParameters, _hsneHierarchy, _input, refineEmbedding));
+        auto& _refinedScaledAction = _refinedScaledActions.back();
+        _refinedScaledAction->setDrillIndices(refinedLandmarks);
+        _refinedScaledAction->setScale(refinedScaleLevel);
 
-        _refineEmbedding->addAction(*hsneScaleAction);
+        refineEmbedding->addAction(*_refinedScaledAction.get());
     }
-
-    events().notifyDatasetAdded(_refineEmbedding);
 
     ///////////////////////////////////
     // Connect scales by linked data //
@@ -226,13 +218,14 @@ void HsneScaleAction::refine()
         LandmarkMap& landmarkMap = _hsneHierarchy.getInfluenceHierarchy().getMap()[refinedScaleLevel];
 
         mv::SelectionMap mapping;
+        auto& selectionMap = mapping.getMap();
 
         if (_input->isFull())
         {
             for (const unsigned int& scaleIndex : refinedLandmarks)
             {
                 int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
-                mapping.getMap()[bottomLevelIdx] = landmarkMap[scaleIndex];
+                selectionMap[bottomLevelIdx] = landmarkMap[scaleIndex];
             }
         }
         else
@@ -249,30 +242,125 @@ void HsneScaleAction::refine()
                     bottomMap[j] = globalIndices[bottomMap[j]];
                 }
                 int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
-                mapping.getMap()[globalIndices[bottomLevelIdx]] = bottomMap;
+                selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
             }
         }
 
-        _refineEmbedding->addLinkedData(_input, mapping);
+        _refineEmbeddings.back()->addLinkedData(_input, mapping);
     }
-
-    _refineEmbedding->getTask().setName("HSNE scale");
-    _refineEmbedding->getDataHierarchyItem().select();
-
-    _initializationTask.setRunning();
 
     // Update embedding points when the TSNE analysis produces new data
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
 
+        auto& refineEmbedding = _refineEmbeddings.back();
+
         // Update the refine embedding with new data
-        _refineEmbedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
+        refineEmbedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
         // Notify others that the embedding points have changed
-        events().notifyDatasetDataChanged(_refineEmbedding);
+        events().notifyDatasetDataChanged(refineEmbedding);
     });
 
     _initializationTask.setFinished();
 
     // Start the embedding process
-    _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), transitionMatrix, refinedLandmarks.size(), _hsneHierarchy.getNumDimensions());
+    _tsneAnalysis.startComputation(_tsneParameters, transitionMatrix, refinedLandmarks.size(), _hsneHierarchy.getNumDimensions());
+}
+
+void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
+{
+    GroupAction::fromVariantMap(variantMap);
+
+    // Handle data sets
+    _input = mv::data().getDataset(variantMap["inputGUID"].toString());
+    _embedding = mv::data().getDataset(variantMap["embeddingGUID"].toString());
+
+    // Handle refined datasets and corresponding actions
+    for (const auto& refinedEmbeddingMapVar : variantMap["refinedEmbeddingsMap"].toMap())
+    {
+        const auto refinedEmbeddingMap = refinedEmbeddingMapVar.toMap();
+        const auto refineEmbeddingGUID = refinedEmbeddingMap["refineEmbeddingGUID"].toString();
+        auto refineEmbedding = mv::data().getDataset<Points>(refineEmbeddingGUID);
+
+        if (refineEmbedding.isValid())
+        {
+            _refineEmbeddings.push_back(refineEmbedding);
+            _refinedScaledActions.push_back(std::make_unique<HsneScaleAction>(this, _tsneParameters, _hsneHierarchy, _input, refineEmbedding));
+            auto& refinedScaledAction = _refinedScaledActions.back();
+
+            const auto refinedDrillIndices = refinedEmbeddingMap["refinedDrillIndices"].toMap();
+            std::vector<uint32_t> refinedDrillIndicesVec;
+            refinedDrillIndicesVec.resize(static_cast<size_t>(refinedEmbeddingMap["refinedDrillIndicesSize"].toInt()));
+            populateDataBufferFromVariantMap(refinedDrillIndices, (char*)refinedDrillIndicesVec.data());
+            refinedScaledAction->setDrillIndices(std::move(refinedDrillIndicesVec));
+            refinedScaledAction->setScale(refinedEmbeddingMap["refinedCurrentScaleLevel"].toUInt());    // sets _isTopScale = false
+
+            refineEmbedding->addAction(*refinedScaledAction.get());
+            refineEmbedding->_infoAction->collapse();
+        }
+    }
+
+    // Handle own data
+    {
+        const auto drillIndices = variantMap["drillIndices"].toMap();
+        std::vector<uint32_t> drillIndicesVec;
+        drillIndicesVec.resize(static_cast<size_t>(variantMap["drillIndicesSize"].toInt()));
+        populateDataBufferFromVariantMap(drillIndices, (char*)drillIndicesVec.data());
+        _drillIndices = std::move(drillIndicesVec);
+    }
+
+    _isTopScale = variantMap["isTopScale"].toBool();
+    _currentScaleLevel = variantMap["currentScaleLevel"].toUInt();
+
+    _refineAction.fromParentVariantMap(variantMap);
+    _numIterationsAction.fromParentVariantMap(variantMap);
+    _numberOfComputatedIterationsAction.fromParentVariantMap(variantMap);
+    _updateIterationsAction.fromParentVariantMap(variantMap);
+    _computationAction.fromParentVariantMap(variantMap);
+
+}
+
+QVariantMap HsneScaleAction::toVariantMap() const
+{
+    QVariantMap variantMap = GroupAction::toVariantMap();
+
+    _refineAction.insertIntoVariantMap(variantMap);
+    _numIterationsAction.insertIntoVariantMap(variantMap);
+    _numberOfComputatedIterationsAction.insertIntoVariantMap(variantMap);
+    _updateIterationsAction.insertIntoVariantMap(variantMap);
+    _computationAction.insertIntoVariantMap(variantMap);
+
+    variantMap["inputGUID"] = QVariant::fromValue(_input.get<Points>()->getId());
+    variantMap["embeddingGUID"] = QVariant::fromValue(_embedding.get<Points>()->getId());
+    
+    QVariantMap refinedEmbeddingsMap;
+
+    assert(_refineEmbeddings.size() == _refinedScaledActions.size());
+    for (size_t i = 0; i < _refineEmbeddings.size(); i++) {
+        const auto& refineEmbedding = _refineEmbeddings[i];
+        const auto& refinedScaledAction = _refinedScaledActions[i].get();
+
+        if (refineEmbedding.isValid())
+        {
+            QVariantMap refinedEmbeddingMap;
+
+            QString refineEmbeddingID = refineEmbedding.get<Points>()->getId();
+
+            refinedEmbeddingMap["refinedDrillIndices"] = rawDataToVariantMap((char*)refinedScaledAction->_drillIndices.data(), refinedScaledAction->_drillIndices.size() * sizeof(uint32_t), true);
+            refinedEmbeddingMap["refinedDrillIndicesSize"] = QVariant::fromValue(refinedScaledAction->_drillIndices.size());
+            refinedEmbeddingMap["refinedCurrentScaleLevel"] = QVariant::fromValue(refinedScaledAction->_currentScaleLevel);
+            refinedEmbeddingMap["refineEmbeddingGUID"] = QVariant::fromValue(refineEmbeddingID);
+
+            refinedEmbeddingsMap[QString::number(i)] = refinedEmbeddingMap;
+        }
+    }
+
+    variantMap["refinedEmbeddingsMap"] = refinedEmbeddingsMap;
+
+    variantMap["drillIndices"] = rawDataToVariantMap((char*)_drillIndices.data(), _drillIndices.size() * sizeof(uint32_t), true);
+    variantMap["drillIndicesSize"] = QVariant::fromValue(_drillIndices.size());
+    variantMap["isTopScale"] = QVariant::fromValue(_isTopScale);
+    variantMap["currentScaleLevel"] = QVariant::fromValue(_currentScaleLevel);
+
+    return variantMap;
 }

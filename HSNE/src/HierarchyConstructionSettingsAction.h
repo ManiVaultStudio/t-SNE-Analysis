@@ -1,6 +1,9 @@
 #pragma once
 
-#include "actions/Actions.h"
+#include "actions/DecimalAction.h"
+#include "actions/GroupAction.h"
+#include "actions/IntegralAction.h"
+#include "actions/ToggleAction.h"
 
 using namespace mv::gui;
 
@@ -8,13 +11,13 @@ class QMenu;
 class HsneSettingsAction;
 
 /**
- * Advanced HSNE setting action class
+ * HSNE Hierarchy Construction setting action class
  *
- * Action class for advanced HSNE settings
+ * Action class for HSNE Hierarchy Construction settings
  *
  * @author Thomas Kroes
  */
-class AdvancedHsneSettingsAction : public GroupAction
+class HierarchyConstructionSettingsAction : public GroupAction
 {
 public:
 
@@ -22,7 +25,7 @@ public:
      * Constructor
      * @param hsneSettingsAction Reference to HSNE settings action
      */
-    AdvancedHsneSettingsAction(HsneSettingsAction& hsneSettingsAction);
+    HierarchyConstructionSettingsAction(HsneSettingsAction& hsneSettingsAction);
 
 public: // Action getters
 
@@ -32,9 +35,25 @@ public: // Action getters
     IntegralAction& getRandomWalkLengthAction() { return _randomWalkLengthAction; }
     IntegralAction& getNumWalksForAreaOfInfluenceAction() { return _numWalksForAreaOfInfluenceAction; }
     IntegralAction& getMinWalksRequiredAction() { return _minWalksRequiredAction; }
-    IntegralAction& getNumChecksAknnAction() { return _numChecksAknnAction; }
     ToggleAction& getUseOutOfCoreComputationAction() { return _useOutOfCoreComputationAction; }
+    ToggleAction& getUseMonteCarloSamplingAction() { return _useMonteCarloSamplingAction; }
+    IntegralAction& getSeedAction() { return _seedAction; }
     ToggleAction& getSaveHierarchyToDiskAction() { return _saveHierarchyToDiskAction; }
+    ToggleAction& getSaveHierarchyToProjectAction() { return _saveHierarchyToProjectAction; }
+
+public: // Serialization
+
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
 
 protected:
     HsneSettingsAction&     _hsneSettingsAction;                                /** Reference to HSNE settings action */
@@ -43,9 +62,9 @@ protected:
     IntegralAction          _randomWalkLengthAction;                            /** Random walk length action */
     IntegralAction          _numWalksForAreaOfInfluenceAction;                  /** Number of walks for area of influence action */
     IntegralAction          _minWalksRequiredAction;                            /** Minimum number of walks required action */
-    IntegralAction          _numChecksAknnAction;                               /** Number of KNN checks action */
     ToggleAction            _useOutOfCoreComputationAction;                     /** Use out of core computation action */
+    ToggleAction            _useMonteCarloSamplingAction;                       /** Use Monte Carlo sampling on/off action */
+    IntegralAction          _seedAction;                                        /** Random seed action */
     ToggleAction            _saveHierarchyToDiskAction;                         /** Save computed hierarchy to disk action */
-
-    friend class Widget;
+    ToggleAction            _saveHierarchyToProjectAction;                      /** Save computed hierarchy to project action */
 };

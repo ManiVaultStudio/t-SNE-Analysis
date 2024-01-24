@@ -1,13 +1,18 @@
 #pragma once
 
-#include "actions/Actions.h"
+
+#include "actions/GroupAction.h"
+#include "actions/IntegralAction.h"
+#include "actions/TriggerAction.h"
+
 #include "event/EventListener.h"
-//#include "util/SmartDataset.h"
 
 #include "TsneAnalysis.h"
+#include "TsneComputationAction.h"
 
 #include "PointData/PointData.h"
-#include "PointData/DimensionsPickerAction.h"
+
+#include <memory>
 
 using namespace mv;
 using namespace mv::gui;
@@ -17,7 +22,7 @@ class QMenu;
 
 class HsneAnalysisPlugin;
 class HsneHierarchy;
-class TsneSettingsAction;
+class TsneParameters;
 
 namespace mv {
     class CoreInterface;
@@ -42,7 +47,7 @@ public:
      * @param inputDataset Smart pointer to input dataset
      * @param embeddingDataset Smart pointer to embedding dataset
      */
-    HsneScaleAction(QObject* parent, TsneSettingsAction& tsneSettingsAction, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset);
+    HsneScaleAction(QObject* parent, TsneParameters& tsneParameters, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset);
 
     /**
      * Get the context menu for the action
@@ -51,16 +56,18 @@ public:
      */
     QMenu* getContextMenu(QWidget* parent = nullptr) override;
 
-protected:
-
+private:
     /** Refine the landmarks based on the current selection */
     void refine();
 
 public: // Action getters
 
-    TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
     TriggerAction& getRefineAction() { return _refineAction; }
+    IntegralAction& getNumIterationsAction() { return _numIterationsAction; };
+    IntegralAction& getNumberOfComputatedIterationsAction() { return _numberOfComputatedIterationsAction; };
+    TsneComputationAction& getComputationAction() { return _computationAction; }
 
+public: // Setters
     void setScale(unsigned int scale)
     {
         _currentScaleLevel = scale;
@@ -72,30 +79,48 @@ public: // Action getters
         _isTopScale = false;
     }
 
-protected:
-    TsneSettingsAction&     _tsneSettingsAction;    /** Reference to TSNE settings action from the HSNE analysis */
+public: // Serialization
+
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    void fromVariantMap(const QVariantMap& variantMap) override;
+
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    QVariantMap toVariantMap() const override;
+
+private:
+    using Datasets = std::vector<Dataset<Points>>;
+    using RefineActions = std::vector<std::unique_ptr<HsneScaleAction>>;
+
+private:
+    TsneParameters&         _tsneParameters;        /** Reference to TSNE paremeters from the HSNE analysis */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneHierarchy&          _hsneHierarchy;         /** Reference to HSNE hierarchy */
     Dataset<Points>         _input;                 /** Input dataset reference */
     Dataset<Points>         _embedding;             /** Embedding dataset reference */
-    Dataset<Points>         _refineEmbedding;       /** Refine embedding dataset reference */
+    Datasets                _refineEmbeddings;      /** Refine embedding dataset references */
 
-    TriggerAction           _refineAction;          /** Refine action */
-    DatasetPickerAction     _datasetPickerAction;   /** Dataset picker action */
-    TriggerAction           _reloadDatasetsAction;  /** Reload action */
-    TriggerAction           _setSelectionAction;    /** Set selection action */
+private:
+    TriggerAction           _refineAction;                          /** Refine action */
+    IntegralAction          _numIterationsAction;                   /** Number of iterations action */
+    IntegralAction          _numberOfComputatedIterationsAction;    /** Number of computed iterations action */
+    IntegralAction          _updateIterationsAction;                /** Number of update iterations (copying embedding to ManiVault core) */
+    TsneComputationAction   _computationAction;                     /** Computation action */
 
     EventListener           _eventListener;         /** Listen to HDPS events */
     mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
 
+    RefineActions           _refinedScaledActions;  /** Scale actions of the refined datasets */
+
 protected:
-    static mv::CoreInterface* core;      /** Pointer to the core */
-
-    friend class HsneAnalysisPlugin;
-    friend class Widget;
-
-private:
     std::vector<uint32_t>   _drillIndices;          /** Vector relating local indices to scale relative indices */
     bool                    _isTopScale;            /** Whether current scale is the top scale */
     unsigned int            _currentScaleLevel;     /** The scale the current embedding is a part of */
+
+    friend class HsneScaleAction;
 };

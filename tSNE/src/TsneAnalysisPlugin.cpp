@@ -1,20 +1,14 @@
 #include "TsneAnalysisPlugin.h"
 
-#include <PointData/PointData.h>
 #include <PointData/DimensionsPickerAction.h>
+#include <PointData/InfoAction.h>
+#include <PointData/PointData.h>
 
 #include <util/Icon.h>
 
 #include <actions/PluginTriggerAction.h>
 
-#include <QtCore>
-#include <QtDebug>
-#include <QMenu>
-#include <QPainter>
-
 Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
-
-#include <set>
 
 using namespace mv;
 using namespace mv::util;
@@ -47,16 +41,22 @@ void TsneAnalysisPlugin::init()
 
     std::vector<float> initialData;
 
-    const auto numEmbeddingDimensions = 2;
+    const size_t numEmbeddingDimensions = 2;
 
-    initialData.resize(inputDataset->getNumPoints() * numEmbeddingDimensions);
+    initialData.resize(numEmbeddingDimensions * inputDataset->getNumPoints());
 
     outputDataset->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
 
     events().notifyDatasetDataChanged(outputDataset);
 
+    // Manage UI elements attached to output data set
+    mv::dataHierarchy().clearSelection();
+    outputDataset->getDataHierarchyItem().select();
+    outputDataset->_infoAction->collapse();
+
     outputDataset->addAction(_tsneSettingsAction.getGeneralTsneSettingsAction());
-    outputDataset->addAction(_tsneSettingsAction.getAdvancedTsneSettingsAction());
+    outputDataset->addAction(_tsneSettingsAction.getGradientDescentSettingsAction());
+    outputDataset->addAction(_tsneSettingsAction.getKnnSettingsAction());
 
     auto dimensionsGroupAction = new GroupAction(this, "Dimensions", true);
 
@@ -82,7 +82,8 @@ void TsneAnalysisPlugin::init()
         computationAction.getRunningAction().setChecked(false);
 
         _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(false);
-        _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(false);
+        _tsneSettingsAction.getGradientDescentSettingsAction().setReadOnly(false);
+        _tsneSettingsAction.getKnnSettingsAction().setReadOnly(false);
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::aborted, this, [this, &computationAction, updateComputationAction]() {
@@ -91,19 +92,22 @@ void TsneAnalysisPlugin::init()
         computationAction.getRunningAction().setChecked(false);
 
         _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(false);
-        _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(false);
+        _tsneSettingsAction.getGradientDescentSettingsAction().setReadOnly(false);
+        _tsneSettingsAction.getKnnSettingsAction().setReadOnly(false);
     });
 
     connect(&computationAction.getStartComputationAction(), &TriggerAction::triggered, this, [this, &computationAction]() {
         _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(true);
-        _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(true);
+        _tsneSettingsAction.getGradientDescentSettingsAction().setReadOnly(true);
+        _tsneSettingsAction.getKnnSettingsAction().setReadOnly(true);
 
         startComputation();
     });
 
     connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
         _tsneSettingsAction.getGeneralTsneSettingsAction().setReadOnly(true);
-        _tsneSettingsAction.getAdvancedTsneSettingsAction().setReadOnly(true);
+        _tsneSettingsAction.getGradientDescentSettingsAction().setReadOnly(true);
+        _tsneSettingsAction.getKnnSettingsAction().setReadOnly(true);
 
         continueComputation();
     });
@@ -176,7 +180,7 @@ void TsneAnalysisPlugin::startComputation()
     
     _dataPreparationTask.setFinished();
 
-    _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), data, numEnabledDimensions);
+    _tsneAnalysis.startComputation(_tsneSettingsAction.getTsneParameters(), _tsneSettingsAction.getKnnParameters(), data, numEnabledDimensions);
 }
 
 void TsneAnalysisPlugin::continueComputation()
@@ -216,7 +220,7 @@ PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const mv
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
             auto pluginTriggerAction = new PluginTriggerAction(const_cast<TsneAnalysisPluginFactory*>(this), this, "TSNE", "Perform TSNE analysis on selected datasets", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
-                for (auto dataset : datasets)
+                for (const auto& dataset : datasets)
                     getPluginInstance(dataset);
             });
 
