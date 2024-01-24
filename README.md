@@ -1,5 +1,4 @@
-# t-SNE & HSNE Analysis  [![Actions Status](https://github.com/ManiVaultStudio/t-SNE-Analysis/workflows/t-SNE-Analysis/badge.svg)](https://github.com/ManiVaultStudio/t-SNE-Analysis/actions)
-
+# t-SNE & HSNE Analysis  [![Actions Status](https://github.com/ManiVaultStudio/t-SNE-Analysis/actions/workflows/build.yml/badge.svg)](https://github.com/ManiVaultStudio/t-SNE-Analysis/actions)
 
 ### Build locally on Linux
 
