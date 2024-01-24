@@ -335,7 +335,7 @@ QVariantMap HsneScaleAction::toVariantMap() const
     
     QVariantMap refinedEmbeddingsMap;
 
-    assert(_refineEmbeddings.size() == _refinedScaledAction.size());
+    assert(_refineEmbeddings.size() == _refinedScaledActions.size());
     for (size_t i = 0; i < _refineEmbeddings.size(); i++) {
         const auto& refineEmbedding = _refineEmbeddings[i];
         const auto& refinedScaledAction = _refinedScaledActions[i].get();
