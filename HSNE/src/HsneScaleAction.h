@@ -94,12 +94,16 @@ public: // Serialization
     QVariantMap toVariantMap() const override;
 
 private:
+    using Datasets = std::vector<Dataset<Points>>;
+    using RefineActions = std::vector<std::unique_ptr<HsneScaleAction>>;
+
+private:
     TsneParameters&         _tsneParameters;        /** Reference to TSNE paremeters from the HSNE analysis */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneHierarchy&          _hsneHierarchy;         /** Reference to HSNE hierarchy */
     Dataset<Points>         _input;                 /** Input dataset reference */
     Dataset<Points>         _embedding;             /** Embedding dataset reference */
-    Dataset<Points>         _refineEmbedding;       /** Refine embedding dataset reference */
+    Datasets                _refineEmbeddings;      /** Refine embedding dataset references */
 
 private:
     TriggerAction           _refineAction;                          /** Refine action */
@@ -111,7 +115,7 @@ private:
     EventListener           _eventListener;         /** Listen to HDPS events */
     mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
 
-    std::unique_ptr<HsneScaleAction> _refinedScaledAction;          /** Scale action of the refined dataset */
+    RefineActions           _refinedScaledActions;  /** Scale actions of the refined datasets */
 
 protected:
     std::vector<uint32_t>   _drillIndices;          /** Vector relating local indices to scale relative indices */
