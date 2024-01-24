@@ -333,7 +333,7 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
 
     _hsneSettingsAction->insertIntoVariantMap(variantMap);
 
-    if (_hsneSettingsAction->getHierarchyConstructionSettingsAction().getSaveHierarchyToProjectAction().isChecked())
+    if (_hsneSettingsAction->getHierarchyConstructionSettingsAction().getSaveHierarchyToProjectAction().isChecked() && _hierarchy.isInitialized())
     {
         // Handle HSNE Hierarchy
         {
