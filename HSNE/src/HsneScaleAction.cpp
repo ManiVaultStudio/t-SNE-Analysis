@@ -12,6 +12,10 @@
 
 #include <QMenu>
 
+#ifdef _DEBUG
+    #define HSNE_SCALE_ACTION_VERBOSE
+#endif
+
 using namespace mv;
 using namespace mv::gui;
 
@@ -91,6 +95,13 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
     });
 
     updateReadOnly();
+}
+
+HsneScaleAction::~HsneScaleAction()
+{
+#ifdef HSNE_SCALE_ACTION_VERBOSE
+    qDebug() << __FUNCTION__ << text();
+#endif
 }
 
 QMenu* HsneScaleAction::getContextMenu(QWidget* parent /*= nullptr*/)
@@ -200,12 +211,12 @@ void HsneScaleAction::refine()
     if (refinedScaleLevel > 0)
     {
         auto& refineEmbedding = _refineEmbeddings.back();
-        _refinedScaledActions.push_back(std::make_unique<HsneScaleAction>(this, _tsneParameters, _hsneHierarchy, _input, refineEmbedding));
+        _refinedScaledActions.push_back(new HsneScaleAction(this, _tsneParameters, _hsneHierarchy, _input, refineEmbedding));
         auto& _refinedScaledAction = _refinedScaledActions.back();
         _refinedScaledAction->setDrillIndices(refinedLandmarks);
         _refinedScaledAction->setScale(refinedScaleLevel);
 
-        refineEmbedding->addAction(*_refinedScaledAction.get());
+        refineEmbedding->addAction(*_refinedScaledAction);
     }
 
     ///////////////////////////////////
@@ -285,7 +296,7 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
         if (refineEmbedding.isValid())
         {
             _refineEmbeddings.push_back(refineEmbedding);
-            _refinedScaledActions.push_back(std::make_unique<HsneScaleAction>(this, _tsneParameters, _hsneHierarchy, _input, refineEmbedding));
+            _refinedScaledActions.push_back(new HsneScaleAction(this, _tsneParameters, _hsneHierarchy, _input, refineEmbedding));
             auto& refinedScaledAction = _refinedScaledActions.back();
 
             const auto refinedDrillIndices = refinedEmbeddingMap["refinedDrillIndices"].toMap();
@@ -295,7 +306,7 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
             refinedScaledAction->setDrillIndices(std::move(refinedDrillIndicesVec));
             refinedScaledAction->setScale(refinedEmbeddingMap["refinedCurrentScaleLevel"].toUInt());    // sets _isTopScale = false
 
-            refineEmbedding->addAction(*refinedScaledAction.get());
+            refineEmbedding->addAction(*refinedScaledAction);
             refineEmbedding->_infoAction->collapse();
         }
     }
@@ -338,7 +349,7 @@ QVariantMap HsneScaleAction::toVariantMap() const
     assert(_refineEmbeddings.size() == _refinedScaledActions.size());
     for (size_t i = 0; i < _refineEmbeddings.size(); i++) {
         const auto& refineEmbedding = _refineEmbeddings[i];
-        const auto& refinedScaledAction = _refinedScaledActions[i].get();
+        const auto& refinedScaledAction = _refinedScaledActions[i];
 
         if (refineEmbedding.isValid())
         {
