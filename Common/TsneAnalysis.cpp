@@ -405,6 +405,7 @@ void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
     _workerThread.start();
 
     emit startWorker();
+    emit started();
 }
 
 TsneWorkerTasks::TsneWorkerTasks(QObject* parent, mv::Task* parentTask) :

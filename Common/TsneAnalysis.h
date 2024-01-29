@@ -137,6 +137,7 @@ signals:
 
     // Outgoing signals
     void embeddingUpdate(const TsneData tsneData);
+    void started();
     void finished();
     void aborted();
 

@@ -93,6 +93,7 @@ void HsneAnalysisPlugin::init()
     const auto updateComputationAction = [this, &computationAction]() {
         const auto isRunning = computationAction.getRunningAction().isChecked();
 
+        computationAction.setReadOnly(false);
         computationAction.getStartComputationAction().setEnabled(!isRunning);
         computationAction.getContinueComputationAction().setEnabled(!isRunning && _tsneAnalysis.canContinue());
         computationAction.getStopComputationAction().setEnabled(isRunning);
@@ -137,7 +138,7 @@ void HsneAnalysisPlugin::init()
         _tsneAnalysis.stopComputation();
     });
     
-    connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, &computationAction, updateComputationAction](bool toggled) {
+    connect(&computationAction.getRunningAction(), &ToggleAction::toggled, this, [this, updateComputationAction](bool toggled) {
         getInputDataset<Points>()->getDimensionsPickerAction().setEnabled(!toggled);
         updateComputationAction();
     });
@@ -155,6 +156,12 @@ void HsneAnalysisPlugin::init()
         qApp->processEvents();
 
         computeTopLevelEmbedding();
+    });
+
+    connect(&_tsneAnalysis, &TsneAnalysis::started, this, [this, &computationAction, updateComputationAction]() {
+        computationAction.getRunningAction().setChecked(true);
+        updateComputationAction();
+        qApp->processEvents();
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
@@ -274,7 +281,6 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     TsneParameters tsneParameters = _hsneSettingsAction->getTsneParameters();
 
     // Embed data
-    _tsneAnalysis.stopComputation();
     _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
 }
 
