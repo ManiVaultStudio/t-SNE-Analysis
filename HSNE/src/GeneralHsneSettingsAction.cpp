@@ -74,8 +74,10 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
         const auto enabled = !isReadOnly();
 
         _knnAlgorithmAction.setEnabled(enabled);
+        _distanceMetricAction.setEnabled(enabled);
         _numScalesAction.setEnabled(enabled);
         _numKnnAction.setEnabled(enabled);
+        _startAction.setEnabled(enabled);
     };
 
     connect(&_knnAlgorithmAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm]() {
