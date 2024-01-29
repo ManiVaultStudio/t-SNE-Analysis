@@ -49,6 +49,8 @@ public:
      */
     HsneScaleAction(QObject* parent, TsneParameters& tsneParameters, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset);
 
+    ~HsneScaleAction();
+
     /**
      * Get the context menu for the action
      * @param parent Parent widget
@@ -95,7 +97,7 @@ public: // Serialization
 
 private:
     using Datasets = std::vector<Dataset<Points>>;
-    using RefineActions = std::vector<std::unique_ptr<HsneScaleAction>>;
+    using RefineActions = std::vector<HsneScaleAction*>;
 
 private:
     TsneParameters&         _tsneParameters;        /** Reference to TSNE paremeters from the HSNE analysis */
