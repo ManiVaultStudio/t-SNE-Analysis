@@ -28,9 +28,9 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
     _embedding(embeddingDataset),
     _refineEmbeddings(),
     _refineAction(this, "Refine selection"),
-    _numIterationsAction(this, "Number of iterations"),
-    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, std::numeric_limits<int>::max(), 0),
-    _updateIterationsAction(this, "Core update every"),
+    _numIterationsAction(this, "New iterations", 1, 10000, 1000),
+    _numberOfComputatedIterationsAction(this, "Computed iterations", 0, std::numeric_limits<int>::max(), 0),
+    _updateIterationsAction(this, "Core update every", 0, 10000, 10),
     _computationAction(this),
     _refinedScaledActions(),
     _initializationTask(this, "Preparing HSNE scale"),
@@ -47,11 +47,10 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
     _numberOfComputatedIterationsAction.setDefaultWidgetFlags(IntegralAction::LineEdit);
     _updateIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
-    _numIterationsAction.initialize(1, 10000, 1000);
-    _updateIterationsAction.initialize(0, 10000, 10);
-
     _refineAction.setToolTip("Refine the selected landmarks");
     _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
+    _numIterationsAction.setToolTip("Number of new iterations that will be computed when pressing start or continue.");
+    _numberOfComputatedIterationsAction.setToolTip("Number of iterations that have already been computed.");
 
     _numberOfComputatedIterationsAction.setEnabled(false);
 
@@ -73,7 +72,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
 
         _refineAction.setEnabled(!isReadOnly() && !selection->indices.empty());
         _numIterationsAction.setEnabled(enabled);
-        _updateIterationsAction.setEnabled(enabled);
+        //_updateIterationsAction.setEnabled(enabled);
     };
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
@@ -205,18 +204,58 @@ void HsneScaleAction::refine()
         datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
 
         _tsneAnalysis.setTask(&datasetTask);
-    }
 
-    // Only add a new scale action if the drill scale is higher than data level
-    if (refinedScaleLevel > 0)
-    {
-        auto& refineEmbedding = _refineEmbeddings.back();
-        _refinedScaledActions.push_back(new HsneScaleAction(this, _tsneParameters, _hsneHierarchy, _input, refineEmbedding));
-        auto& _refinedScaledAction = _refinedScaledActions.back();
-        _refinedScaledAction->setDrillIndices(refinedLandmarks);
-        _refinedScaledAction->setScale(refinedScaleLevel);
+        // Only add a new scale action if the drill scale is higher than data level
+        if (refinedScaleLevel > 0)
+        {
+            _refinedScaledActions.push_back(new HsneScaleAction(this, _tsneParameters, _hsneHierarchy, _input, refineEmbedding));
+            auto& _refinedScaledAction = _refinedScaledActions.back();
+            _refinedScaledAction->setDrillIndices(refinedLandmarks);
+            _refinedScaledAction->setScale(refinedScaleLevel);
 
-        refineEmbedding->addAction(*_refinedScaledAction);
+            refineEmbedding->addAction(*_refinedScaledAction);
+        }
+        else
+        {
+            _refinedScaledActions.push_back(nullptr);
+
+            auto dataScaleAction = new GroupAction(this, "HSNE Scale");
+            auto refineNumIterationsAction = new IntegralAction(this, "New iterations", 1, 10000, 1000);
+            auto refineNumberOfComputatedIterationsAction = new IntegralAction(this, "Computed iterations", 0, std::numeric_limits<int>::max(), 0);
+            auto refinedComputeAction = new TsneComputationAction(this);
+
+            refineNumIterationsAction->setDefaultWidgetFlags(IntegralAction::SpinBox);
+            refineNumberOfComputatedIterationsAction->setDefaultWidgetFlags(IntegralAction::LineEdit);
+
+            refineNumberOfComputatedIterationsAction->setEnabled(false);
+
+            dataScaleAction->addAction(refineNumIterationsAction);
+            dataScaleAction->addAction(refineNumberOfComputatedIterationsAction);
+            dataScaleAction->addAction(refinedComputeAction);
+
+            refineEmbedding->addAction(*dataScaleAction);
+
+            connect(refinedComputeAction, &TriggerAction::triggered, this, [this]() {
+                // TODO: recompute
+                });
+
+            const auto updateReadOnly = [this, refinedComputeAction, refineNumIterationsAction]() -> void {
+                auto selection = _input->getSelection<Points>();
+                const auto enabled = !isReadOnly();
+
+                refinedComputeAction->setEnabled(!isReadOnly() && !selection->indices.empty());
+                refineNumIterationsAction->setEnabled(enabled);
+                };
+
+            connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
+                updateReadOnly();
+                });
+
+            connect(refineNumIterationsAction, &IntegralAction::valueChanged, this, [this, refineNumIterationsAction](const std::int32_t& value) {
+                _tsneParameters.setNumIterations(refineNumIterationsAction->getValue());
+                });
+
+        }
     }
 
     ///////////////////////////////////
@@ -296,20 +335,32 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
         if (refineEmbedding.isValid())
         {
             _refineEmbeddings.push_back(refineEmbedding);
-            _refinedScaledActions.push_back(new HsneScaleAction(this, _tsneParameters, _hsneHierarchy, _input, refineEmbedding));
-            auto& refinedScaledAction = _refinedScaledActions.back();
 
-            const auto refinedDrillIndices = refinedEmbeddingMap["refinedDrillIndices"].toMap();
-            std::vector<uint32_t> refinedDrillIndicesVec;
-            refinedDrillIndicesVec.resize(static_cast<size_t>(refinedEmbeddingMap["refinedDrillIndicesSize"].toInt()));
-            populateDataBufferFromVariantMap(refinedDrillIndices, (char*)refinedDrillIndicesVec.data());
-            refinedScaledAction->setDrillIndices(std::move(refinedDrillIndicesVec));
-            refinedScaledAction->setScale(refinedEmbeddingMap["refinedCurrentScaleLevel"].toUInt());    // sets _isTopScale = false
+            if (refinedEmbeddingMap["refinedCurrentScaleLevel"].toUInt() > 0)
+            {
+                _refinedScaledActions.push_back(new HsneScaleAction(this, _tsneParameters, _hsneHierarchy, _input, refineEmbedding));
+                HsneScaleAction* refinedScaledAction = _refinedScaledActions.back();
 
-            refineEmbedding->addAction(*refinedScaledAction);
-            refineEmbedding->_infoAction->collapse();
+                const auto refinedDrillIndices = refinedEmbeddingMap["refinedDrillIndices"].toMap();
+                std::vector<uint32_t> refinedDrillIndicesVec;
+                refinedDrillIndicesVec.resize(static_cast<size_t>(refinedEmbeddingMap["refinedDrillIndicesSize"].toInt()));
+                populateDataBufferFromVariantMap(refinedDrillIndices, (char*)refinedDrillIndicesVec.data());
+                refinedScaledAction->setDrillIndices(std::move(refinedDrillIndicesVec));
+                refinedScaledAction->setScale(refinedEmbeddingMap["refinedCurrentScaleLevel"].toUInt());    // sets _isTopScale = false
+
+                refineEmbedding->addAction(*refinedScaledAction);
+                refineEmbedding->_infoAction->collapse();
+            }
+            else
+            {
+                _refinedScaledActions.push_back(nullptr);
+                auto refinedComputeAction = new TsneComputationAction(this);
+                refineEmbedding->addAction(*refinedComputeAction);
+            }
+
         }
     }
+    assert(_refineEmbeddings.size() == _refinedScaledActions.size());
 
     // Handle own data
     {
@@ -349,21 +400,25 @@ QVariantMap HsneScaleAction::toVariantMap() const
     assert(_refineEmbeddings.size() == _refinedScaledActions.size());
     for (size_t i = 0; i < _refineEmbeddings.size(); i++) {
         const auto& refineEmbedding = _refineEmbeddings[i];
-        const auto& refinedScaledAction = _refinedScaledActions[i];
+        const HsneScaleAction* refinedScaledAction = _refinedScaledActions[i];
 
-        if (refineEmbedding.isValid())
+        QVariantMap refinedEmbeddingMap;
+
+        if (refineEmbedding.isValid() )
         {
-            QVariantMap refinedEmbeddingMap;
+            refinedEmbeddingMap["refineEmbeddingGUID"] = QVariant::fromValue(refineEmbedding.get<Points>()->getId());
 
-            QString refineEmbeddingID = refineEmbedding.get<Points>()->getId();
-
-            refinedEmbeddingMap["refinedDrillIndices"] = rawDataToVariantMap((char*)refinedScaledAction->_drillIndices.data(), refinedScaledAction->_drillIndices.size() * sizeof(uint32_t), true);
-            refinedEmbeddingMap["refinedDrillIndicesSize"] = QVariant::fromValue(refinedScaledAction->_drillIndices.size());
-            refinedEmbeddingMap["refinedCurrentScaleLevel"] = QVariant::fromValue(refinedScaledAction->_currentScaleLevel);
-            refinedEmbeddingMap["refineEmbeddingGUID"] = QVariant::fromValue(refineEmbeddingID);
-
-            refinedEmbeddingsMap[QString::number(i)] = refinedEmbeddingMap;
+            if (refinedScaledAction != nullptr)
+            {
+                refinedEmbeddingMap["refinedDrillIndices"] = rawDataToVariantMap((char*)refinedScaledAction->_drillIndices.data(), refinedScaledAction->_drillIndices.size() * sizeof(uint32_t), true);
+                refinedEmbeddingMap["refinedDrillIndicesSize"] = QVariant::fromValue(refinedScaledAction->_drillIndices.size());
+                refinedEmbeddingMap["refinedCurrentScaleLevel"] = QVariant::fromValue(refinedScaledAction->_currentScaleLevel);
+            }
+            else
+                refinedEmbeddingMap["refinedCurrentScaleLevel"] = QVariant::fromValue(0);
         }
+
+        refinedEmbeddingsMap[QString::number(i)] = refinedEmbeddingMap;
     }
 
     variantMap["refinedEmbeddingsMap"] = refinedEmbeddingsMap;
