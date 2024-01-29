@@ -12,8 +12,6 @@
 
 #include "PointData/PointData.h"
 
-#include <memory>
-
 using namespace mv;
 using namespace mv::gui;
 using namespace mv::util;
