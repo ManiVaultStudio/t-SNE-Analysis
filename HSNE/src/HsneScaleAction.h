@@ -63,9 +63,8 @@ private:
 public: // Action getters
 
     TriggerAction& getRefineAction() { return _refineAction; }
-    IntegralAction& getNumIterationsAction() { return _numIterationsAction; };
-    IntegralAction& getNumberOfComputatedIterationsAction() { return _numberOfComputatedIterationsAction; };
     TsneComputationAction& getComputationAction() { return _computationAction; }
+    IntegralAction& getNumberOfComputatedIterationsAction() { return _computationAction.getNumberOfComputatedIterationsAction(); };
 
 public: // Setters
     void setScale(unsigned int scale)
@@ -107,9 +106,6 @@ private:
 
 private:
     TriggerAction           _refineAction;                          /** Refine action */
-    IntegralAction          _numIterationsAction;                   /** Number of iterations action */
-    IntegralAction          _numberOfComputatedIterationsAction;    /** Number of computed iterations action */
-    IntegralAction          _updateIterationsAction;                /** Number of update iterations (copying embedding to ManiVault core) */
     TsneComputationAction   _computationAction;                     /** Computation action */
 
     EventListener           _eventListener;         /** Listen to HDPS events */

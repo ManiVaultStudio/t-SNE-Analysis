@@ -1,12 +1,12 @@
 #pragma once
 
+#include <actions/GroupAction.h>
+#include <actions/IntegralAction.h>
 #include <actions/ToggleAction.h>
 #include <actions/TriggerAction.h>
-#include <actions/VerticalGroupAction.h>
 
 using namespace mv::gui;
 
-class TsneSettingsAction;
 class QMenu;
 
 /**
@@ -16,7 +16,7 @@ class QMenu;
  *
  * @author Thomas Kroes
  */
-class TsneComputationAction : public VerticalGroupAction
+class TsneComputationAction : public WidgetAction
 {
 public:
 
@@ -24,7 +24,7 @@ public:
      * Constructor
      * @param parent Pointer to parent object
      */
-    TsneComputationAction(QObject* parent);
+    TsneComputationAction(GroupAction* parent);
 
     /**
      * Get the context menu for the action
@@ -33,8 +33,16 @@ public:
      */
     QMenu* getContextMenu(QWidget* parent = nullptr) override;
 
+    /**
+     * Add member action to parent
+     */
+    void addActions();
+
 public: // Action getters
 
+    IntegralAction& getNumIterationsAction() { return _numIterationsAction; };
+    IntegralAction& getNumberOfComputatedIterationsAction() { return _numberOfComputatedIterationsAction; };
+    IntegralAction& getUpdateIterationsAction() { return _updateIterationsAction; };
     TriggerAction& getStartComputationAction() { return _startComputationAction; }
     TriggerAction& getContinueComputationAction() { return _continueComputationAction; }
     TriggerAction& getStopComputationAction() { return _stopComputationAction; }
@@ -54,9 +62,14 @@ public: // Serialization
      */
     QVariantMap toVariantMap() const override;
 
-protected:
-    TriggerAction   _startComputationAction;        /** Start computation action */
-    TriggerAction   _continueComputationAction;     /** Continue computation action */
-    TriggerAction   _stopComputationAction;         /** Stop computation action */
-    ToggleAction    _runningAction;                 /** Running action */
+private:
+    IntegralAction          _numIterationsAction;                   /** Number of iterations action */
+    IntegralAction          _numberOfComputatedIterationsAction;    /** Number of computed iterations action */
+    IntegralAction          _updateIterationsAction;                /** Number of update iterations (copying embedding to ManiVault core) */
+
+    TriggerAction           _startComputationAction;                /** Start computation action */
+    TriggerAction           _continueComputationAction;             /** Continue computation action */
+    TriggerAction           _stopComputationAction;                 /** Stop computation action */
+
+    ToggleAction            _runningAction;                         /** Running action */
 };

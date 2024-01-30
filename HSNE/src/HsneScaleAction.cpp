@@ -28,42 +28,28 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
     _embedding(embeddingDataset),
     _refineEmbeddings(),
     _refineAction(this, "Refine selection"),
-    _numIterationsAction(this, "New iterations", 1, 10000, 1000),
-    _numberOfComputatedIterationsAction(this, "Computed iterations", 0, std::numeric_limits<int>::max(), 0),
-    _updateIterationsAction(this, "Core update every", 0, 10000, 10),
-    _computationAction(this),
     _refinedScaledActions(),
+    _computationAction(this),
     _initializationTask(this, "Preparing HSNE scale"),
     _isTopScale(true),
     _currentScaleLevel(0)
 {
     addAction(&_refineAction);
-    addAction(&_numIterationsAction);
-    addAction(&_numberOfComputatedIterationsAction);
-//    addAction(&_updateIterationsAction);
-    addAction(&_computationAction);
 
-    _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
-    _numberOfComputatedIterationsAction.setDefaultWidgetFlags(IntegralAction::LineEdit);
-    _updateIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
+    _computationAction.addActions();
 
     _refineAction.setToolTip("Refine the selected landmarks");
-    _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
-    _numIterationsAction.setToolTip("Number of new iterations that will be computed when pressing start or continue.");
-    _numberOfComputatedIterationsAction.setToolTip("Number of iterations that have already been computed.");
-
-    _numberOfComputatedIterationsAction.setEnabled(false);
 
     connect(&_refineAction, &TriggerAction::triggered, this, [this]() {
         refine();
     });
 
     const auto updateNumIterations = [this]() -> void {
-        _tsneParameters.setNumIterations(_numIterationsAction.getValue());
+        _tsneParameters.setNumIterations(_computationAction.getNumIterationsAction().getValue());
     };
 
     const auto updateCoreUpdate = [this]() -> void {
-        _tsneParameters.setUpdateCore(_updateIterationsAction.getValue());
+        _tsneParameters.setUpdateCore(_computationAction.getUpdateIterationsAction().getValue());
     };
 
     const auto updateReadOnly = [this]() -> void {
@@ -71,19 +57,18 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
         const auto enabled = !isReadOnly();
 
         _refineAction.setEnabled(!isReadOnly() && !selection->indices.empty());
-        _numIterationsAction.setEnabled(enabled);
-        //_updateIterationsAction.setEnabled(enabled);
+        _computationAction.getNumIterationsAction().setEnabled(enabled);
     };
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
 
-    connect(&_numIterationsAction, &IntegralAction::valueChanged, this, [this, updateNumIterations](const std::int32_t& value) {
+    connect(&_computationAction.getNumIterationsAction(), &IntegralAction::valueChanged, this, [this, updateNumIterations](const std::int32_t& value) {
         updateNumIterations();
     });
 
-    connect(&_updateIterationsAction, &IntegralAction::valueChanged, this, [this, updateCoreUpdate](const std::int32_t& value) {
+    connect(&_computationAction.getUpdateIterationsAction(), &IntegralAction::valueChanged, this, [this, updateCoreUpdate](const std::int32_t& value) {
         updateCoreUpdate();
     });
 
@@ -93,6 +78,8 @@ HsneScaleAction::HsneScaleAction(QObject* parent, TsneParameters& tsneParameters
             updateReadOnly();
     });
 
+    updateNumIterations();
+    updateCoreUpdate();
     updateReadOnly();
 }
 
@@ -220,39 +207,24 @@ void HsneScaleAction::refine()
             _refinedScaledActions.push_back(nullptr);
 
             auto dataScaleAction = new GroupAction(this, "HSNE Scale");
-            auto refineNumIterationsAction = new IntegralAction(this, "New iterations", 1, 10000, 1000);
-            auto refineNumberOfComputatedIterationsAction = new IntegralAction(this, "Computed iterations", 0, std::numeric_limits<int>::max(), 0);
-            auto refinedComputeAction = new TsneComputationAction(this);
-
-            refineNumIterationsAction->setDefaultWidgetFlags(IntegralAction::SpinBox);
-            refineNumberOfComputatedIterationsAction->setDefaultWidgetFlags(IntegralAction::LineEdit);
-
-            refineNumberOfComputatedIterationsAction->setEnabled(false);
-
-            dataScaleAction->addAction(refineNumIterationsAction);
-            dataScaleAction->addAction(refineNumberOfComputatedIterationsAction);
-            dataScaleAction->addAction(refinedComputeAction);
-
+            dataScaleAction->expand();
+            auto refinedComputeAction = new TsneComputationAction(dataScaleAction);
+            refinedComputeAction->addActions();
             refineEmbedding->addAction(*dataScaleAction);
 
-            connect(refinedComputeAction, &TriggerAction::triggered, this, [this]() {
+            connect(&refinedComputeAction->getStartComputationAction(), &TriggerAction::triggered, this, [this]() {
                 // TODO: recompute
                 });
 
-            const auto updateReadOnly = [this, refinedComputeAction, refineNumIterationsAction]() -> void {
+            const auto updateReadOnly = [this, refinedComputeAction]() -> void {
                 auto selection = _input->getSelection<Points>();
                 const auto enabled = !isReadOnly();
 
                 refinedComputeAction->setEnabled(!isReadOnly() && !selection->indices.empty());
-                refineNumIterationsAction->setEnabled(enabled);
                 };
 
             connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
                 updateReadOnly();
-                });
-
-            connect(refineNumIterationsAction, &IntegralAction::valueChanged, this, [this, refineNumIterationsAction](const std::int32_t& value) {
-                _tsneParameters.setNumIterations(refineNumIterationsAction->getValue());
                 });
 
         }
@@ -354,8 +326,8 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
             else
             {
                 _refinedScaledActions.push_back(nullptr);
-                auto refinedComputeAction = new TsneComputationAction(this);
-                refineEmbedding->addAction(*refinedComputeAction);
+                //auto refinedComputeAction = new TsneComputationAction(this);
+                //refineEmbedding->addAction(*refinedComputeAction);
             }
 
         }
@@ -375,9 +347,6 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
     _currentScaleLevel = variantMap["currentScaleLevel"].toUInt();
 
     _refineAction.fromParentVariantMap(variantMap);
-    _numIterationsAction.fromParentVariantMap(variantMap);
-    _numberOfComputatedIterationsAction.fromParentVariantMap(variantMap);
-    _updateIterationsAction.fromParentVariantMap(variantMap);
     _computationAction.fromParentVariantMap(variantMap);
 
 }
@@ -387,9 +356,6 @@ QVariantMap HsneScaleAction::toVariantMap() const
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _refineAction.insertIntoVariantMap(variantMap);
-    _numIterationsAction.insertIntoVariantMap(variantMap);
-    _numberOfComputatedIterationsAction.insertIntoVariantMap(variantMap);
-    _updateIterationsAction.insertIntoVariantMap(variantMap);
     _computationAction.insertIntoVariantMap(variantMap);
 
     variantMap["inputGUID"] = QVariant::fromValue(_input.get<Points>()->getId());

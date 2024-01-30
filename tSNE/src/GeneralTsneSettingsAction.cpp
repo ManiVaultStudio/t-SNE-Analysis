@@ -8,38 +8,22 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _tsneSettingsAction(tsneSettingsAction),
     _knnAlgorithmAction(this, "kNN Algorithm"),
     _distanceMetricAction(this, "Distance metric"),
-    _numIterationsAction(this, "Number of iterations"),
-    _numberOfComputatedIterationsAction(this, "Number of computed iterations", 0, 1000000000, 0),
     _perplexityAction(this, "Perplexity"),
-    _updateIterationsAction(this, "Core update every"),
     _computationAction(this)
 {
     addAction(&_knnAlgorithmAction);
     addAction(&_distanceMetricAction);
     addAction(&_perplexityAction);
-    addAction(&_numIterationsAction);
-    addAction(&_numberOfComputatedIterationsAction);
-//    addAction(&_updateIterationsAction);
-    addAction(&_computationAction);
 
-    const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
-
-    _numberOfComputatedIterationsAction.setEnabled(false);
+    _computationAction.addActions();
 
     _knnAlgorithmAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _distanceMetricAction.setDefaultWidgetFlags(OptionAction::ComboBox);
-    _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
-    _numberOfComputatedIterationsAction.setDefaultWidgetFlags(IntegralAction::LineEdit);
     _perplexityAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
-    _updateIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
     _knnAlgorithmAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
-    _numIterationsAction.initialize(1, 10000, 1000);
     _perplexityAction.initialize(2, 50, 30);
-    _updateIterationsAction.initialize(0, 10000, 10);
-
-    _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
 
     const auto updateKnnAlgorithm = [this]() -> void {
         if (_knnAlgorithmAction.getCurrentText() == "FLANN")
@@ -73,7 +57,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     };
 
     const auto updateNumIterations = [this]() -> void {
-        _tsneSettingsAction.getTsneParameters().setNumIterations(_numIterationsAction.getValue());
+        _tsneSettingsAction.getTsneParameters().setNumIterations(_computationAction.getNumIterationsAction().getValue());
     };
 
     const auto updatePerplexity = [this]() -> void {
@@ -81,7 +65,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     };
 
     const auto updateCoreUpdate = [this]() -> void {
-        _tsneSettingsAction.getTsneParameters().setUpdateCore(_updateIterationsAction.getValue());
+        _tsneSettingsAction.getTsneParameters().setUpdateCore(_computationAction.getUpdateIterationsAction().getValue());
     };
 
     const auto isResettable = [this]() -> bool {
@@ -91,13 +75,13 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         if (_distanceMetricAction.isResettable())
             return true;
 
-        if (_numIterationsAction.isResettable())
+        if (_computationAction.getNumIterationsAction().isResettable())
             return true;
 
         if (_perplexityAction.isResettable())
             return true;
 
-        if (_updateIterationsAction.isResettable())
+        if (_computationAction.getUpdateIterationsAction().isResettable())
             return true;
 
         return false;
@@ -108,9 +92,9 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
 
         _knnAlgorithmAction.setEnabled(enable);
         _distanceMetricAction.setEnabled(enable);
-        _numIterationsAction.setEnabled(enable);
+        _computationAction.getNumIterationsAction().setEnabled(enable);
         _perplexityAction.setEnabled(enable);
-        _updateIterationsAction.setEnabled(enable);
+        _computationAction.getUpdateIterationsAction().setEnabled(enable);
     };
 
     connect(&_knnAlgorithmAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm](const std::int32_t& currentIndex) {
@@ -121,7 +105,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         updateDistanceMetric();
     });
 
-    connect(&_numIterationsAction, &IntegralAction::valueChanged, this, [this, updateNumIterations](const std::int32_t& value) {
+    connect(&_computationAction.getNumIterationsAction(), &IntegralAction::valueChanged, this, [this, updateNumIterations](const std::int32_t& value) {
         updateNumIterations();
     });
 
@@ -129,7 +113,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         updatePerplexity();
     });
 
-    connect(&_updateIterationsAction, &IntegralAction::valueChanged, this, [this, updateCoreUpdate](const std::int32_t& value) {
+    connect(&_computationAction.getUpdateIterationsAction(), &IntegralAction::valueChanged, this, [this, updateCoreUpdate](const std::int32_t& value) {
         updateCoreUpdate();
     });
 
@@ -151,10 +135,7 @@ void GeneralTsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
 
     _knnAlgorithmAction.fromParentVariantMap(variantMap);
     _distanceMetricAction.fromParentVariantMap(variantMap);
-    _numIterationsAction.fromParentVariantMap(variantMap);
-    _numberOfComputatedIterationsAction.fromParentVariantMap(variantMap);
     _perplexityAction.fromParentVariantMap(variantMap);
-    _updateIterationsAction.fromParentVariantMap(variantMap);
     _computationAction.fromParentVariantMap(variantMap);
 }
 
@@ -166,10 +147,7 @@ QVariantMap GeneralTsneSettingsAction::toVariantMap() const
 
     _knnAlgorithmAction.insertIntoVariantMap(variantMap);
     _distanceMetricAction.insertIntoVariantMap(variantMap);
-    _numIterationsAction.insertIntoVariantMap(variantMap);
-    _numberOfComputatedIterationsAction.insertIntoVariantMap(variantMap);
     _perplexityAction.insertIntoVariantMap(variantMap);
-    _updateIterationsAction.insertIntoVariantMap(variantMap);
     _computationAction.insertIntoVariantMap(variantMap);
 
     return variantMap;
