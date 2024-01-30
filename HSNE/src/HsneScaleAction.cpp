@@ -193,7 +193,7 @@ void HsneScaleAction::initNonTopScale(const std::vector<uint32_t>& drillIndices)
 
     // Updates exxageration and exponential decay in _tsneParameters
     _gdAction = new GradientDescentSettingsAction(this, _tsneParameters);
-    addAction(_gdAction);
+    _embedding->addAction(*_gdAction);
 }
 
 void HsneScaleAction::refine()
