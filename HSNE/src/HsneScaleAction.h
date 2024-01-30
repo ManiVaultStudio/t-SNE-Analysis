@@ -43,12 +43,14 @@ public:
     /**
      * Constructor
      * @param parent Pointer to parent object
-     * @param tsneSettingsAction Reference to TSNE settings action
      * @param hsneHierarchy Reference to HSNE hierarchy
      * @param inputDataset Smart pointer to input dataset
      * @param embeddingDataset Smart pointer to embedding dataset
      */
-    HsneScaleAction(QObject* parent, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset, TsneParameters* tsneParametersTopLevel = nullptr);
+    HsneScaleAction(QObject* parent, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset);
+
+    HsneScaleAction(QObject* parent, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset, TsneParameters* tsneParametersTopLevel);
+    HsneScaleAction(QObject* parent, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset, unsigned int scale);
 
     ~HsneScaleAction();
 
@@ -62,6 +64,9 @@ public:
 private:
     /** Refine the landmarks based on the current selection */
     void refine();
+
+    /** Add actions to GUI and connect them */
+    void initLayoutAndConnection();
 
 public: // Action getters
 
@@ -91,7 +96,7 @@ public: // Serialization
 
 private:
     using Datasets = std::vector<Dataset<Points>>;
-    using RefineActions = std::vector<HsneScaleAction*>;
+    using RefineScaleActions = std::vector<HsneScaleAction*>;
     using DataComputeActions = std::vector<TsneComputationAction*>;
 
 private:
@@ -102,7 +107,8 @@ private:
     Dataset<Points>         _embedding;             /** Embedding dataset reference */
     Datasets                _refineEmbeddings;      /** Refine embedding dataset references */
 
-    TsneParameters*         _tsneParametersTopLevel;    /** TSNE paremeters from the top level HSNE analysis*/
+    TsneParameters*         _tsneParametersTopLevel;        /** TSNE paremeters from the top level HSNE analysis */
+    std::unique_ptr<TsneAnalysis> _tsneAnalysisDataLevel;   /** data level t-SNE Analysis */
 
 private:
     TriggerAction           _refineAction;          /** Refine action */
@@ -112,8 +118,7 @@ private:
     EventListener           _eventListener;         /** Listen to HDPS events */
     mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
 
-    RefineActions           _refinedScaledActions;  /** Scale actions of the refined datasets */
-    DataComputeActions      _dataComputeActions;    /** Compute actions of the data level */
+    RefineScaleActions      _refinedScaledActions;  /** Scale actions of the refined datasets */
 
 protected:
     std::vector<uint32_t>   _drillIndices;          /** Vector relating local indices to scale relative indices */
