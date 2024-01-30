@@ -12,6 +12,8 @@
 
 #include "PointData/PointData.h"
 
+#include <memory>
+
 using namespace mv;
 using namespace mv::gui;
 using namespace mv::util;
@@ -21,6 +23,7 @@ class QMenu;
 class HsneAnalysisPlugin;
 class HsneHierarchy;
 class TsneParameters;
+class GradientDescentSettingsAction;
 
 namespace mv {
     class CoreInterface;
@@ -45,7 +48,7 @@ public:
      * @param inputDataset Smart pointer to input dataset
      * @param embeddingDataset Smart pointer to embedding dataset
      */
-    HsneScaleAction(QObject* parent, TsneParameters& tsneParameters, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset);
+    HsneScaleAction(QObject* parent, HsneHierarchy& hsneHierarchy, Dataset<Points> inputDataset, Dataset<Points> embeddingDataset, TsneParameters* tsneParametersTopLevel = nullptr);
 
     ~HsneScaleAction();
 
@@ -67,16 +70,10 @@ public: // Action getters
     IntegralAction& getNumberOfComputatedIterationsAction() { return _computationAction.getNumberOfComputatedIterationsAction(); };
 
 public: // Setters
-    void setScale(unsigned int scale)
-    {
-        _currentScaleLevel = scale;
-    }
+    void setScale(unsigned int scale) { _currentScaleLevel = scale; }
 
-    void setDrillIndices(const std::vector<uint32_t>& drillIndices)
-    {
-        _drillIndices = drillIndices;
-        _isTopScale = false;
-    }
+    // Sets drillIndices and add GrandienDescentSettings
+    void initNonTopScale(const std::vector<uint32_t>& drillIndices);
 
 public: // Serialization
 
@@ -95,23 +92,28 @@ public: // Serialization
 private:
     using Datasets = std::vector<Dataset<Points>>;
     using RefineActions = std::vector<HsneScaleAction*>;
+    using DataComputeActions = std::vector<TsneComputationAction*>;
 
 private:
-    TsneParameters&         _tsneParameters;        /** Reference to TSNE paremeters from the HSNE analysis */
+    TsneParameters          _tsneParameters;        /** TSNE paremeters */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneHierarchy&          _hsneHierarchy;         /** Reference to HSNE hierarchy */
     Dataset<Points>         _input;                 /** Input dataset reference */
     Dataset<Points>         _embedding;             /** Embedding dataset reference */
     Datasets                _refineEmbeddings;      /** Refine embedding dataset references */
 
+    TsneParameters*         _tsneParametersTopLevel;    /** TSNE paremeters from the top level HSNE analysis*/
+
 private:
-    TriggerAction           _refineAction;                          /** Refine action */
-    TsneComputationAction   _computationAction;                     /** Computation action */
+    TriggerAction           _refineAction;          /** Refine action */
+    TsneComputationAction   _computationAction;     /** Computation action */
+    GradientDescentSettingsAction* _gdAction;
 
     EventListener           _eventListener;         /** Listen to HDPS events */
     mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
 
     RefineActions           _refinedScaledActions;  /** Scale actions of the refined datasets */
+    DataComputeActions      _dataComputeActions;    /** Compute actions of the data level */
 
 protected:
     std::vector<uint32_t>   _drillIndices;          /** Vector relating local indices to scale relative indices */

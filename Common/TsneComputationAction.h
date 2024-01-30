@@ -8,6 +8,7 @@
 using namespace mv::gui;
 
 class QMenu;
+class TsneParameters;
 
 /**
  * TSNE computation action class
@@ -24,7 +25,7 @@ public:
      * Constructor
      * @param parent Pointer to parent object
      */
-    TsneComputationAction(GroupAction* parent);
+    TsneComputationAction(GroupAction* parent, TsneParameters* tsneParameters = nullptr);
 
     /**
      * Get the context menu for the action
@@ -37,6 +38,8 @@ public:
      * Add member action to parent
      */
     void addActions();
+
+    void setReadOnly(bool readonly);
 
 public: // Action getters
 
@@ -72,4 +75,6 @@ private:
     TriggerAction           _stopComputationAction;                 /** Stop computation action */
 
     ToggleAction            _runningAction;                         /** Running action */
+
+    TsneParameters*         _tsneParameters;                        /** Pointer to tSNE parameters */
 };

@@ -1,12 +1,14 @@
 #include "TsneComputationAction.h"
 
+#include "TsneParameters.h"
+
 #include <actions/VerticalGroupAction.h>
 
 #include <QMenu>
 
 using namespace mv::gui;
 
-TsneComputationAction::TsneComputationAction(GroupAction* parent) :
+TsneComputationAction::TsneComputationAction(GroupAction* parent, TsneParameters* tsneParameters) :
     WidgetAction(parent, "TsneComputationAction"),
     _numIterationsAction(this, "New iterations", 1, 10000, 1000),
     _numberOfComputatedIterationsAction(this, "Computed iterations", 0, std::numeric_limits<int>::max(), 0),
@@ -14,7 +16,8 @@ TsneComputationAction::TsneComputationAction(GroupAction* parent) :
     _startComputationAction(this, "Start"),
     _continueComputationAction(this, "Continue"),
     _stopComputationAction(this, "Stop"),
-    _runningAction(this, "Running")
+    _runningAction(this, "Running"),
+    _tsneParameters(tsneParameters)
 {
     _numIterationsAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _numberOfComputatedIterationsAction.setDefaultWidgetFlags(IntegralAction::LineEdit);
@@ -28,6 +31,37 @@ TsneComputationAction::TsneComputationAction(GroupAction* parent) :
     _stopComputationAction.setToolTip("Stop the current tSNE computation");
 
     _numberOfComputatedIterationsAction.setEnabled(false);
+
+    if (_tsneParameters)
+    {
+        const auto updateNumIterations = [this]() -> void {
+            _tsneParameters->setExaggerationIter(_numIterationsAction.getValue());
+            };
+
+        connect(&_numIterationsAction, &IntegralAction::valueChanged, this, [this, updateNumIterations](int32_t val) {
+            updateNumIterations();
+            });
+
+        const auto updateUpdateIterations = [this]() -> void {
+            _tsneParameters->setUpdateCore(_updateIterationsAction.getValue());
+            };
+
+        connect(&_updateIterationsAction, &IntegralAction::valueChanged, this, [this, updateUpdateIterations](int32_t val) {
+            updateUpdateIterations();
+            });
+
+        updateNumIterations();
+        updateUpdateIterations();
+    }
+}
+
+void TsneComputationAction::setReadOnly(bool readonly)
+{
+    _numIterationsAction.setEnabled(readonly);
+    _updateIterationsAction.setEnabled(readonly);
+    _startComputationAction.setEnabled(readonly);
+    _continueComputationAction.setEnabled(readonly);
+    _stopComputationAction.setEnabled(readonly);
 }
 
 void TsneComputationAction::addActions() 

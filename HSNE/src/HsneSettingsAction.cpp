@@ -14,7 +14,7 @@ HsneSettingsAction::HsneSettingsAction(HsneAnalysisPlugin* hsneAnalysisPlugin) :
     _hierarchyConstructionSettingsAction(*this),
     _gradientDescentSettingsAction(this, _tsneParameters),
     _knnSettingsAction(this, _knnParameters),
-    _topLevelScaleAction(nullptr, _tsneParameters, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDataset<Points>(), hsneAnalysisPlugin->getOutputDataset<Points>())
+    _topLevelScaleAction(this, hsneAnalysisPlugin->getHierarchy(), hsneAnalysisPlugin->getInputDataset<Points>(), hsneAnalysisPlugin->getOutputDataset<Points>(), &_tsneParameters)
 {
     const auto updateReadOnly = [this]() -> void {
         _generalHsneSettingsAction.setReadOnly(isReadOnly());

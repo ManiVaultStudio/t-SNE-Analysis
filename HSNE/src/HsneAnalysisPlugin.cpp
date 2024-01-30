@@ -93,7 +93,6 @@ void HsneAnalysisPlugin::init()
     const auto updateComputationAction = [this, &computationAction]() {
         const auto isRunning = computationAction.getRunningAction().isChecked();
 
-        //computationAction.setReadOnly(false);
         computationAction.getStartComputationAction().setEnabled(!isRunning);
         computationAction.getContinueComputationAction().setEnabled(!isRunning && _tsneAnalysis.canContinue());
         computationAction.getStopComputationAction().setEnabled(isRunning);

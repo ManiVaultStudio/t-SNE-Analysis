@@ -69,7 +69,7 @@ private:
 
 private:
     /** Parameters for the execution of the similarity computation and gradient descent */
-    TsneParameters _parameters;
+    TsneParameters _tsneParameters;
 
     /** Parameters for the aknn search */
     KnnParameters _knnParameters;
