@@ -35,7 +35,6 @@ HsneScaleAction::HsneScaleAction(QObject* parent, HsneHierarchy& hsneHierarchy, 
     _initializationTask(this, "Preparing HSNE scale"),
     _isTopScale(true),
     _currentScaleLevel(1),
-    _gdAction(nullptr),
     _tsneParametersTopLevel(nullptr),
     _tsneAnalysisDataLevel()
 {
@@ -192,8 +191,8 @@ void HsneScaleAction::initNonTopScale(const std::vector<uint32_t>& drillIndices)
     _isTopScale = false;
 
     // Updates exxageration and exponential decay in _tsneParameters
-    _gdAction = new GradientDescentSettingsAction(this, _tsneParameters);
-    _embedding->addAction(*_gdAction);
+    auto gradDescentAction = new GradientDescentSettingsAction(this, _tsneParameters);
+    _embedding->addAction(*gradDescentAction);
 }
 
 void HsneScaleAction::refine()

@@ -23,7 +23,6 @@ class QMenu;
 class HsneAnalysisPlugin;
 class HsneHierarchy;
 class TsneParameters;
-class GradientDescentSettingsAction;
 
 namespace mv {
     class CoreInterface;
@@ -113,7 +112,6 @@ private:
 private:
     TriggerAction           _refineAction;          /** Refine action */
     TsneComputationAction   _computationAction;     /** Computation action */
-    GradientDescentSettingsAction* _gdAction;
 
     EventListener           _eventListener;         /** Listen to HDPS events */
     mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
