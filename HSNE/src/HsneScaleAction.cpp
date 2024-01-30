@@ -35,8 +35,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, HsneHierarchy& hsneHierarchy, 
     _initializationTask(this, "Preparing HSNE scale"),
     _isTopScale(true),
     _currentScaleLevel(1),
-    _tsneParametersTopLevel(nullptr),
-    _tsneAnalysisDataLevel()
+    _tsneParametersTopLevel(nullptr)
 {
 }
 

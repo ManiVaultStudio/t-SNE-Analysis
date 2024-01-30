@@ -12,8 +12,6 @@
 
 #include "PointData/PointData.h"
 
-#include <memory>
-
 using namespace mv;
 using namespace mv::gui;
 using namespace mv::util;
@@ -107,7 +105,6 @@ private:
     Datasets                _refineEmbeddings;      /** Refine embedding dataset references */
 
     TsneParameters*         _tsneParametersTopLevel;        /** TSNE paremeters from the top level HSNE analysis */
-    std::unique_ptr<TsneAnalysis> _tsneAnalysisDataLevel;   /** data level t-SNE Analysis */
 
 private:
     TriggerAction           _refineAction;          /** Refine action */
