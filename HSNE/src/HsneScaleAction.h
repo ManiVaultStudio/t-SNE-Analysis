@@ -121,6 +121,4 @@ protected:
     std::vector<uint32_t>   _drillIndices;          /** Vector relating local indices to scale relative indices */
     bool                    _isTopScale;            /** Whether current scale is the top scale */
     unsigned int            _currentScaleLevel;     /** The scale the current embedding is a part of */
-
-    friend class HsneScaleAction;
 };
