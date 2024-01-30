@@ -392,27 +392,17 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
         {
             _refineEmbeddings.push_back(refineEmbedding);
 
-            if (refinedEmbeddingMap["refinedCurrentScaleLevel"].toUInt() > 0)
-            {
-                _refinedScaledActions.push_back(new HsneScaleAction(this, _hsneHierarchy, _input, refineEmbedding, refinedEmbeddingMap["refinedCurrentScaleLevel"].toUInt()));
-                HsneScaleAction* refinedScaledAction = _refinedScaledActions.back();
+            _refinedScaledActions.push_back(new HsneScaleAction(this, _hsneHierarchy, _input, refineEmbedding, refinedEmbeddingMap["refinedCurrentScaleLevel"].toUInt()));
+            HsneScaleAction* refinedScaledAction = _refinedScaledActions.back();
 
-                const auto refinedDrillIndices = refinedEmbeddingMap["refinedDrillIndices"].toMap();
-                std::vector<uint32_t> refinedDrillIndicesVec;
-                refinedDrillIndicesVec.resize(static_cast<size_t>(refinedEmbeddingMap["refinedDrillIndicesSize"].toInt()));
-                populateDataBufferFromVariantMap(refinedDrillIndices, (char*)refinedDrillIndicesVec.data());
-                refinedScaledAction->initNonTopScale(std::move(refinedDrillIndicesVec));
+            const auto refinedDrillIndices = refinedEmbeddingMap["refinedDrillIndices"].toMap();
+            std::vector<uint32_t> refinedDrillIndicesVec;
+            refinedDrillIndicesVec.resize(static_cast<size_t>(refinedEmbeddingMap["refinedDrillIndicesSize"].toInt()));
+            populateDataBufferFromVariantMap(refinedDrillIndices, (char*)refinedDrillIndicesVec.data());
+            refinedScaledAction->initNonTopScale(std::move(refinedDrillIndicesVec));
 
-                refineEmbedding->addAction(*refinedScaledAction);
-                refineEmbedding->_infoAction->collapse();
-            }
-            else
-            {
-                _refinedScaledActions.push_back(nullptr);
-                //auto refinedComputeAction = new TsneComputationAction(this);
-                //refineEmbedding->addAction(*refinedComputeAction);
-            }
-
+            refineEmbedding->addAction(*refinedScaledAction);
+            refineEmbedding->_infoAction->collapse();
         }
     }
     assert(_refineEmbeddings.size() == _refinedScaledActions.size());
@@ -453,18 +443,12 @@ QVariantMap HsneScaleAction::toVariantMap() const
 
         QVariantMap refinedEmbeddingMap;
 
-        if (refineEmbedding.isValid() )
+        if (refineEmbedding.isValid() && refinedScaledAction != nullptr)
         {
-            refinedEmbeddingMap["refineEmbeddingGUID"] = QVariant::fromValue(refineEmbedding.get<Points>()->getId());
-
-            if (refinedScaledAction != nullptr)
-            {
-                refinedEmbeddingMap["refinedDrillIndices"] = rawDataToVariantMap((char*)refinedScaledAction->_drillIndices.data(), refinedScaledAction->_drillIndices.size() * sizeof(uint32_t), true);
-                refinedEmbeddingMap["refinedDrillIndicesSize"] = QVariant::fromValue(refinedScaledAction->_drillIndices.size());
-                refinedEmbeddingMap["refinedCurrentScaleLevel"] = QVariant::fromValue(refinedScaledAction->_currentScaleLevel);
-            }
-            else
-                refinedEmbeddingMap["refinedCurrentScaleLevel"] = QVariant::fromValue(0);
+            refinedEmbeddingMap["refineEmbeddingGUID"]      = QVariant::fromValue(refineEmbedding.get<Points>()->getId());
+            refinedEmbeddingMap["refinedDrillIndices"]      = rawDataToVariantMap((char*)refinedScaledAction->_drillIndices.data(), refinedScaledAction->_drillIndices.size() * sizeof(uint32_t), true);
+            refinedEmbeddingMap["refinedDrillIndicesSize"]  = QVariant::fromValue(refinedScaledAction->_drillIndices.size());
+            refinedEmbeddingMap["refinedCurrentScaleLevel"] = QVariant::fromValue(refinedScaledAction->_currentScaleLevel);
         }
 
         refinedEmbeddingsMap[QString::number(i)] = refinedEmbeddingMap;
