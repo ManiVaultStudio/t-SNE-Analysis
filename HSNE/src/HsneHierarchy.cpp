@@ -317,6 +317,8 @@ void HsneHierarchy::saveCacheParameters(std::string fileName, const Hsne::Parame
 
     parameters["Nr. Checks in AKNN"] = internalParams._aknn_num_checks;
     parameters["Nr. Trees for AKNN"] = internalParams._aknn_num_trees;
+    parameters["HNSW Param 1"] = internalParams._aknn_algorithmP1;
+    parameters["HNSW Param 2"] = internalParams._aknn_algorithmP2;
 
     parameters["Memory preserving computation"] = internalParams._out_of_core_computation;
     parameters["Nr. RW for influence"] = internalParams._num_walks_per_landmark;
@@ -457,7 +459,7 @@ bool HsneHierarchy::checkCacheParameters(const std::string fileName, const Hsne:
 
     // if current setting is different from params on disk, don't load from disk
     auto checkParam = [&parameters](std::string paramName, auto localParam) -> bool {
-        auto storedParam = parameters[paramName];
+        auto& storedParam = parameters[paramName];
         if (storedParam != localParam)
         {
             std::ostringstream localParamSS, storedParamSS;
@@ -477,19 +479,21 @@ bool HsneHierarchy::checkCacheParameters(const std::string fileName, const Hsne:
 
     if (!checkParam("Knn library", params._aknn_algorithm)) return false;
     if (!checkParam("Knn distance metric", params._aknn_metric)) return false;
-    //if (!checkParam("Knn number of neighbors", params._num_neighbors)) return false;
+    if (!checkParam("Knn number of neighbors", params._num_neighbors)) return false;
 
-    //if (!checkParam("Nr. Checks in AKNN", params._aknn_num_checks)) return false;
-    //if (!checkParam("Nr. Trees for AKNN", params._aknn_num_trees)) return false;
+    if (!checkParam("Nr. Checks in AKNN", params._aknn_num_checks)) return false;
+    if (!checkParam("Nr. Trees for AKNN", params._aknn_num_trees)) return false;
+    if (!checkParam("HNSW Param 1", params._aknn_num_checks)) return false;
+    if (!checkParam("HNSW Param 2", params._aknn_num_trees)) return false;
 
-    //if (!checkParam("Memory preserving computation", params._out_of_core_computation)) return false;
-    //if (!checkParam("Nr. RW for influence", params._num_walks_per_landmark)) return false;
-    //if (!checkParam("Nr. RW for Monte Carlo", params._mcmcs_num_walks)) return false;
-    //if (!checkParam("Random walks threshold", params._mcmcs_landmark_thresh)) return false;
-    //if (!checkParam("Random walks length", params._mcmcs_walk_length)) return false;
-    //if (!checkParam("Pruning threshold", params._transition_matrix_prune_thresh)) return false;
-    //if (!checkParam("Fixed Percentile Landmark Selection", params._hard_cut_off)) return false;
-    //if (!checkParam("Percentile Landmark Selection", params._hard_cut_off_percentage)) return false;
+    if (!checkParam("Memory preserving computation", params._out_of_core_computation)) return false;
+    if (!checkParam("Nr. RW for influence", params._num_walks_per_landmark)) return false;
+    if (!checkParam("Nr. RW for Monte Carlo", params._mcmcs_num_walks)) return false;
+    if (!checkParam("Random walks threshold", params._mcmcs_landmark_thresh)) return false;
+    if (!checkParam("Random walks length", params._mcmcs_walk_length)) return false;
+    if (!checkParam("Pruning threshold", params._transition_matrix_prune_thresh)) return false;
+    if (!checkParam("Fixed Percentile Landmark Selection", params._hard_cut_off)) return false;
+    if (!checkParam("Percentile Landmark Selection", params._hard_cut_off_percentage)) return false;
 
     if (!checkParam("Seed for random algorithms", params._seed)) return false;
     if (!checkParam("Select landmarks with a MCMCS", params._monte_carlo_sampling)) return false;
