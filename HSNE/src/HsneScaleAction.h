@@ -92,9 +92,8 @@ public: // Serialization
     QVariantMap toVariantMap() const override;
 
 private:
-    using Datasets = std::vector<Dataset<Points>>;
-    using RefineScaleActions = std::vector<HsneScaleAction*>;
-    using DataComputeActions = std::vector<TsneComputationAction*>;
+    using Datasets              = std::vector<Dataset<Points>>;
+    using RefineScaleActions    = std::vector<HsneScaleAction*>;
 
 private:
     TsneParameters          _tsneParameters;        /** TSNE paremeters */
