@@ -29,6 +29,7 @@ HsneScaleAction::HsneScaleAction(QObject* parent, HsneHierarchy& hsneHierarchy, 
     _input(inputDataset),
     _embedding(embeddingDataset),
     _refineEmbeddings(),
+    _selectionHelpers(),
     _refineAction(this, "Refine selection"),
     _refinedScaledActions(),
     _computationAction(this, &_tsneParameters),
@@ -167,9 +168,32 @@ void HsneScaleAction::initLayoutAndConnection()
     });
 
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetDataSelectionChanged));
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetAboutToBeRemoved));
     _eventListener.registerDataEventByType(PointType, [this, updateReadOnly](DatasetEvent* dataEvent) {
-        if (dataEvent->getDataset() == _embedding && dataEvent->getType() == EventType::DatasetDataSelectionChanged)
+        const auto& removedData     = dataEvent->getDataset();
+        const auto& removedDataID   = removedData->getId();
+
+        if (dataEvent->getType() == EventType::DatasetDataSelectionChanged && removedDataID == _embedding->getId())
             updateReadOnly();
+
+        // Remove invisible selection helper dataset when scale dataset is removed
+        if (dataEvent->getType() == EventType::DatasetAboutToBeRemoved && removedData->hasProperty("selectionHelperID"))
+        {
+            const auto& selectionHelperID = removedData->getProperty("selectionHelperID").toString();
+
+            // Check if the removed dataset was a selection helper created by this scale
+            auto wasCreatedByScale = [&selectionHelperID](Dataset<DatasetImpl> s) { return s->getId() == selectionHelperID; };
+            if (auto it = std::find_if(std::begin(_selectionHelpers), std::end(_selectionHelpers), wasCreatedByScale); it != std::end(_selectionHelpers))
+            {
+                if ((*it).isValid())
+                {
+                    qDebug() << "HSNE Scale: remove (invisible) selection helper dataset " << (*it)->getId() << " used for deleted " << removedDataID;
+                    //mv::data().removeDataset(*it);
+                }
+                _selectionHelpers.erase(it);
+            }
+        }
+
     });
 
     updateReadOnly();
@@ -269,11 +293,13 @@ void HsneScaleAction::refine()
         // Create invisble subset from input data, used for selection mapping
         auto selectionHelperCount = _input->getProperty("selectionHelperCount").toInt();
         _input->setProperty("selectionHelperCount", ++selectionHelperCount);
-        auto hsneScaleSubset = _input->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), _input, /* visible = */ false);
+        _selectionHelpers.push_back(_input->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), _input, /* visible = */ false));
+        auto& hsneScaleSubset = _selectionHelpers.back();
 
         // Create derived data for the embedding
         _refineEmbeddings.push_back(mv::data().createDerivedDataset<Points>(QString("Hsne scale %1").arg(refinedScaleLevel), hsneScaleSubset, _embedding));
         auto& refineEmbedding = _refineEmbeddings.back();
+        refineEmbedding->setProperty("selectionHelperID", hsneScaleSubset->getId());
 
         refineEmbedding->setData(nullptr, 0, 2);
         events().notifyDatasetDataChanged(refineEmbedding);
@@ -424,6 +450,15 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
         refineEmbedding->_infoAction->collapse();
     }
     assert(_refineEmbeddings.size() == _refinedScaledActions.size());
+
+    // Handle references to selection helpers
+    for (const auto& selectionHelperGUID : variantMap["selectionHelpersList"].toStringList())
+    {
+        auto selectionHelper = mv::data().getDataset<Points>(selectionHelperGUID);
+        if (selectionHelper.isValid())
+            _selectionHelpers.push_back(selectionHelper);
+    }
+    assert(_refineEmbeddings.size() == _selectionHelpers.size());
 }
 
 QVariantMap HsneScaleAction::toVariantMap() const
@@ -470,8 +505,15 @@ QVariantMap HsneScaleAction::toVariantMap() const
 
     variantMap["refinedEmbeddingsMap"]  = refinedEmbeddingsMap;
 
+    // Handle references to selection helpers
+    QStringList selectionHelperList;
 
+    for (const auto& selectionHelper : _selectionHelpers) {
+        if (selectionHelper.isValid())
+            selectionHelperList.append(selectionHelper.get<Points>()->getId());
+    }
 
+    variantMap["selectionHelpersList"]  = QVariant::fromValue(selectionHelperList);
 
     return variantMap;
 }

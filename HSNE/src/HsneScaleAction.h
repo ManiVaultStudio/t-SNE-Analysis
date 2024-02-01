@@ -93,6 +93,7 @@ public: // Serialization
 
 private:
     using Datasets              = std::vector<Dataset<Points>>;
+    using DatasetImpls          = std::vector<Dataset<DatasetImpl>>;
     using RefineScaleActions    = std::vector<HsneScaleAction*>;
 
 private:
@@ -102,6 +103,7 @@ private:
     Dataset<Points>         _input;                 /** Input dataset reference */
     Dataset<Points>         _embedding;             /** Embedding dataset reference */
     Datasets                _refineEmbeddings;      /** Refine embedding dataset references */
+    DatasetImpls            _selectionHelpers;      /** References to selection helper datasets */
 
     TsneParameters*         _tsneParametersTopLevel;        /** TSNE paremeters from the top level HSNE analysis */
 
