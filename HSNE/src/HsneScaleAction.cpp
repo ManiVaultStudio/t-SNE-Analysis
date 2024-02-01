@@ -266,28 +266,31 @@ void HsneScaleAction::refine()
                 selection->indices.push_back(globalIndices[refinedScale._landmark_to_original_data_idx[refinedLandmarks[i]]]);
         }
 
-        // Create HSNE scale subset
+        // Create invisble subset from input data, used for selection mapping
         auto selectionHelperCount = _input->getProperty("selectionHelperCount").toInt();
         _input->setProperty("selectionHelperCount", ++selectionHelperCount);
         auto hsneScaleSubset = _input->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), _input, /* visible = */ false);
 
-        // And the derived data for the embedding
+        // Create derived data for the embedding
         _refineEmbeddings.push_back(mv::data().createDerivedDataset<Points>(QString("Hsne scale %1").arg(refinedScaleLevel), hsneScaleSubset, _embedding));
         auto& refineEmbedding = _refineEmbeddings.back();
 
         refineEmbedding->setData(nullptr, 0, 2);
         events().notifyDatasetDataChanged(refineEmbedding);
 
+        // Handle data hierarchy item
         mv::dataHierarchy().clearSelection();
         refineEmbedding->getDataHierarchyItem().select();
         refineEmbedding->_infoAction->collapse();
 
+        // Handle tasks
         auto& datasetTask = refineEmbedding->getTask();
         datasetTask.setName("HSNE scale computation");
         datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
 
         _tsneAnalysis.setTask(&datasetTask);
 
+        // Insert HsneScaleAction into new data set
         _refinedScaledActions.push_back(new HsneScaleAction(this, _hsneHierarchy, _input, refineEmbedding, refinedScaleLevel));
         auto& _refinedScaledAction = _refinedScaledActions.back();
         _refinedScaledAction->initNonTopScale(refinedLandmarks);
