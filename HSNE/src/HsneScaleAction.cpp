@@ -1,9 +1,9 @@
 #include "HsneScaleAction.h"
 
 #include "DataHierarchyItem.h"
+#include "GradientDescentSettingsAction.h"
 #include "HsneHierarchy.h"
 #include "TsneParameters.h"
-#include "GradientDescentSettingsAction.h"
 
 #include <event/Event.h>
 
@@ -420,18 +420,23 @@ void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
     _refineAction.fromParentVariantMap(variantMap);
     _computationAction.fromParentVariantMap(variantMap);
 
+    // Handle _tsneParameters
+    _tsneParameters.setNumIterations(variantMap["NumIterations"].toInt());
+    _tsneParameters.setExaggerationIter(variantMap["ExaggerationIter"].toInt());
+    _tsneParameters.setExponentialDecayIter(variantMap["ExponentialDecayIter"].toInt());
+    _tsneParameters.setNumDimensionsOutput(variantMap["NumDimensionsOutput"].toInt());
+    _tsneParameters.setUpdateCore(variantMap["UpdateCore"].toInt());
 }
 
 QVariantMap HsneScaleAction::toVariantMap() const
 {
     QVariantMap variantMap = GroupAction::toVariantMap();
 
-    _refineAction.insertIntoVariantMap(variantMap);
-    _computationAction.insertIntoVariantMap(variantMap);
-
-    variantMap["inputGUID"] = QVariant::fromValue(_input.get<Points>()->getId());
+    // Handle data sets
+    variantMap["inputGUID"]     = QVariant::fromValue(_input.get<Points>()->getId());
     variantMap["embeddingGUID"] = QVariant::fromValue(_embedding.get<Points>()->getId());
     
+    // Handle refined datasets and corresponding actions
     QVariantMap refinedEmbeddingsMap;
 
     assert(_refineEmbeddings.size() == _refinedScaledActions.size());
@@ -452,12 +457,23 @@ QVariantMap HsneScaleAction::toVariantMap() const
         refinedEmbeddingsMap[QString::number(i)] = refinedEmbeddingMap;
     }
 
-    variantMap["refinedEmbeddingsMap"] = refinedEmbeddingsMap;
+    variantMap["refinedEmbeddingsMap"]  = refinedEmbeddingsMap;
 
-    variantMap["drillIndices"] = rawDataToVariantMap((char*)_drillIndices.data(), _drillIndices.size() * sizeof(uint32_t), true);
-    variantMap["drillIndicesSize"] = QVariant::fromValue(_drillIndices.size());
-    variantMap["isTopScale"] = QVariant::fromValue(_isTopScale);
-    variantMap["currentScaleLevel"] = QVariant::fromValue(_currentScaleLevel);
+    // Handle own data
+    variantMap["drillIndices"]          = rawDataToVariantMap((char*)_drillIndices.data(), _drillIndices.size() * sizeof(uint32_t), true);
+    variantMap["drillIndicesSize"]      = QVariant::fromValue(_drillIndices.size());
+    variantMap["isTopScale"]            = QVariant::fromValue(_isTopScale);
+    variantMap["currentScaleLevel"]     = QVariant::fromValue(_currentScaleLevel);
+
+    _refineAction.insertIntoVariantMap(variantMap);
+    _computationAction.insertIntoVariantMap(variantMap);
+
+    // Handle _tsneParameters
+    variantMap["NumIterations"]         = QVariant::fromValue(_tsneParameters.getNumIterations());
+    variantMap["ExaggerationIter"]      = QVariant::fromValue(_tsneParameters.getExaggerationIter());
+    variantMap["ExponentialDecayIter"]  = QVariant::fromValue(_tsneParameters.getExponentialDecayIter());
+    variantMap["NumDimensionsOutput"]   = QVariant::fromValue(_tsneParameters.getNumDimensionsOutput());
+    variantMap["UpdateCore"]            = QVariant::fromValue(_tsneParameters.getUpdateCore());
 
     return variantMap;
 }
