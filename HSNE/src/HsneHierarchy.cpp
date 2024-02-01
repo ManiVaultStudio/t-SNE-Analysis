@@ -483,8 +483,8 @@ bool HsneHierarchy::checkCacheParameters(const std::string fileName, const Hsne:
 
     if (!checkParam("Nr. Checks in AKNN", params._aknn_num_checks)) return false;
     if (!checkParam("Nr. Trees for AKNN", params._aknn_num_trees)) return false;
-    if (!checkParam("HNSW Param 1", params._aknn_num_checks)) return false;
-    if (!checkParam("HNSW Param 2", params._aknn_num_trees)) return false;
+    if (!checkParam("HNSW Param 1", params._aknn_algorithmP1)) return false;
+    if (!checkParam("HNSW Param 2", params._aknn_algorithmP2)) return false;
 
     if (!checkParam("Memory preserving computation", params._out_of_core_computation)) return false;
     if (!checkParam("Nr. RW for influence", params._num_walks_per_landmark)) return false;
