@@ -75,10 +75,10 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(${TSNE_PLUGIN} OpenMP::OpenMP_CXX)
 endif()
 
-set_lz4_project_link_libraries(${TSNE_PLUGIN})
-set_flann_project_link_libraries(${TSNE_PLUGIN})
 set_omp_project_link_libraries(${TSNE_PLUGIN})
+set_flann_project_link_libraries(${TSNE_PLUGIN})
 set_HDILib_project_link_libraries(${TSNE_PLUGIN})
+set_lz4_project_link_libraries(${TSNE_PLUGIN})
 
 if(UNIX)
     message(STATUS "pThreads for Linux")
