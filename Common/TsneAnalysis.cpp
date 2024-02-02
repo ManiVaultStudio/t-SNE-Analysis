@@ -317,6 +317,10 @@ TsneAnalysis::TsneAnalysis() :
 
 TsneAnalysis::~TsneAnalysis()
 {
+    _workerThread.quit();           // Signal the thread to quit gracefully
+    if (!_workerThread.wait(500))   // Wait for the thread to actually finish
+        _workerThread.terminate();  // Terminate thread after 0.5 seconds
+
 }
 
 void TsneAnalysis::startComputation(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions)
@@ -351,7 +355,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, KnnParameters knn
 
 void TsneAnalysis::continueComputation(int iterations)
 {
-    if (_tsneWorker == nullptr)
+    if (!canContinue())
         return;
 
     _tsneWorker->changeThread(&_workerThread);
@@ -361,22 +365,9 @@ void TsneAnalysis::continueComputation(int iterations)
 
 void TsneAnalysis::stopComputation()
 {
-    emit stopWorker();
-
-    /*
-    _workerThread.exit();
-
-    // Wait until the thread has terminated (max. 3 seconds)
-    if (!_workerThread.wait(3000))
-    {
-        qDebug() << "tSNE computation thread did not close in time, terminating...";
-        _workerThread.terminate();
-        _workerThread.wait();
-    }
-    qDebug() << "tSNE computation stopped.";
-    */
-
-    emit aborted();
+    emit stopWorker();  // to _workerThread in Thread
+    
+    emit aborted();     // to external listeners
 }
 
 bool TsneAnalysis::canContinue() const
