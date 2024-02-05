@@ -20,7 +20,7 @@ public:
         _numWalksForAreaOfInfluence(100),
         _minWalksRequired(0),
         _useOutOfCoreComputation(true),
-        _saveHierarchyToDisk(true),
+        _saveHierarchyToDisk(false),
         _numNeighbors(90)
     {
 
