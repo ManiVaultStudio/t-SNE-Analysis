@@ -51,9 +51,6 @@ public: // Serialization
      */
     Q_INVOKABLE QVariantMap toVariantMap() const override;
 
-    /** Whether the analysis plugin implements serialization */
-    bool implementsSerialization() const override { return true; }
-
 private:
     HsneHierarchy           _hierarchy;             /** HSNE hierarchy */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
