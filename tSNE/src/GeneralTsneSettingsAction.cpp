@@ -9,13 +9,19 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _knnAlgorithmAction(this, "kNN Algorithm"),
     _distanceMetricAction(this, "Distance metric"),
     _perplexityAction(this, "Perplexity"),
-    _computationAction(this)
+    _updateIterationsAction(this, "Core update every"),
+    _computationAction(this),
+    _saveProbDistAction(this, "Save analysis to projects", false)
 {
     addAction(&_knnAlgorithmAction);
     addAction(&_distanceMetricAction);
     addAction(&_perplexityAction);
 
     _computationAction.addActions();
+    const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
+    addAction(&_saveProbDistAction);
+
+    _numberOfComputatedIterationsAction.setEnabled(false);
 
     _knnAlgorithmAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _distanceMetricAction.setDefaultWidgetFlags(OptionAction::ComboBox);
@@ -24,6 +30,10 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _knnAlgorithmAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
     _perplexityAction.initialize(2, 50, 30);
+    _updateIterationsAction.initialize(0, 10000, 10);
+
+    _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
+    _saveProbDistAction.setToolTip("When saving the t-SNE analysis with your project, you can compute additional iterations without recomputing similarities from scratch.");
 
     const auto updateKnnAlgorithm = [this]() -> void {
         if (_knnAlgorithmAction.getCurrentText() == "FLANN")
@@ -68,24 +78,31 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _tsneSettingsAction.getTsneParameters().setUpdateCore(_computationAction.getUpdateIterationsAction().getValue());
     };
 
-    const auto isResettable = [this]() -> bool {
-        if (_knnAlgorithmAction.isResettable())
-            return true;
+    // currently unused
+    //const auto isResettable = [this]() -> bool {
+    //    if (_knnAlgorithmAction.isResettable())
+    //        return true;
 
-        if (_distanceMetricAction.isResettable())
-            return true;
+    //    if (_distanceMetricAction.isResettable())
+    //        return true;
 
-        if (_computationAction.getNumIterationsAction().isResettable())
-            return true;
+    //    if (_computationAction.getNumIterationsAction().isResettable())
+    //        return true;
 
-        if (_perplexityAction.isResettable())
-            return true;
+    //    if (_numIterationsAction.isResettable())
+    //        return true;
 
-        if (_computationAction.getUpdateIterationsAction().isResettable())
-            return true;
+    //    if (_perplexityAction.isResettable())
+    //        return true;
 
-        return false;
-    };
+    //    if (_computationAction.getUpdateIterationsAction().isResettable())
+    //        return true;
+
+    //    if (_updateIterationsAction.isResettable())
+    //        return true;
+
+    //    return false;
+    //};
 
     const auto updateReadOnly = [this]() -> void {
         const auto enable = !isReadOnly();
@@ -137,6 +154,7 @@ void GeneralTsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
     _distanceMetricAction.fromParentVariantMap(variantMap);
     _perplexityAction.fromParentVariantMap(variantMap);
     _computationAction.fromParentVariantMap(variantMap);
+    _saveProbDistAction.fromParentVariantMap(variantMap);
 }
 
 QVariantMap GeneralTsneSettingsAction::toVariantMap() const
@@ -149,6 +167,7 @@ QVariantMap GeneralTsneSettingsAction::toVariantMap() const
     _distanceMetricAction.insertIntoVariantMap(variantMap);
     _perplexityAction.insertIntoVariantMap(variantMap);
     _computationAction.insertIntoVariantMap(variantMap);
+    _saveProbDistAction.insertIntoVariantMap(variantMap);
 
     return variantMap;
 }

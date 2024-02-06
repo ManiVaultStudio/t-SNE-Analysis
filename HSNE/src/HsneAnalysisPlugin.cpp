@@ -120,7 +120,7 @@ void HsneAnalysisPlugin::init()
         int numLandmarks = topScale.size();
         TsneParameters tsneParameters = _hsneSettingsAction->getTsneParameters();
 
-        _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
+        _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks);
     });
 
     connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
@@ -278,7 +278,8 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     TsneParameters tsneParameters = _hsneSettingsAction->getTsneParameters();
 
     // Embed data
-    _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks, _hierarchy.getNumDimensions());
+    _tsneAnalysis.stopComputation();
+    _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks);
 }
 
 void HsneAnalysisPlugin::continueComputation()

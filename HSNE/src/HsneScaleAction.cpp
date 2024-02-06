@@ -399,7 +399,7 @@ void HsneScaleAction::refine()
     }
 
     // Start the embedding process
-    _tsneAnalysis.startComputation(_tsneParameters, refinedTransitionMatrix, refinedLandmarks.size(), _hsneHierarchy.getNumDimensions());
+    _tsneAnalysis.startComputation(_tsneParameters, transitionMatrix, refinedLandmarks.size());
 }
 
 void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
