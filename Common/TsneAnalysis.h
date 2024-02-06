@@ -11,6 +11,8 @@
 
 #include <QThread>
 
+#include <optional>
+#include <string>
 #include <vector>
 
 class OffscreenBuffer;
@@ -47,12 +49,16 @@ public:
     // The tsne object expects a probDist that is not symmetrized, no knn are computed
     TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions);
     ~TsneWorker();
+
+    void createTasks();
+
+public: // Setter
+    void setParentTask(mv::Task* parentTask);
     void changeThread(QThread* targetThread);
 
+public: // Getter
+    ProbDistMatrix* getProbabilityDistribution() { return &_probabilityDistribution; };
     int getNumIterations() const;
-
-    void setParentTask(mv::Task* parentTask);
-    void createTasks();
 
 public slots:
     void compute();
@@ -122,16 +128,22 @@ public:
     TsneAnalysis();
     ~TsneAnalysis() override;
 
+public: // Interactions
     void startComputation(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions);
     void startComputation(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions);
     void continueComputation(int iterations);
     void stopComputation();
-    bool canContinue() const;
-    int getNumIterations() const;
 
+public: // Setter
     void setTask(mv::Task* task);
 
-private:
+public: // Getter
+    int getNumIterations() const;
+    bool canContinue() const;
+    std::optional<ProbDistMatrix*> getProbabilityDistribution() { return (_tsneWorker) ? std::optional<ProbDistMatrix*>(_tsneWorker->getProbabilityDistribution()) : std::nullopt; };
+    const std::optional<ProbDistMatrix*> getProbabilityDistribution() const { return (_tsneWorker) ? std::optional<ProbDistMatrix*>(_tsneWorker->getProbabilityDistribution()) : std::nullopt; };
+
+private: // Internal
     void startComputation(TsneWorker* tsneWorker);
 
 signals:
