@@ -14,35 +14,13 @@
 
 using namespace mv;
 
-TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions) :
-    _tsneParameters(parameters),
+TsneWorker::TsneWorker() :
+    _currentIteration(0),
+    _parameters(),
     _knnParameters(),
-    _currentIteration(0),
-    _numPoints(numPoints),
-    _numDimensions(numDimensions),
-    _data(),
-    _probabilityDistribution(probDist),
-    _hasProbabilityDistribution(true),
-    _embedding(),
-    _outEmbedding(),
-    _GPGPU_tSNE(),
-    _offscreenBuffer(nullptr),
-    _shouldStop(false),
-    _parentTask(nullptr),
-    _tasks(nullptr)
-{
-    // Offscreen buffer must be created in the UI thread because it is a QWindow, afterwards we move it
-    _offscreenBuffer = new OffscreenBuffer();
-}
-
-TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions) :
-    _tsneParameters(parameters),
-    _knnParameters(knnParameters),
-    _currentIteration(0),
-    _numPoints(data.size() / numDimensions),
-    _numDimensions(numDimensions),
-    _data(data),
     _probabilityDistribution(),
+    _numPoints(0),
+    _numDimensions(0),
     _hasProbabilityDistribution(false),
     _GPGPU_tSNE(),
     _embedding(),
@@ -54,6 +32,25 @@ TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, /
 {
     // Offscreen buffer must be created in the UI thread because it is a QWindow, afterwards we move it
     _offscreenBuffer = new OffscreenBuffer();
+}
+
+TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions) :
+    TsneWorker()
+{
+    _parameters = parameters;
+    _probabilityDistribution = probDist;
+    _numPoints = numPoints;
+    _numDimensions = numDimensions;
+}
+
+TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions) :
+    TsneWorker()
+{
+    _parameters = parameters;
+    _knnParameters = knnParameters;
+    assert(numDimensions > 0);
+    _numPoints = data.size() / numDimensions;
+    _numDimensions = numDimensions;
 }
 
 TsneWorker::~TsneWorker()

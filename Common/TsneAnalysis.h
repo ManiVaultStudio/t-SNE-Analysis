@@ -15,6 +15,8 @@
 
 class OffscreenBuffer;
 
+using ProbDistMatrix = hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type;
+
 class TsneWorkerTasks : public QObject
 {
 public:
@@ -35,6 +37,10 @@ private:
 class TsneWorker : public QObject
 {
     Q_OBJECT
+
+private:
+    // default construction is inaccessible to outsiders
+    TsneWorker();
 public:
     // The tsne object will compute knn and a probablility distribution before starting the embedding 
     TsneWorker(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions);
@@ -84,7 +90,7 @@ private:
     std::vector<float> _data;
 
     /** High-dimensional probability distribution encoding point similarities */
-    hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type _probabilityDistribution;
+    ProbDistMatrix _probabilityDistribution;
 
     /** Check if the worker was initialized with a probability distribution or data */
     bool _hasProbabilityDistribution;
