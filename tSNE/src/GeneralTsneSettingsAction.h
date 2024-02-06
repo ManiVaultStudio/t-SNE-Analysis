@@ -36,6 +36,7 @@ public: // Action getters
     IntegralAction& getNumberOfComputatedIterationsAction() { return _computationAction.getNumberOfComputatedIterationsAction(); };
     IntegralAction& getPerplexityAction() { return _perplexityAction; };
     TsneComputationAction& getComputationAction() { return _computationAction; }
+    ToggleAction& getReinitAction() { return _reinitAction; }
     ToggleAction& getSaveProbDistAction() { return _saveProbDistAction; }
 
 public: // Serialization
@@ -58,5 +59,6 @@ protected:
     OptionAction            _distanceMetricAction;                  /** Distance metric action */
     IntegralAction          _perplexityAction;                      /** Perplexity action */
     TsneComputationAction   _computationAction;                     /** Computation action */
+    ToggleAction            _reinitAction;                          /** Whether to re-initialize instead of recomputing from scratch */
     ToggleAction            _saveProbDistAction;                    /** Save t-SNE to projects action */
 };

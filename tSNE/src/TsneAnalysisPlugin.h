@@ -20,6 +20,7 @@ public:
     void init() override;
 
     void startComputation();
+    void reinitializeComputation();
     void continueComputation();
     void stopComputation();
 

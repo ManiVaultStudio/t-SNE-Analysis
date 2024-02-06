@@ -11,14 +11,17 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _perplexityAction(this, "Perplexity"),
     _updateIterationsAction(this, "Core update every"),
     _computationAction(this),
+    _reinitAction(this, "Reintialize instead of recompute", false),
     _saveProbDistAction(this, "Save analysis to projects", false)
 {
     addAction(&_knnAlgorithmAction);
     addAction(&_distanceMetricAction);
     addAction(&_perplexityAction);
-
-    _computationAction.addActions();
-    const auto& tsneParameters = _tsneSettingsAction.getTsneParameters();
+    addAction(&_numIterationsAction);
+    addAction(&_numberOfComputatedIterationsAction);
+//    addAction(&_updateIterationsAction);
+    addAction(&_computationAction);
+    addAction(&_reinitAction);
     addAction(&_saveProbDistAction);
 
     _numberOfComputatedIterationsAction.setEnabled(false);
@@ -33,6 +36,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _updateIterationsAction.initialize(0, 10000, 10);
 
     _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
+    _reinitAction.setToolTip("Instead of recomputing knn, simple re-initialize t-SNE embedding and recompute gradient descent.");
     _saveProbDistAction.setToolTip("When saving the t-SNE analysis with your project, you can compute additional iterations without recomputing similarities from scratch.");
 
     const auto updateKnnAlgorithm = [this]() -> void {
@@ -112,6 +116,8 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _computationAction.getNumIterationsAction().setEnabled(enable);
         _perplexityAction.setEnabled(enable);
         _computationAction.getUpdateIterationsAction().setEnabled(enable);
+        _updateIterationsAction.setEnabled(enable);
+        _saveProbDistAction.setEnabled(enable);
     };
 
     connect(&_knnAlgorithmAction, &OptionAction::currentIndexChanged, this, [this, updateKnnAlgorithm](const std::int32_t& currentIndex) {
@@ -134,6 +140,11 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         updateCoreUpdate();
     });
 
+    connect(&_reinitAction, &ToggleAction::toggled, this, [this, updateCoreUpdate](const bool toggled) {
+        QString newText = (toggled) ? "Reinit" : "Start";
+        _computationAction.getStartComputationAction().setText(newText);
+        });
+
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
@@ -154,6 +165,7 @@ void GeneralTsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
     _distanceMetricAction.fromParentVariantMap(variantMap);
     _perplexityAction.fromParentVariantMap(variantMap);
     _computationAction.fromParentVariantMap(variantMap);
+    _reinitAction.fromParentVariantMap(variantMap);
     _saveProbDistAction.fromParentVariantMap(variantMap);
 }
 
@@ -167,6 +179,7 @@ QVariantMap GeneralTsneSettingsAction::toVariantMap() const
     _distanceMetricAction.insertIntoVariantMap(variantMap);
     _perplexityAction.insertIntoVariantMap(variantMap);
     _computationAction.insertIntoVariantMap(variantMap);
+    _reinitAction.insertIntoVariantMap(variantMap);
     _saveProbDistAction.insertIntoVariantMap(variantMap);
 
     return variantMap;

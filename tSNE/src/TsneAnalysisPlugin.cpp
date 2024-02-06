@@ -111,10 +111,14 @@ void TsneAnalysisPlugin::init()
     });
 
     connect(&computationAction.getStartComputationAction(), &TriggerAction::triggered, this, [this, &computationAction]() {
-        startComputation();
         _tsneSettingsAction->getGeneralTsneSettingsAction().setReadOnly(true);
         _tsneSettingsAction->getGradientDescentSettingsAction().setReadOnly(true);
         _tsneSettingsAction->getKnnSettingsAction().setReadOnly(true);
+
+        if(_tsneSettingsAction->getGeneralTsneSettingsAction().getReinitAction().isChecked())
+            reinitializeComputation();
+        else
+            startComputation();
     });
 
     connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
@@ -194,6 +198,18 @@ void TsneAnalysisPlugin::startComputation()
     _tsneAnalysis.startComputation(_tsneSettingsAction->getTsneParameters(), _tsneSettingsAction->getKnnParameters(), std::move(data), numEnabledDimensions);
 }
 
+void TsneAnalysisPlugin::reinitializeComputation()
+{
+    if (_tsneAnalysis.canContinue())
+        _probDistMatrix = std::move(*_tsneAnalysis.getProbabilityDistribution().value());
+    
+    if(_probDistMatrix.size() > 0)
+    {
+        _tsneAnalysis.startComputation(_tsneSettingsAction->getTsneParameters(), std::move(_probDistMatrix), getOutputDataset<Points>()->getNumPoints());
+        return;
+    }
+
+    qDebug() << "TsneAnalysisPlugin::reinitializeComputation: cannot reinitialize embedding - start computation first";
 }
 
 void TsneAnalysisPlugin::continueComputation()
