@@ -44,7 +44,7 @@ public: // Serialization
     QVariantMap toVariantMap() const override;
 
 protected:
-    TsneParameters&         _tsneParameters;            /** Pointer to tSNE parameters */
+    TsneParameters&         _tsneParameters;            /** Reference to tSNE parameters */
     IntegralAction          _exaggerationAction;        /** Exaggeration action */
     IntegralAction          _exponentialDecayAction;    /** Exponential decay action */
 };

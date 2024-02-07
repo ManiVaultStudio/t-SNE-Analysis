@@ -31,8 +31,8 @@ public: // Action getters
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; };
     OptionAction& getKnnAlgorithmAction() { return _knnAlgorithmAction; };
     OptionAction& getDistanceMetricAction() { return _distanceMetricAction; };
-    IntegralAction& getNumIterationsAction() { return _numIterationsAction; };
-    IntegralAction& getNumberOfComputatedIterationsAction() { return _numberOfComputatedIterationsAction; };
+    IntegralAction& getNumIterationsAction() { return _computationAction.getNumIterationsAction(); };
+    IntegralAction& getNumberOfComputatedIterationsAction() { return _computationAction.getNumberOfComputatedIterationsAction(); };
     IntegralAction& getPerplexityAction() { return _perplexityAction; };
     TsneComputationAction& getComputationAction() { return _computationAction; }
 
@@ -54,9 +54,6 @@ protected:
     TsneSettingsAction&     _tsneSettingsAction;                    /** Reference to parent tSNE settings action */
     OptionAction            _knnAlgorithmAction;                    /** KNN algorithm action */
     OptionAction            _distanceMetricAction;                  /** Distance metric action */
-    IntegralAction          _numIterationsAction;                   /** Number of iterations action */
-    IntegralAction          _numberOfComputatedIterationsAction;    /** Number of computed iterations action */
     IntegralAction          _perplexityAction;                      /** Perplexity action */
-    IntegralAction          _updateIterationsAction;                /** Number of update iterations (copying embedding to ManiVault core) */
     TsneComputationAction   _computationAction;                     /** Computation action */
 };

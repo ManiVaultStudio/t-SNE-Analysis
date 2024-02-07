@@ -12,7 +12,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # Library versions
 # -----------------------------------------------------------------------------
 set(HDILib_VERSION 1.2.6)
-set(flann_VERSION 1.9.1)
+set(flann_VERSION 1.9.2)
 set(lz4_VERSION 1.9.3)
 
 # -----------------------------------------------------------------------------

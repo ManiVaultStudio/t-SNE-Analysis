@@ -15,13 +15,17 @@
 using namespace mv;
 
 TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions) :
-    _currentIteration(0),
-    _parameters(parameters),
+    _tsneParameters(parameters),
     _knnParameters(),
-    _probabilityDistribution(probDist),
+    _currentIteration(0),
     _numPoints(numPoints),
     _numDimensions(numDimensions),
+    _data(),
+    _probabilityDistribution(probDist),
     _hasProbabilityDistribution(true),
+    _embedding(),
+    _outEmbedding(),
+    _GPGPU_tSNE(),
     _offscreenBuffer(nullptr),
     _shouldStop(false),
     _parentTask(nullptr),
@@ -32,13 +36,17 @@ TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::M
 }
 
 TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, /*const*/ std::vector<float>& data, int numDimensions) :
-    _currentIteration(0),
-    _parameters(parameters),
+    _tsneParameters(parameters),
     _knnParameters(knnParameters),
-    _data(data),
+    _currentIteration(0),
     _numPoints(data.size() / numDimensions),
     _numDimensions(numDimensions),
+    _data(data),
+    _probabilityDistribution(),
     _hasProbabilityDistribution(false),
+    _GPGPU_tSNE(),
+    _embedding(),
+    _outEmbedding(),
     _offscreenBuffer(nullptr),
     _shouldStop(false),
     _parentTask(nullptr),
@@ -92,7 +100,7 @@ void TsneWorker::computeSimilarities()
 
     hdi::dr::HDJointProbabilityGenerator<float>::Parameters probGenParams;
 
-    probGenParams._perplexity               = _parameters.getPerplexity();
+    probGenParams._perplexity               = _tsneParameters.getPerplexity();
     probGenParams._perplexity_multiplier    = 3;
     probGenParams._num_trees                = _knnParameters.getAnnoyNumTrees();
     probGenParams._num_checks               = _knnParameters.getAnnoyNumChecks();
@@ -136,10 +144,10 @@ void TsneWorker::computeGradientDescent(int iterations)
 
     hdi::dr::TsneParameters tsneParameters;
 
-    tsneParameters._embedding_dimensionality    = _parameters.getNumDimensionsOutput();
-    tsneParameters._mom_switching_iter          = _parameters.getExaggerationIter();
-    tsneParameters._remove_exaggeration_iter    = _parameters.getExaggerationIter();
-    tsneParameters._exponential_decay_iter      = _parameters.getExponentialDecayIter();
+    tsneParameters._embedding_dimensionality    = _tsneParameters.getNumDimensionsOutput();
+    tsneParameters._mom_switching_iter          = _tsneParameters.getExaggerationIter();
+    tsneParameters._remove_exaggeration_iter    = _tsneParameters.getExaggerationIter();
+    tsneParameters._exponential_decay_iter      = _tsneParameters.getExponentialDecayIter();
     tsneParameters._exaggeration_factor         = 4 + _numPoints / 60000.0;
 
     // Initialize offscreen buffer
@@ -199,7 +207,7 @@ void TsneWorker::computeGradientDescent(int iterations)
             // Perform a GPGPU-SNE iteration
             _GPGPU_tSNE.doAnIteration();
 
-            if (_currentIteration > 0 && _parameters.getUpdateCore() > 0 && _currentIteration % _parameters.getUpdateCore() == 0)
+            if (_currentIteration > 0 && _tsneParameters.getUpdateCore() > 0 && _currentIteration % _tsneParameters.getUpdateCore() == 0)
                 updateEmbedding(_outEmbedding);
 
             if (t_grad > 1000)
@@ -234,7 +242,7 @@ void TsneWorker::computeGradientDescent(int iterations)
 
 void TsneWorker::copyEmbeddingOutput()
 {
-    _outEmbedding.assign(_numPoints, _parameters.getNumDimensionsOutput(), _embedding.getContainer());
+    _outEmbedding.assign(_numPoints, _tsneParameters.getNumDimensionsOutput(), _embedding.getContainer());
 }
 
 void TsneWorker::compute()
@@ -259,7 +267,7 @@ void TsneWorker::compute()
         if (!_hasProbabilityDistribution)
             computeSimilarities();
 
-        computeGradientDescent(_parameters.getNumIterations());
+        computeGradientDescent(_tsneParameters.getNumIterations());
     }
  
     qDebug() << "t-SNE total compute time: " << t / 1000 << " seconds.";
@@ -309,6 +317,10 @@ TsneAnalysis::TsneAnalysis() :
 
 TsneAnalysis::~TsneAnalysis()
 {
+    _workerThread.quit();           // Signal the thread to quit gracefully
+    if (!_workerThread.wait(500))   // Wait for the thread to actually finish
+        _workerThread.terminate();  // Terminate thread after 0.5 seconds
+
 }
 
 void TsneAnalysis::startComputation(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, int numPoints, int numDimensions)
@@ -343,7 +355,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, KnnParameters knn
 
 void TsneAnalysis::continueComputation(int iterations)
 {
-    if (_tsneWorker == nullptr)
+    if (!canContinue())
         return;
 
     _tsneWorker->changeThread(&_workerThread);
@@ -353,22 +365,9 @@ void TsneAnalysis::continueComputation(int iterations)
 
 void TsneAnalysis::stopComputation()
 {
-    emit stopWorker();
-
-    /*
-    _workerThread.exit();
-
-    // Wait until the thread has terminated (max. 3 seconds)
-    if (!_workerThread.wait(3000))
-    {
-        qDebug() << "tSNE computation thread did not close in time, terminating...";
-        _workerThread.terminate();
-        _workerThread.wait();
-    }
-    qDebug() << "tSNE computation stopped.";
-    */
-
-    emit aborted();
+    emit stopWorker();  // to _workerThread in Thread
+    
+    emit aborted();     // to external listeners
 }
 
 bool TsneAnalysis::canContinue() const
@@ -405,6 +404,7 @@ void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
     _workerThread.start();
 
     emit startWorker();
+    emit started();
 }
 
 TsneWorkerTasks::TsneWorkerTasks(QObject* parent, mv::Task* parentTask) :

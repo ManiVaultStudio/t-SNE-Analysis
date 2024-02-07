@@ -11,7 +11,6 @@
 
 #include <QThread>
 
-#include <string>
 #include <vector>
 
 class OffscreenBuffer;
@@ -69,7 +68,7 @@ private:
 
 private:
     /** Parameters for the execution of the similarity computation and gradient descent */
-    TsneParameters _parameters;
+    TsneParameters _tsneParameters;
 
     /** Parameters for the aknn search */
     KnnParameters _knnParameters;
@@ -137,6 +136,7 @@ signals:
 
     // Outgoing signals
     void embeddingUpdate(const TsneData tsneData);
+    void started();
     void finished();
     void aborted();
 

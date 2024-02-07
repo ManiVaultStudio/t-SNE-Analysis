@@ -27,17 +27,7 @@ GradientDescentSettingsAction::GradientDescentSettingsAction(QObject* parent, Ts
         _tsneParameters.setExponentialDecayIter(_exponentialDecayAction.getValue());
     };
 
-    const auto isResettable = [this]() -> bool {
-        if (_exaggerationAction.isResettable())
-            return true;
-
-        if (_exponentialDecayAction.isResettable())
-            return true;
-
-        return false;
-    };
-
-    const auto updateReadOnly = [this, isResettable]() -> void {
+    const auto updateReadOnly = [this]() -> void {
         const auto enable = !isReadOnly();
 
         _exaggerationAction.setEnabled(enable);
