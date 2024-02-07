@@ -73,13 +73,14 @@ target_link_libraries(${HSNE_PLUGIN} "${MV_LINK_LIBRARY}")
 target_link_libraries(${HSNE_PLUGIN} "${POINTDATA_LINK_LIBRARY}")
 target_link_libraries(${HSNE_PLUGIN} "${IMAGEDATA_LINK_LIBRARY}")
 
+target_link_libraries(${HSNE_PLUGIN} ${OPENGL_LIBRARIES})
+
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(${HSNE_PLUGIN} OpenMP::OpenMP_CXX)
 endif()
 
-target_link_libraries(${HSNE_PLUGIN} ${OPENGL_LIBRARIES})
-
+set_omp_project_link_libraries(${HSNE_PLUGIN})
 set_flann_project_link_libraries(${HSNE_PLUGIN})
 set_HDILib_project_link_libraries(${HSNE_PLUGIN})
 set_lz4_project_link_libraries(${HSNE_PLUGIN}) 
