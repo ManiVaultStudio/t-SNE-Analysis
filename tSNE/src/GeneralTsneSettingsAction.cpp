@@ -9,7 +9,6 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _knnAlgorithmAction(this, "kNN Algorithm"),
     _distanceMetricAction(this, "Distance metric"),
     _perplexityAction(this, "Perplexity"),
-    _updateIterationsAction(this, "Core update every"),
     _computationAction(this),
     _reinitAction(this, "Reintialize instead of recompute", false),
     _saveProbDistAction(this, "Save analysis to projects", false)
@@ -17,14 +16,9 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     addAction(&_knnAlgorithmAction);
     addAction(&_distanceMetricAction);
     addAction(&_perplexityAction);
-    addAction(&_numIterationsAction);
-    addAction(&_numberOfComputatedIterationsAction);
-//    addAction(&_updateIterationsAction);
     addAction(&_computationAction);
     addAction(&_reinitAction);
     addAction(&_saveProbDistAction);
-
-    _numberOfComputatedIterationsAction.setEnabled(false);
 
     _knnAlgorithmAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _distanceMetricAction.setDefaultWidgetFlags(OptionAction::ComboBox);
@@ -33,9 +27,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _knnAlgorithmAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
     _perplexityAction.initialize(2, 50, 30);
-    _updateIterationsAction.initialize(0, 10000, 10);
 
-    _updateIterationsAction.setToolTip("Update the dataset every x iterations. If set to 0, there will be no intermediate result.");
     _reinitAction.setToolTip("Instead of recomputing knn, simple re-initialize t-SNE embedding and recompute gradient descent.");
     _saveProbDistAction.setToolTip("When saving the t-SNE analysis with your project, you can compute additional iterations without recomputing similarities from scratch.");
 
@@ -93,16 +85,10 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     //    if (_computationAction.getNumIterationsAction().isResettable())
     //        return true;
 
-    //    if (_numIterationsAction.isResettable())
-    //        return true;
-
-    //    if (_perplexityAction.isResettable())
-    //        return true;
-
     //    if (_computationAction.getUpdateIterationsAction().isResettable())
     //        return true;
 
-    //    if (_updateIterationsAction.isResettable())
+    //    if (_perplexityAction.isResettable())
     //        return true;
 
     //    return false;
@@ -116,7 +102,6 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _computationAction.getNumIterationsAction().setEnabled(enable);
         _perplexityAction.setEnabled(enable);
         _computationAction.getUpdateIterationsAction().setEnabled(enable);
-        _updateIterationsAction.setEnabled(enable);
         _saveProbDistAction.setEnabled(enable);
     };
 

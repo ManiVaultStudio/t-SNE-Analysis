@@ -43,16 +43,16 @@ class TsneWorker : public QObject
 
 private:
     // default construction is inaccessible to outsiders
-    TsneWorker(TsneParameters parameters);
+    TsneWorker(TsneParameters tsneParameters);
 public:
     // The tsne object will compute knn and a probablility distribution before starting the embedding 
-    TsneWorker(TsneParameters parameters, KnnParameters knnParameters, const std::vector<float>& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
+    TsneWorker(TsneParameters tsneParameters, KnnParameters knnParameters, const std::vector<float>& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
     // The tsne object will compute knn and a probablility distribution before starting the embedding, moving the input data
-    TsneWorker(TsneParameters parameters, KnnParameters knnParameters, std::vector<float>&& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
+    TsneWorker(TsneParameters tsneParameters, KnnParameters knnParameters, std::vector<float>&& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
     // The tsne object expects a probDist that is not symmetrized, no knn are computed
-    TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
+    TsneWorker(TsneParameters tsneParameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
     // The tsne object expects a probDist that is not symmetrized, no knn are computed, moving the probDist
-    TsneWorker(TsneParameters parameters, std::vector<hdi::data::MapMemEff<uint32_t, float>>&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
+    TsneWorker(TsneParameters tsneParameters, std::vector<hdi::data::MapMemEff<uint32_t, float>>&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
     ~TsneWorker();
 
     void createTasks();
@@ -89,46 +89,23 @@ private:
     void resetThread();
 
 private:
-    /** Parameters for the execution of the similarity computation and gradient descent */
-    TsneParameters _tsneParameters;
+    TsneParameters                          _tsneParameters;                /** Parameters for the execution of the similarity computation and gradient descent */
+    KnnParameters                           _knnParameters;                 /** Parameters for the aknn search */
+    int                                     _currentIteration;              /** Current iteration in the embedding / gradient descent process */
+    uint32_t                                _numPoints;                     /** Data variable */
+    uint32_t                                _numDimensions;                 /** Data variable */
+    std::vector<float>                      _data;                          /** High-dimensional input data */
+    ProbDistMatrix                          _probabilityDistribution;       /** High-dimensional probability distribution encoding point similarities */
+    bool                                    _hasProbabilityDistribution;    /** Check if the worker was initialized with a probability distribution or data */
+    hdi::dr::GradientDescentTSNETexture     _GPGPU_tSNE;                    /** GPGPU t-SNE gradient descent implementation */
+    hdi::data::Embedding<float>             _embedding;                     /** Storage of current embedding */
+    TsneData                                _outEmbedding;                  /** Transfer embedding data array */
+    OffscreenBuffer*                        _offscreenBuffer;               /** Offscreen OpenGL buffer required to run the gradient descent */
+    bool                                    _shouldStop;                    /** Termination flags */
 
-    /** Parameters for the aknn search */
-    KnnParameters _knnParameters;
-
-    /** Current iteration in the embedding / gradient descent process */
-    int _currentIteration;
-
-    // Data variables
-    uint32_t _numPoints;
-    uint32_t _numDimensions;
-
-    /** High-dimensional input data */
-    std::vector<float> _data;
-
-    /** High-dimensional probability distribution encoding point similarities */
-    ProbDistMatrix _probabilityDistribution;
-
-    /** Check if the worker was initialized with a probability distribution or data */
-    bool _hasProbabilityDistribution;
-
-    /** GPGPU t-SNE gradient descent implementation */
-    hdi::dr::GradientDescentTSNETexture _GPGPU_tSNE;
-
-    /** Storage of current embedding */
-    hdi::data::Embedding<float> _embedding;
-
-    /** Transfer embedding data array */
-    TsneData _outEmbedding;
-
-    /** Offscreen OpenGL buffer required to run the gradient descent */
-    OffscreenBuffer* _offscreenBuffer;
-
-    // Termination flags
-    bool _shouldStop;
-
-private: // Task
-    mv::Task*           _parentTask;
-    TsneWorkerTasks*    _tasks;
+private: 
+    mv::Task*                               _parentTask;                    /** Task: parent */
+    TsneWorkerTasks*                        _tasks;                         /** Task: worker */
 };
 
 class TsneAnalysis : public QObject

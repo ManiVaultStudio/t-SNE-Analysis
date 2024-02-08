@@ -139,7 +139,7 @@ void HsneScaleAction::initLayoutAndConnection()
             _hsneHierarchy.getTransitionMatrixForSelection(_currentScaleLevel + 1, refinedTransitionMatrix, _drillIndices);
 
             assert(_drillIndices.size() == refinedTransitionMatrix.size());
-            _tsneAnalysis.startComputation(_tsneParameters, refinedTransitionMatrix, _drillIndices.size(), _hsneHierarchy.getNumDimensions());
+            _tsneAnalysis.startComputation(_tsneParameters, refinedTransitionMatrix, _drillIndices.size());
         });
 
         connect(&_computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this, initUpdateEmbedding]() {
@@ -399,7 +399,7 @@ void HsneScaleAction::refine()
     }
 
     // Start the embedding process
-    _tsneAnalysis.startComputation(_tsneParameters, transitionMatrix, refinedLandmarks.size());
+    _tsneAnalysis.startComputation(_tsneParameters, refinedTransitionMatrix, refinedLandmarks.size());
 }
 
 void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)

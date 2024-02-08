@@ -13,9 +13,9 @@
 
 using namespace mv;
 
-TsneWorker::TsneWorker(TsneParameters parameters) :
+TsneWorker::TsneWorker(TsneParameters tsneParameters) :
     _currentIteration(0),
-    _parameters(parameters),
+    _tsneParameters(tsneParameters),
     _knnParameters(),
     _numPoints(0),
     _numDimensions(0),
@@ -34,16 +34,16 @@ TsneWorker::TsneWorker(TsneParameters parameters) :
     _offscreenBuffer = new OffscreenBuffer();
 }
 
-TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, const std::vector<float>& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
-    TsneWorker(parameters)
+TsneWorker::TsneWorker(TsneParameters tsneParameters, KnnParameters knnParameters, const std::vector<float>& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
+    TsneWorker(tsneParameters)
 {
     _knnParameters = knnParameters;
     assert(numDimensions > 0);
     _numPoints = data.size() / numDimensions;
     _numDimensions = numDimensions;
     _data = data;
-    _embedding = { static_cast<uint32_t>(_parameters.getNumDimensionsOutput()), _numPoints };
-    _parameters.setExaggerationFactor(4 + _numPoints / 60000.0);
+    _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+    _tsneParameters.setExaggerationFactor(4 + _numPoints / 60000.0);
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -57,8 +57,8 @@ TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, s
     _numPoints = data.size() / numDimensions;
     _numDimensions = numDimensions;
     _data = std::move(data);
-    _embedding = { static_cast<uint32_t>(_parameters.getNumDimensionsOutput()), _numPoints };
-    _parameters.setExaggerationFactor(4 + _numPoints / 60000.0);
+    _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+    _tsneParameters.setExaggerationFactor(4 + _numPoints / 60000.0);
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -70,8 +70,8 @@ TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::M
     _probabilityDistribution = probDist;
     _hasProbabilityDistribution = true;
     _numPoints = numPoints;
-    _embedding = { static_cast<uint32_t>(_parameters.getNumDimensionsOutput()), _numPoints };
-    _parameters.setExaggerationFactor(4 + _numPoints / 60000.0);
+    _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+    _tsneParameters.setExaggerationFactor(4 + _numPoints / 60000.0);
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -83,8 +83,8 @@ TsneWorker::TsneWorker(TsneParameters parameters, std::vector<hdi::data::MapMemE
     _probabilityDistribution = std::move(probDist);
     _hasProbabilityDistribution = true;
     _numPoints = numPoints;
-    _embedding = { static_cast<uint32_t>(_parameters.getNumDimensionsOutput()), _numPoints };
-    _parameters.setExaggerationFactor(4 + _numPoints / 60000.0);
+    _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+    _tsneParameters.setExaggerationFactor(4 + _numPoints / 60000.0);
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -126,7 +126,7 @@ void TsneWorker::setInitEmbedding(const hdi::data::Embedding<float>::scalar_vect
 {
     assert(initEmbedding.size() == _embedding.numDataPoints() * _embedding.numDimensions());
     _embedding.getContainer() = initEmbedding;
-    _parameters.setPresetEmbedding(true);
+    _tsneParameters.setPresetEmbedding(true);
 }
 
 void TsneWorker::setCurrentIteration(int currentIteration)
@@ -137,16 +137,16 @@ void TsneWorker::setCurrentIteration(int currentIteration)
     _currentIteration = currentIteration;
 
     // we do not want to reapeat the exxageration phase when continuing the gradient descent
-    if (_currentIteration > (_parameters.getExaggerationIter() + _parameters.getExponentialDecayIter()))
+    if (_currentIteration > (_tsneParameters.getExaggerationIter() + _tsneParameters.getExponentialDecayIter()))
     {
-        _parameters.setExaggerationFactor(1);
-        _parameters.setExaggerationIter(0);
-        _parameters.setExponentialDecayIter(0);
+        _tsneParameters.setExaggerationFactor(1);
+        _tsneParameters.setExaggerationIter(0);
+        _tsneParameters.setExponentialDecayIter(0);
     }
-    else if (_currentIteration > _parameters.getExaggerationIter())
+    else if (_currentIteration > _tsneParameters.getExaggerationIter())
     {
-        double decay = 1. - double(_currentIteration - _parameters.getExaggerationIter()) / _parameters.getExponentialDecayIter();
-        _parameters.setExaggerationFactor( 1 + (_parameters.getExaggerationFactor() - 1) * decay );
+        double decay = 1. - double(_currentIteration - _tsneParameters.getExaggerationIter()) / _tsneParameters.getExponentialDecayIter();
+        _tsneParameters.setExaggerationFactor( 1 + (_tsneParameters.getExaggerationFactor() - 1) * decay );
     }
 }
 
@@ -159,12 +159,12 @@ hdi::dr::TsneParameters TsneWorker::tsneParameters()
 {
     hdi::dr::TsneParameters tsneParameters;
 
-    tsneParameters._embedding_dimensionality    = _parameters.getNumDimensionsOutput();
-    tsneParameters._mom_switching_iter          = _parameters.getExaggerationIter();
-    tsneParameters._remove_exaggeration_iter    = _parameters.getExaggerationIter();
-    tsneParameters._exponential_decay_iter      = _parameters.getExponentialDecayIter();
-    tsneParameters._presetEmbedding             = _parameters.getPresetEmbedding();
-    tsneParameters._exaggeration_factor         = _parameters.getExaggerationFactor();
+    tsneParameters._embedding_dimensionality    = _tsneParameters.getNumDimensionsOutput();
+    tsneParameters._mom_switching_iter          = _tsneParameters.getExaggerationIter();
+    tsneParameters._remove_exaggeration_iter    = _tsneParameters.getExaggerationIter();
+    tsneParameters._exponential_decay_iter      = _tsneParameters.getExponentialDecayIter();
+    tsneParameters._presetEmbedding             = _tsneParameters.getPresetEmbedding();
+    tsneParameters._exaggeration_factor         = _tsneParameters.getExaggerationFactor();
 
     return tsneParameters;
 }
@@ -225,19 +225,6 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
 
     _tasks->getInitializeTsneTask().setRunning();
 
-<<<<<<< HEAD
-    //_currentIteration = 0;
-
-    hdi::dr::TsneParameters tsneParameters;
-
-    tsneParameters._embedding_dimensionality    = _tsneParameters.getNumDimensionsOutput();
-    tsneParameters._mom_switching_iter          = _tsneParameters.getExaggerationIter();
-    tsneParameters._remove_exaggeration_iter    = _tsneParameters.getExaggerationIter();
-    tsneParameters._exponential_decay_iter      = _tsneParameters.getExponentialDecayIter();
-    tsneParameters._exaggeration_factor         = 4 + _numPoints / 60000.0;
-
-=======
->>>>>>> 42b00ef (Serialize t-SNE computation)
     // Initialize offscreen buffer
     double t_buffer = 0.0;
     {
