@@ -102,6 +102,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
         _computationAction.getNumIterationsAction().setEnabled(enable);
         _perplexityAction.setEnabled(enable);
         _computationAction.getUpdateIterationsAction().setEnabled(enable);
+        _reinitAction.setEnabled(enable);
         _saveProbDistAction.setEnabled(enable);
     };
 
