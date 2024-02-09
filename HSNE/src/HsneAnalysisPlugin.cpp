@@ -1,4 +1,5 @@
 #include "HsneAnalysisPlugin.h"
+
 #include "HsneParameters.h"
 #include "HsneScaleAction.h"
 #include "HsneRecomputeWarningDialog.h"
@@ -140,6 +141,16 @@ void HsneAnalysisPlugin::init()
     });
 
     connect(&_hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
+
+        // Create a warning dialog if there are already refined scales
+        if (_selectionHelperData.isValid() && getOutputDataset<Points>()->getDataHierarchyItem().getChildren().size() > 0)
+        {
+            HsneRecomputeWarningDialog dialog;
+
+            if (dialog.exec() == QDialog::Rejected)
+                return;
+        }
+
         _hsneSettingsAction->setReadOnly(true);
         
         qApp->processEvents();
