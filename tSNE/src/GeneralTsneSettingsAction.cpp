@@ -143,6 +143,9 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     updatePerplexity();
     updateCoreUpdate();
     updateReadOnly();
+
+    _reinitAction.setEnabled(false);    // only enable after first compute
+    _reinitAction.setCheckable(false);  // only enable after first compute
 }
 
 void GeneralTsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)

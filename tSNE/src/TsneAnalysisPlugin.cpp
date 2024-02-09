@@ -116,6 +116,8 @@ void TsneAnalysisPlugin::init()
             reinitializeComputation();
         else
             startComputation();
+
+        _tsneSettingsAction->getGeneralTsneSettingsAction().getReinitAction().setCheckable(true);   // only enable re-init after first computation
     });
 
     connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
