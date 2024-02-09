@@ -307,8 +307,7 @@ void HsneScaleAction::refine()
         events().notifyDatasetDataChanged(refineEmbedding);
 
         // Handle data hierarchy item
-        mv::dataHierarchy().clearSelection();
-        refineEmbedding->getDataHierarchyItem().select();
+        refineEmbedding->getDataHierarchyItem().select(true);
         refineEmbedding->_infoAction->collapse();
 
         // Handle tasks

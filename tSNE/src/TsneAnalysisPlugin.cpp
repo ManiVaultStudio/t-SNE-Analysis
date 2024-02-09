@@ -64,8 +64,7 @@ void TsneAnalysisPlugin::init()
     _dataPreparationTask.setParentTask(&outputDataset->getTask());
 
     // Manage UI elements attached to output data set
-    mv::dataHierarchy().clearSelection();
-    outputDataset->getDataHierarchyItem().select();
+    outputDataset->getDataHierarchyItem().select(true);
     outputDataset->_infoAction->collapse();
 
     outputDataset->addAction(_tsneSettingsAction->getGeneralTsneSettingsAction());
@@ -79,8 +78,6 @@ void TsneAnalysisPlugin::init()
     dimensionsGroupAction->setShowLabels(false);
 
     outputDataset->addAction(*dimensionsGroupAction);
-
-    outputDataset->getDataHierarchyItem().select();
 
     auto& computationAction = _tsneSettingsAction->getComputationAction();
 

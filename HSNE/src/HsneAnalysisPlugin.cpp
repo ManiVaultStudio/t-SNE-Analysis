@@ -63,8 +63,7 @@ void HsneAnalysisPlugin::init()
     _hsneSettingsAction->getGeneralHsneSettingsAction().getNumScalesAction().setValue(numHierarchyScales);
 
     // Manage UI elements attached to output data set
-    mv::dataHierarchy().clearSelection();
-    outputDataset->getDataHierarchyItem().select();
+    outputDataset->getDataHierarchyItem().select(true);
     outputDataset->_infoAction->collapse();
 
     outputDataset->addAction(_hsneSettingsAction->getGeneralHsneSettingsAction());
@@ -81,8 +80,6 @@ void HsneAnalysisPlugin::init()
     dimensionsGroupAction->setShowLabels(false);
 
     outputDataset->addAction(*dimensionsGroupAction);
-
-    outputDataset->getDataHierarchyItem().select();
 
     inputDataset->setProperty("selectionHelperCount", 0);
 
