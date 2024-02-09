@@ -42,14 +42,12 @@ void HsneAnalysisPlugin::init()
     // Create derived dataset for embedding
     if (!outputDataInit())
     {
-        auto newOutput = Dataset<Points>(mv::data().createDataset("Points", "HSNE Embedding", inputDataset));
+        auto newOutput = Dataset<Points>(mv::data().createDerivedDataset("HSNE Embedding", inputDataset, inputDataset));
         setOutputDataset(newOutput);
 
         const size_t numEmbeddingDimensions = 2;
-        std::vector<float> initialData;
-        initialData.resize(numEmbeddingDimensions * inputDataset->getNumPoints());
+        newOutput->setData(nullptr, inputDataset->getNumPoints(), numEmbeddingDimensions);
 
-        newOutput->setData(initialData.data(), inputDataset->getNumPoints(), numEmbeddingDimensions);
         events().notifyDatasetDataChanged(newOutput);
     }
     
