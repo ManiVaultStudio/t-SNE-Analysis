@@ -16,7 +16,9 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     addAction(&_knnAlgorithmAction);
     addAction(&_distanceMetricAction);
     addAction(&_perplexityAction);
-    addAction(&_computationAction);
+    
+    _computationAction.addActions();
+
     addAction(&_reinitAction);
     addAction(&_saveProbDistAction);
 
