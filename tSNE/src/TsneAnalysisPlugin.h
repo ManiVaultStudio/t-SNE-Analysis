@@ -1,16 +1,14 @@
 #pragma once
 
-#define no_init_all deprecated
-
 #include <AnalysisPlugin.h>
-
 #include <Task.h>
 
 #include "TsneAnalysis.h"
-#include "TsneSettingsAction.h"
 
 using namespace mv::plugin;
 using namespace mv::gui;
+
+class TsneSettingsAction;
 
 class TsneAnalysisPlugin : public AnalysisPlugin
 {
@@ -22,17 +20,31 @@ public:
     void init() override;
 
     void startComputation();
+    void reinitializeComputation();
     void continueComputation();
     void stopComputation();
 
-public: // Action getters
+public: // Serialization
 
-    TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; }
+    /**
+     * Load plugin from variant map
+     * @param Variant map representation of the plugin
+     */
+    Q_INVOKABLE void fromVariantMap(const QVariantMap& variantMap) override;
 
-protected:
-    TsneAnalysis        _tsneAnalysis;          /** TSNE analysis */
-    TsneSettingsAction  _tsneSettingsAction;    /** TSNE settings action */
-    mv::Task            _dataPreparationTask;   /** Task for reporting data preparation progress */
+    /**
+     * Save plugin to variant map
+     * @return Variant map representation of the plugin
+     */
+    Q_INVOKABLE QVariantMap toVariantMap() const override;
+
+private:
+    TsneAnalysis                        _tsneAnalysis;          /** TSNE analysis */
+    TsneSettingsAction*                 _tsneSettingsAction;    /** TSNE settings action */
+    mv::Task                            _dataPreparationTask;   /** Task for reporting data preparation progress */
+
+private:
+    ProbDistMatrix                      _probDistMatrix;        /** Probability distribution matrix used for serialization */
 };
 
 class TsneAnalysisPluginFactory : public AnalysisPluginFactory
