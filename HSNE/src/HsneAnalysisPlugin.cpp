@@ -350,6 +350,8 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     }
 
     _selectionHelperData = mv::data().getDataset(variantMap["selectionHelperDataGUID"].toString());
+    _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setText("Recompute");
+    _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setToolTip("Recomputing does not change the selection mapping.\n If the data size changed, prefer creating a new HSNE analysis.");
 }
 
 QVariantMap HsneAnalysisPlugin::toVariantMap() const
