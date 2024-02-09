@@ -165,6 +165,7 @@ void HsneAnalysisPlugin::init()
         computeTopLevelEmbedding();
 
         _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setText("Recompute");
+        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setToolTip("Recomputing does not change the selection mapping.\n If the data size changed, prefer creating a new HSNE analysis.");
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::started, this, [this, &computationAction, updateComputationAction]() {
