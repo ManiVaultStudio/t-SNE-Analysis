@@ -1,6 +1,7 @@
 #include "HsneAnalysisPlugin.h"
 #include "HsneParameters.h"
 #include "HsneScaleAction.h"
+#include "HsneRecomputeWarningDialog.h"
 
 #include <PointData/DimensionsPickerAction.h>
 #include <PointData/InfoAction.h>
@@ -23,6 +24,7 @@ HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     _hierarchy(),
     _tsneAnalysis(),
     _hsneSettingsAction(nullptr),
+    _selectionHelperData(nullptr),
     _dataPreparationTask(this, "Prepare data")
 {
     setObjectName("HSNE");
@@ -150,6 +152,8 @@ void HsneAnalysisPlugin::init()
         qApp->processEvents();
 
         computeTopLevelEmbedding();
+
+        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setText("Recompute");
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::started, this, [this, &computationAction, updateComputationAction]() {
@@ -203,70 +207,74 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     // Number of landmarks on the top scale
     int numLandmarks = topScale.size();
 
-    // Create a subset of the points corresponding to the top level HSNE landmarks,
-    // Then create an empty embedding derived from this subset
-    auto inputDataset       = getInputDataset<Points>();
-    auto selectionDataset   = inputDataset->getSelection<Points>();
-
-    // Select the appropriate points to create a subset from
-    selectionDataset->indices.resize(numLandmarks);
-
-    if (inputDataset->isFull())
+    // Only create new selection helper if it does not exist yet
+    if (!_selectionHelperData.isValid())
     {
-        for (int i = 0; i < numLandmarks; i++)
-            selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
-    }
-    else
-    {
-        std::vector<unsigned int> globalIndices;
-        inputDataset->getGlobalIndices(globalIndices);
-        for (int i = 0; i < numLandmarks; i++)
-            selectionDataset->indices[i] = globalIndices[topScale._landmark_to_original_data_idx[i]];
-    }
+        // Create a subset of the points corresponding to the top level HSNE landmarks,
+        // Then derive the embedding from this subset
+        auto inputDataset = getInputDataset<Points>();
+        auto selectionDataset = inputDataset->getSelection<Points>();
 
-    // Create the subset and clear the selection
-    auto selectionHelperCount = inputDataset->getProperty("selectionHelperCount").toInt();
-    inputDataset->setProperty("selectionHelperCount", ++selectionHelperCount);
-    mv::Dataset<Points> subset = inputDataset->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), inputDataset, /*visible = */ false);
-
-    selectionDataset->indices.clear();
-    
-    embeddingDataset->setSourceDataSet(subset);
-
-    // Add linked selection between the upper embedding and the bottom layer
-    {
-        LandmarkMap& landmarkMap = _hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex];
-        
-        mv::SelectionMap mapping;
-        auto& selectionMap = mapping.getMap();
+        // Select the appropriate points to create a subset from
+        selectionDataset->indices.resize(numLandmarks);
 
         if (inputDataset->isFull())
         {
-            std::vector<unsigned int> globalIndices;
-            subset->getGlobalIndices(globalIndices);
-
-            for (int i = 0; i < landmarkMap.size(); i++)
-            {                
-                selectionMap[globalIndices[i]] = landmarkMap[i];
-            }
+            for (int i = 0; i < numLandmarks; i++)
+                selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
         }
         else
         {
             std::vector<unsigned int> globalIndices;
             inputDataset->getGlobalIndices(globalIndices);
-            for (int i = 0; i < landmarkMap.size(); i++)
-            {
-                std::vector<unsigned int> bottomMap = landmarkMap[i];
-                for (int j = 0; j < bottomMap.size(); j++)
-                {
-                    bottomMap[j] = globalIndices[bottomMap[j]];
-                }
-                int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
-                selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
-            }
+            for (int i = 0; i < numLandmarks; i++)
+                selectionDataset->indices[i] = globalIndices[topScale._landmark_to_original_data_idx[i]];
         }
 
-        embeddingDataset->addLinkedData(inputDataset, mapping);
+        // Create the subset and clear the selection
+        auto selectionHelperCount = inputDataset->getProperty("selectionHelperCount").toInt();
+        inputDataset->setProperty("selectionHelperCount", ++selectionHelperCount);
+        _selectionHelperData = inputDataset->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), inputDataset, /*visible = */ false);
+
+        selectionDataset->indices.clear();
+
+        embeddingDataset->setSourceDataSet(_selectionHelperData);
+
+        // Add linked selection between the upper embedding and the bottom layer
+        {
+            LandmarkMap& landmarkMap = _hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex];
+
+            mv::SelectionMap mapping;
+            auto& selectionMap = mapping.getMap();
+
+            if (inputDataset->isFull())
+            {
+                std::vector<unsigned int> globalIndices;
+                _selectionHelperData->getGlobalIndices(globalIndices);
+
+                for (int i = 0; i < landmarkMap.size(); i++)
+                {
+                    selectionMap[globalIndices[i]] = landmarkMap[i];
+                }
+            }
+            else
+            {
+                std::vector<unsigned int> globalIndices;
+                inputDataset->getGlobalIndices(globalIndices);
+                for (int i = 0; i < landmarkMap.size(); i++)
+                {
+                    std::vector<unsigned int> bottomMap = landmarkMap[i];
+                    for (int j = 0; j < bottomMap.size(); j++)
+                    {
+                        bottomMap[j] = globalIndices[bottomMap[j]];
+                    }
+                    int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
+                    selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
+                }
+            }
+
+            embeddingDataset->addLinkedData(inputDataset, mapping);
+        }
     }
 
     _dataPreparationTask.setFinished();
@@ -295,6 +303,8 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     AnalysisPlugin::fromVariantMap(variantMap);
 
     variantMapMustContain(variantMap, "HSNE Settings");
+    variantMapMustContain(variantMap, "selectionHelperDataGUID");
+
     _hsneSettingsAction->fromVariantMap(variantMap["HSNE Settings"].toMap());
 
     std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
@@ -326,6 +336,8 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
         else
             qWarning("HsneAnalysisPlugin::fromVariantMap: HSNE hierarchy cannot be loaded from project since the project file does not seem to contain a saved HSNE hierarchy");
     }
+
+    _selectionHelperData = mv::data().getDataset(variantMap["selectionHelperDataGUID"].toString());
 }
 
 QVariantMap HsneAnalysisPlugin::toVariantMap() const
@@ -362,6 +374,8 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
             variantMap["HsneInfluenceHierarchy"] = fileName;
         }
     }
+
+    variantMap["selectionHelperDataGUID"] = QVariant::fromValue(_selectionHelperData->getId());
 
     return variantMap;
 }
