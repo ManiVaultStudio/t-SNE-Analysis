@@ -6,16 +6,12 @@ set(TSNE_PLUGIN "TsneAnalysisPlugin")
 # -----------------------------------------------------------------------------
 # Source files
 # -----------------------------------------------------------------------------
-add_subdirectory(tSNE/src)
+add_subdirectory(src/tSNE)
 
 source_group(Common FILES ${COMMON_TSNE_SOURCES})
 source_group(Common//Actions FILES ${COMMON_ACTIONS_SOURCES})
 source_group(Tsne FILES ${TSNE_PLUGIN_SOURCES})
 source_group(Actions FILES ${TSNE_ACTIONS_SOURCES})
-
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
 # -----------------------------------------------------------------------------
 # CMake Target
@@ -31,18 +27,14 @@ add_library(${TSNE_PLUGIN} SHARED
 # -----------------------------------------------------------------------------
 # Target include directories
 # -----------------------------------------------------------------------------
-# For inclusion of Qt generated ui_DimensionSelectionWidget.h
-target_include_directories(${TSNE_PLUGIN} PRIVATE ${PROJECT_BINARY_DIR})
-
-# Include HDPS core headers
+# Include ManiVault core headers
 target_include_directories(${TSNE_PLUGIN} PRIVATE "${MV_INSTALL_DIR}/$<CONFIGURATION>/include/")
 
-target_include_directories(${TSNE_PLUGIN} PRIVATE "Common")
+target_include_directories(${TSNE_PLUGIN} PRIVATE "src/Common")
 
 set_HDILib_project_includes(${TSNE_PLUGIN})
 set_flann_project_includes(${TSNE_PLUGIN})
 set_lz4_project_includes(${TSNE_PLUGIN})
-
 
 # -----------------------------------------------------------------------------
 # Target properties
@@ -55,8 +47,8 @@ target_compile_definitions(${TSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 # -----------------------------------------------------------------------------
 # Target library linking
 # -----------------------------------------------------------------------------
-target_link_libraries(${TSNE_PLUGIN} Qt6::Widgets)
-target_link_libraries(${TSNE_PLUGIN} Qt6::WebEngineWidgets)
+target_link_libraries(${TSNE_PLUGIN} PRIVATE Qt6::Widgets)
+target_link_libraries(${TSNE_PLUGIN} PRIVATE Qt6::WebEngineWidgets)
 
 set(MV_LINK_PATH "${MV_INSTALL_DIR}/$<CONFIGURATION>/lib")
 set(PLUGIN_LINK_PATH "${MV_INSTALL_DIR}/$<CONFIGURATION>/$<IF:$<CXX_COMPILER_ID:MSVC>,lib,Plugins>")
@@ -65,25 +57,23 @@ set(MV_LINK_SUFFIX $<IF:$<CXX_COMPILER_ID:MSVC>,${CMAKE_LINK_LIBRARY_SUFFIX},${C
 set(MV_LINK_LIBRARY "${MV_LINK_PATH}/${CMAKE_SHARED_LIBRARY_PREFIX}MV_Public${MV_LINK_SUFFIX}")
 set(POINTDATA_LINK_LIBRARY "${PLUGIN_LINK_PATH}/${CMAKE_SHARED_LIBRARY_PREFIX}PointData${MV_LINK_SUFFIX}") 
 
-target_link_libraries(${TSNE_PLUGIN} "${MV_LINK_LIBRARY}")
-target_link_libraries(${TSNE_PLUGIN} "${POINTDATA_LINK_LIBRARY}")
+target_link_libraries(${TSNE_PLUGIN} PRIVATE "${MV_LINK_LIBRARY}")
+target_link_libraries(${TSNE_PLUGIN} PRIVATE "${POINTDATA_LINK_LIBRARY}")
 
-target_link_libraries(${TSNE_PLUGIN} ${OPENGL_LIBRARIES})
+target_link_libraries(${TSNE_PLUGIN} PRIVATE ${OPENGL_LIBRARIES})
 
-find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(${TSNE_PLUGIN} OpenMP::OpenMP_CXX)
+    target_link_libraries(${TSNE_PLUGIN} PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-set_omp_project_link_libraries(${TSNE_PLUGIN})
 set_flann_project_link_libraries(${TSNE_PLUGIN})
 set_HDILib_project_link_libraries(${TSNE_PLUGIN})
 set_lz4_project_link_libraries(${TSNE_PLUGIN})
 
-if(UNIX)
-    message(STATUS "pThreads for Linux")
-    find_package(Threads REQUIRED)
-endif(UNIX)
+set_optimization_level(${TSNE_PLUGIN} ${OPTIMIZATION_LEVEL})
+check_and_set_AVX(${TSNE_PLUGIN} ${ENABLE_AVX})
+
+silence_opengl_deprecation(${TSNE_PLUGIN})
 
 # -----------------------------------------------------------------------------
 # Target installation
@@ -104,3 +94,11 @@ if (NOT DEFINED ENV{CI})
     )
 endif()
 
+# -----------------------------------------------------------------------------
+# Misc
+# -----------------------------------------------------------------------------
+# Automatically set the debug environment (command + working directory) for MSVC
+if(MSVC)
+    set_property(TARGET ${TSNE_PLUGIN} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<IF:$<CONFIG:DEBUG>,${MV_INSTALL_DIR}/debug,${MV_INSTALL_DIR}/release>)
+    set_property(TARGET ${TSNE_PLUGIN} PROPERTY VS_DEBUGGER_COMMAND $<IF:$<CONFIG:DEBUG>,"${MV_INSTALL_DIR}/debug/ManiVault Studio.exe","${MV_INSTALL_DIR}/release/ManiVault Studio.exe">)
+endif()
