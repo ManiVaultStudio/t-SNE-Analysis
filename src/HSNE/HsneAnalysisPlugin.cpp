@@ -158,6 +158,7 @@ void HsneAnalysisPlugin::init()
         std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
 
         // Initialize the HSNE algorithm with the given parameters and compute the hierarchy
+        _tsneAnalysis.stopComputation();
         _hierarchy.initialize(*getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters());
 
         qApp->processEvents();
