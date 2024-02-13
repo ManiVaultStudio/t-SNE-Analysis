@@ -7,6 +7,7 @@ set(HSNE_PLUGIN_SOURCES
     ${DIR}/HsneHierarchy.h
     ${DIR}/HsneHierarchy.cpp
     ${DIR}/HsneParameters.h
+    ${DIR}/HsneRecomputeWarningDialog.h
     PARENT_SCOPE
 )
 
