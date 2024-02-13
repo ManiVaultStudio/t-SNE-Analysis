@@ -27,7 +27,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _numScalesAction.initialize(1, 10, hsneSettingsAction.getHsneParameters().getNumScales());
     _knnAlgorithmAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
-    _numKnnAction.initialize(2, 300, 30);
+    _numKnnAction.initialize(3, 300, 90);
 
     _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 
