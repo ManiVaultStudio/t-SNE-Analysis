@@ -251,7 +251,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
         selectionDataset->indices.clear();
 
-        embeddingDataset->setSourceDataSet(_selectionHelperData);
+        embeddingDataset->setSourceDataset(_selectionHelperData);
 
         // Add linked selection between the upper embedding and the bottom layer
         {
