@@ -144,8 +144,8 @@ private:
     InfluenceHierarchy      _influenceHierarchy;
 
     int                     _numScales = 1;
-    unsigned int            _numPoints;
-    unsigned int            _numDimensions;
+    unsigned int            _numPoints = 0;
+    unsigned int            _numDimensions = 0;
     Hsne::Parameters        _params;
     bool                    _isInit = false;
 
