@@ -42,7 +42,7 @@ endif()
 file(TO_CMAKE_PATH ${MV_INSTALL_DIR} MV_INSTALL_DIR)
 
 # Checks whether this is the first CMake run for this project.
-# If so, sets the CMake Install Prefix to the HDPS install directory.
+# If so, sets the CMake Install Prefix to the ManiVault install directory.
 # This if-statement must be placed after the project() command to work.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX ${MV_INSTALL_DIR} CACHE PATH "..." FORCE)

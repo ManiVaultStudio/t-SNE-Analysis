@@ -14,18 +14,18 @@ class SNEAnalysesConan(ConanFile):
     """Class to package SNE-Analyses using conan
 
     Packages both RELEASE and DEBUG.
-    Uses rules_support (github.com/hdps/rulessupport) to derive
+    Uses rules_support (github.com/ManiVaultStudio/rulessupport) to derive
     versioninfo based on the branch naming convention
-    as described in https://github.com/hdps/core/wiki/Branch-naming-rules
+    as described in https://github.com/ManiVaultStudio/core/wiki/Branch-naming-rules
     """
 
     name = "SNEAnalyses"
     description = (
-        "HDPS plugins for dimensionality reduction of data. "
+        "ManiVault plugins for dimensionality reduction of data. "
         "t-SNE and HSNE plugins are produced. "
     )
-    topics = ("hdps", "plugin", "data", "dimensionality reduction")
-    url = "https://github.com/hdps/t-SNE-Analysis"
+    topics = ("hdps", "ManiVault", "plugin", "data", "dimensionality reduction")
+    url = "https://github.com/ManiVaultStudio/t-SNE-Analysis"
     author = "B. van Lew b.van_lew@lumc.nl"  # conan recipe author
     license = "MIT"
 
