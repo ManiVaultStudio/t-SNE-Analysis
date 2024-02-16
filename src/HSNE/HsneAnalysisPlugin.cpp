@@ -1,14 +1,15 @@
 #include "HsneAnalysisPlugin.h"
 
 #include "HsneParameters.h"
-#include "HsneScaleAction.h"
 #include "HsneRecomputeWarningDialog.h"
+#include "HsneScaleAction.h"
 
 #include <PointData/DimensionsPickerAction.h>
 #include <PointData/InfoAction.h>
 #include <PointData/PointData.h>
 
 #include <actions/PluginTriggerAction.h>
+#include <event/Event.h>
 #include <util/Icon.h>
 
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
@@ -187,6 +188,20 @@ void HsneAnalysisPlugin::init()
 
         events().notifyDatasetDataChanged(embedding);
     });
+
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetAboutToBeRemoved));
+    _eventListener.registerDataEventByType(PointType, [this](DatasetEvent* dataEvent) {
+        const auto& datasetID       = dataEvent->getDataset()->getId();
+        const auto& outputDatasetID = getOutputDataset<Points>()->getId();
+
+        // If the removed dataset is the output data (top level embedding), remove the accompanying _selectionHelperData
+        if (outputDatasetID == datasetID)
+        {
+            qDebug() << "HSNE Plugin: remove (invisible) selection helper dataset " << _selectionHelperData->getId() << " used for deleted " << datasetID;
+            mv::data().removeDataset(_selectionHelperData);
+        }
+
+        });
 
     updateComputationAction();
 

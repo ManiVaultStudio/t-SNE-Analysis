@@ -4,6 +4,8 @@
 
 #include <Task.h>
 
+#include <event/EventListener.h>
+
 #include "HsneHierarchy.h"
 #include "HsneSettingsAction.h"
 #include "TsneAnalysis.h"
@@ -55,6 +57,7 @@ private:
     HsneHierarchy           _hierarchy;             /** HSNE hierarchy */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneSettingsAction*     _hsneSettingsAction;    /** Pointer to HSNE settings action */
+    EventListener           _eventListener;         /** Listen to ManiVault events */
     mv::Dataset<Points>     _selectionHelperData;   /** Invisible selection helper dataset */
     mv::Task                _dataPreparationTask;   /** Task for reporting data preparation progress */
 };
