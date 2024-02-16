@@ -23,7 +23,8 @@ using namespace mv::util;
 
 HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
-    _hierarchy(),
+    _hierarchy(std::make_unique<HsneHierarchy>()),
+    _hierarchyThread(),
     _tsneAnalysis(),
     _hsneSettingsAction(nullptr),
     _selectionHelperData(nullptr),
@@ -116,12 +117,12 @@ void HsneAnalysisPlugin::init()
     connect(&computationAction.getStartComputationAction(), &TriggerAction::triggered, this, [this, &computationAction]() {
         _hsneSettingsAction->setReadOnly(true);
 
-        int topScaleIndex = _hierarchy.getTopScale();
-        Hsne::scale_type& topScale = _hierarchy.getScale(topScaleIndex);
+        int topScaleIndex = _hierarchy->getTopScale();
+        Hsne::scale_type& topScale = _hierarchy->getScale(topScaleIndex);
         int numLandmarks = topScale.size();
         TsneParameters tsneParameters = _hsneSettingsAction->getTsneParameters();
 
-        _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks);
+        _tsneAnalysis.startComputation(tsneParameters, _hierarchy->getTransitionMatrixAtScale(topScaleIndex), numLandmarks);
     });
 
     connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
@@ -141,6 +142,22 @@ void HsneAnalysisPlugin::init()
         updateComputationAction();
     });
 
+    // once HsneHierarchy::initialize is done, it'll emit HsneHierarchy::finished
+    connect(this, &HsneAnalysisPlugin::startHierarchyWorker, _hierarchy.get(), &HsneHierarchy::initialize);
+
+    connect(_hierarchy.get(), &HsneHierarchy::finished, this, [this]() {
+        
+        _hsneSettingsAction->getGeneralHsneSettingsAction().setReadOnly(false);
+        _hsneSettingsAction->getHierarchyConstructionSettingsAction().setReadOnly(false);
+        _hsneSettingsAction->getGradientDescentSettingsAction().setReadOnly(false);
+        _hsneSettingsAction->getKnnSettingsAction().setReadOnly(false);
+
+        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setText("Recompute");
+        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setToolTip("Recomputing does not change the selection mapping.\n If the data size changed, prefer creating a new HSNE analysis.");
+
+        computeTopLevelEmbedding();
+    });
+
     connect(&_hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction(), &TriggerAction::triggered, this, [this](bool toggled) {
 
         // Create a warning dialog if there are already refined scales
@@ -152,22 +169,25 @@ void HsneAnalysisPlugin::init()
                 return;
         }
 
-        _hsneSettingsAction->setReadOnly(true);
-        
-        qApp->processEvents();
+        _tsneAnalysis.stopComputation();
 
-        std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
+        _hsneSettingsAction->getGeneralHsneSettingsAction().setReadOnly(true);
+        _hsneSettingsAction->getHierarchyConstructionSettingsAction().setReadOnly(true);
+        _hsneSettingsAction->getTopLevelScaleAction().setReadOnly(true);
+        _hsneSettingsAction->getGradientDescentSettingsAction().setReadOnly(true);
+        _hsneSettingsAction->getTopLevelScaleAction().getComputationAction().getStartComputationAction().setEnabled(false);
+        _hsneSettingsAction->getKnnSettingsAction().setReadOnly(true);
 
         // Initialize the HSNE algorithm with the given parameters and compute the hierarchy
-        _tsneAnalysis.stopComputation();
-        _hierarchy.initialize(*getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters());
+        auto inputData      = getInputDataset<Points>();
+        std::vector<bool> enabledDimensions = inputData->getDimensionsPickerAction().getEnabledDimensions();
+        _hierarchy->setDataAndParameters(inputData, std::move(enabledDimensions), _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters());
+        
+        _hierarchy->moveToThread(&_hierarchyThread);
 
-        qApp->processEvents();
+        _hierarchyThread.start();
+        emit startHierarchyWorker();
 
-        computeTopLevelEmbedding();
-
-        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setText("Recompute");
-        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setToolTip("Recomputing does not change the selection mapping.\n If the data size changed, prefer creating a new HSNE analysis.");
     });
 
     connect(&_tsneAnalysis, &TsneAnalysis::started, this, [this, &computationAction, updateComputationAction]() {
@@ -206,7 +226,7 @@ void HsneAnalysisPlugin::init()
     updateComputationAction();
 
     // Before the hierarchy is initialized, no embedding re-init is possible
-    if (!_hierarchy.isInitialized())
+    if (!_hierarchy->isInitialized())
         computationAction.getStartComputationAction().setEnabled(false);
 
     auto& datasetTask = outputDataset->getTask();
@@ -226,11 +246,11 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     _dataPreparationTask.setRunning();
 
     // Get the top scale of the HSNE hierarchy
-    int topScaleIndex = _hierarchy.getTopScale();
-    Hsne::scale_type& topScale = _hierarchy.getScale(topScaleIndex);
+    int topScaleIndex = _hierarchy->getTopScale();
+    Hsne::scale_type& topScale = _hierarchy->getScale(topScaleIndex);
     _hsneSettingsAction->getTopLevelScaleAction().setScale(topScaleIndex);
 
-    _hierarchy.printScaleInfo();
+    _hierarchy->printScaleInfo();
 
     // Number of landmarks on the top scale
     int numLandmarks = topScale.size();
@@ -270,7 +290,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
         // Add linked selection between the upper embedding and the bottom layer
         {
-            LandmarkMap& landmarkMap = _hierarchy.getInfluenceHierarchy().getMap()[topScaleIndex];
+            LandmarkMap& landmarkMap = _hierarchy->getInfluenceHierarchy().getMap()[topScaleIndex];
 
             mv::SelectionMap mapping;
             auto& selectionMap = mapping.getMap();
@@ -296,7 +316,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
                     {
                         bottomMap[j] = globalIndices[bottomMap[j]];
                     }
-                    int bottomLevelIdx = _hierarchy.getScale(topScaleIndex)._landmark_to_original_data_idx[i];
+                    int bottomLevelIdx = _hierarchy->getScale(topScaleIndex)._landmark_to_original_data_idx[i];
                     selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
                 }
             }
@@ -312,7 +332,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
     // Embed data
     _tsneAnalysis.stopComputation();
-    _tsneAnalysis.startComputation(tsneParameters, _hierarchy.getTransitionMatrixAtScale(topScaleIndex), numLandmarks);
+    _tsneAnalysis.startComputation(tsneParameters, _hierarchy->getTransitionMatrixAtScale(topScaleIndex), numLandmarks);
 }
 
 void HsneAnalysisPlugin::continueComputation()
@@ -336,11 +356,10 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     _hsneSettingsAction->fromVariantMap(variantMap["HSNE Settings"].toMap());
 
     std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
-    _hierarchy.setDataAndParameters(*getInputDataset<Points>(), enabledDimensions, _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters());
+    _hierarchy->setDataAndParameters(*getInputDataset<Points>(), std::move(enabledDimensions), _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters());
 
-    auto& hsne = _hierarchy.getHsne();
-    unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
-    hsne.setDimensionality(numEnabledDimensions);
+    auto& hsne = _hierarchy->getHsne();
+    hsne.setDimensionality(_hierarchy->getNumDimensions());
 
     if (_hsneSettingsAction->getHierarchyConstructionSettingsAction().getSaveHierarchyToProjectAction().isChecked())
     {
@@ -350,13 +369,13 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
 
             // Load HSNE Hierarchy
             const auto loadPathHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
-            bool loadedHierarchy = _hierarchy.loadCacheHsneHierarchy(loadPathHierarchy.toStdString(), log);
+            bool loadedHierarchy = _hierarchy->loadCacheHsneHierarchy(loadPathHierarchy.toStdString(), log);
 
             // Load HSNE InfluenceHierarchy
             const auto loadPathInfluenceHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneInfluenceHierarchy"].toString());
-            bool loadedInfluenceHierarchy = _hierarchy.loadCacheHsneInfluenceHierarchy(loadPathInfluenceHierarchy.toStdString(), _hierarchy.getInfluenceHierarchy().getMap());
+            bool loadedInfluenceHierarchy = _hierarchy->loadCacheHsneInfluenceHierarchy(loadPathInfluenceHierarchy.toStdString(), _hierarchy->getInfluenceHierarchy().getMap());
 
-            _hierarchy.setIsInitialized(true);
+            _hierarchy->setIsInitialized(true);
 
             if(!loadedHierarchy || !loadedInfluenceHierarchy)
                 qWarning("HsneAnalysisPlugin::fromVariantMap: HSNE hierarchy was NOT loaded successfully");
@@ -376,7 +395,7 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
 
     _hsneSettingsAction->insertIntoVariantMap(variantMap);
 
-    if (_hsneSettingsAction->getHierarchyConstructionSettingsAction().getSaveHierarchyToProjectAction().isChecked() && _hierarchy.isInitialized())
+    if (_hsneSettingsAction->getHierarchyConstructionSettingsAction().getSaveHierarchyToProjectAction().isChecked() && _hierarchy->isInitialized())
     {
         // Handle HSNE Hierarchy
         {
@@ -389,7 +408,7 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
                 std::cerr << "Caching failed. File could not be opened. " << std::endl;
             else
             {
-                hdi::dr::IO::saveHSNE(_hierarchy.getHsne(), saveFile, nullptr);
+                hdi::dr::IO::saveHSNE(_hierarchy->getHsne(), saveFile, nullptr);
                 saveFile.close();
                 variantMap["HsneHierarchy"] = fileName;
             }
@@ -400,7 +419,7 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
             const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
             const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
 
-            _hierarchy.saveCacheHsneInfluenceHierarchy(filePath, _hierarchy.getInfluenceHierarchy().getMap());
+            _hierarchy->saveCacheHsneInfluenceHierarchy(filePath, _hierarchy->getInfluenceHierarchy().getMap());
             variantMap["HsneInfluenceHierarchy"] = fileName;
         }
     }

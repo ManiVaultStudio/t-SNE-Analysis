@@ -34,7 +34,7 @@ public:
     void computeTopLevelEmbedding();
     void continueComputation();
 
-    HsneHierarchy& getHierarchy() { return _hierarchy; }
+    HsneHierarchy& getHierarchy() { return *_hierarchy.get(); }
     TsneAnalysis& getTsneAnalysis() { return _tsneAnalysis; }
 
     HsneSettingsAction& getHsneSettingsAction() { return *_hsneSettingsAction; }
@@ -53,8 +53,13 @@ public: // Serialization
      */
     Q_INVOKABLE QVariantMap toVariantMap() const override;
 
+signals:
+    // Local signals
+    void startHierarchyWorker();
+
 private:
-    HsneHierarchy           _hierarchy;             /** HSNE hierarchy */
+    std::unique_ptr<HsneHierarchy> _hierarchy;      /** HSNE hierarchy */
+    QThread                 _hierarchyThread;       /** Qt Thread for managing HSNE hierarchy computation */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneSettingsAction*     _hsneSettingsAction;    /** Pointer to HSNE settings action */
     EventListener           _eventListener;         /** Listen to ManiVault events */

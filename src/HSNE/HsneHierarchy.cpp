@@ -5,7 +5,6 @@
 
 #include "DataHierarchyItem.h"
 #include "ImageData/Images.h"
-#include "PointData/PointData.h"
 
 #include "hdi/utils/cout_log.h"
 
@@ -137,24 +136,30 @@ void HsneHierarchy::printScaleInfo() const
     std::cout << "AoI size: " << _hsne->scale(getNumScales() - 1)._area_of_influence.size() << std::endl;
 }
 
-void HsneHierarchy::setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters)
+void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, const std::vector<bool>&& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters)
 {
     // Convert our own HSNE parameters to the HDI parameters
     _params = setParameters(parameters, knnParameters);
 
+    _saveHierarchyToDisk = parameters.getSaveHierarchyToDisk();
+
+    // Save enabled dimensions and data set to retrieve data
+    _inputData = inputData;
+    _enabledDimensions = std::move(enabledDimensions);
+
     // Extract the enabled dimensions from the data
-    unsigned int numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
+    unsigned int numEnabledDimensions = count_if(_enabledDimensions.begin(), _enabledDimensions.end(), [](bool b) { return b; });
 
     // Get data and hierarchy info
     _numScales = parameters.getNumScales();
-    _numPoints = inputData.getNumPoints();
+    _numPoints = _inputData->getNumPoints();
     _numDimensions = numEnabledDimensions;
 
     // Check for source data file path
     std::string inputLoadPath = std::string();
     {
         mv::Dataset<Images> inputdataImage = nullptr;
-        for (auto childHierarchyItem : inputData.getDataHierarchyItem().getChildren()) {
+        for (auto childHierarchyItem : _inputData->getDataHierarchyItem().getChildren()) {
 
             if (childHierarchyItem->getDataType() == ImageType) {
                 inputdataImage = childHierarchyItem->getDataset();
@@ -176,15 +181,15 @@ void HsneHierarchy::setDataAndParameters(const Points& inputData, const std::vec
     else
         _cachePath = std::filesystem::path(inputLoadPath) / _CACHE_SUBFOLDER_;
 
-    _inputDataName = inputData.text().toStdString();
+    _inputDataName = _inputData->text().toStdString();
     _cachePathFileName = _cachePath / _inputDataName;
 
     _hsne = std::make_unique<Hsne>();
 }
 
-void HsneHierarchy::initialize(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters)
+void HsneHierarchy::initialize()
 {
-    setDataAndParameters(inputData, enabledDimensions, parameters, knnParameters);
+    assert(_inputData->isValid());
 
     hdi::utils::CoutLog log;
 
@@ -202,11 +207,11 @@ void HsneHierarchy::initialize(const Points& inputData, const std::vector<bool>&
         // Load data and enabled dimensions
         std::vector<float> data;
         std::vector<unsigned int> dimensionIndices;
-        data.resize((inputData.isFull() ? inputData.getNumPoints() : inputData.indices.size()) * _numDimensions);
-        for (int i = 0; i < inputData.getNumDimensions(); i++)
-            if (enabledDimensions[i]) dimensionIndices.push_back(i);
+        data.resize((_inputData->isFull() ? _inputData->getNumPoints() : _inputData->indices.size()) * _numDimensions);
+        for (int i = 0; i < _inputData->getNumDimensions(); i++)
+            if (_enabledDimensions[i]) dimensionIndices.push_back(i);
 
-        inputData.populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, dimensionIndices);
+        _inputData->populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, dimensionIndices);
 
         // Initialize HSNE with the input data and the given parameters
         _hsne->initialize((Hsne::scalar_type*)data.data(), _numPoints, _params);
@@ -224,6 +229,9 @@ void HsneHierarchy::initialize(const Points& inputData, const std::vector<bool>&
     }
 
     _isInit = true;
+
+    emit finished();
+    this->moveToThread(QCoreApplication::instance()->thread());
 }
 
 
