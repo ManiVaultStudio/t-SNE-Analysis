@@ -37,6 +37,9 @@ HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
 
 HsneAnalysisPlugin::~HsneAnalysisPlugin()
 {
+    _hierarchyThread.quit();           // Signal the thread to quit gracefully
+    if (!_hierarchyThread.wait(500))   // Wait for the thread to actually finish
+        _hierarchyThread.terminate();  // Terminate thread after 0.5 seconds
 }
 
 void HsneAnalysisPlugin::init()
