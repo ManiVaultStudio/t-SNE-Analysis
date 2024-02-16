@@ -111,7 +111,7 @@ private:
     TriggerAction           _refineAction;          /** Refine action */
     TsneComputationAction   _computationAction;     /** Computation action */
 
-    EventListener           _eventListener;         /** Listen to HDPS events */
+    EventListener           _eventListener;         /** Listen to ManiVault events */
     mv::ForegroundTask      _initializationTask;    /** Task for reporting computation preparation progress */
 
     RefineScaleActions      _refinedScaledActions;  /** Scale actions of the refined datasets */

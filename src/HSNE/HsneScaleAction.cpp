@@ -170,29 +170,29 @@ void HsneScaleAction::initLayoutAndConnection()
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetDataSelectionChanged));
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetAboutToBeRemoved));
     _eventListener.registerDataEventByType(PointType, [this, updateReadOnly](DatasetEvent* dataEvent) {
-        const auto& removedData     = dataEvent->getDataset();
-        const auto& removedDataID   = removedData->getId();
+        const auto& dataset     = dataEvent->getDataset();
+        const auto& datasetID   = dataset->getId();
 
-        if (dataEvent->getType() == EventType::DatasetDataSelectionChanged && removedDataID == _embedding->getId())
+        if (dataEvent->getType() == EventType::DatasetDataSelectionChanged && datasetID == _embedding->getId())
             updateReadOnly();
 
-        //// Remove invisible selection helper dataset when scale dataset is removed
-        //if (dataEvent->getType() == EventType::DatasetAboutToBeRemoved && removedData->hasProperty("selectionHelperID"))
-        //{
-        //    const auto& selectionHelperID = removedData->getProperty("selectionHelperID").toString();
+        // Remove invisible selection helper dataset when scale dataset is removed
+        if (dataEvent->getType() == EventType::DatasetAboutToBeRemoved && dataset->hasProperty("selectionHelperID"))
+        {
+            const auto& selectionHelperID = dataset->getProperty("selectionHelperID").toString();
 
-        //    // Check if the removed dataset was a selection helper created by this scale
-        //    auto wasCreatedByScale = [&selectionHelperID](Dataset<DatasetImpl> s) { return s->getId() == selectionHelperID; };
-        //    if (auto it = std::find_if(std::begin(_selectionHelpers), std::end(_selectionHelpers), wasCreatedByScale); it != std::end(_selectionHelpers))
-        //    {
-        //        if ((*it).isValid())
-        //        {
-        //            qDebug() << "HSNE Scale: remove (invisible) selection helper dataset " << (*it)->getId() << " used for deleted " << removedDataID;
-        //            mv::data().removeDataset(*it);
-        //        }
-        //        _selectionHelpers.erase(it);
-        //    }
-        //}
+            // Check if the removed dataset was a selection helper created by this scale
+            auto wasCreatedByScale = [&selectionHelperID](Dataset<DatasetImpl> s) { return s->getId() == selectionHelperID; };
+            if (auto it = std::find_if(std::begin(_selectionHelpers), std::end(_selectionHelpers), wasCreatedByScale); it != std::end(_selectionHelpers))
+            {
+                if ((*it).isValid())
+                {
+                    qDebug() << "HSNE Scale: remove (invisible) selection helper dataset " << (*it)->getId() << " used for deleted " << datasetID;
+                    mv::data().removeDataset(*it);
+                }
+                _selectionHelpers.erase(it);
+            }
+        }
 
     });
 
