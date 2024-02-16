@@ -152,6 +152,7 @@ void HsneAnalysisPlugin::init()
         
         _hsneSettingsAction->getGeneralHsneSettingsAction().setReadOnly(false);
         _hsneSettingsAction->getHierarchyConstructionSettingsAction().setReadOnly(false);
+        _hsneSettingsAction->getTopLevelScaleAction().setReadOnly(false);
         _hsneSettingsAction->getGradientDescentSettingsAction().setReadOnly(false);
         _hsneSettingsAction->getKnnSettingsAction().setReadOnly(false);
 
