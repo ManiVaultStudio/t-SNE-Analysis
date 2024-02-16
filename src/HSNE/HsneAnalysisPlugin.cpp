@@ -231,7 +231,7 @@ void HsneAnalysisPlugin::init()
 
     auto& datasetTask = outputDataset->getTask();
 
-    datasetTask.setName("Compute HSNE");
+    datasetTask.setName("Compute HSNE top level embedding");
     datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
 
     _tsneAnalysis.setTask(&datasetTask);

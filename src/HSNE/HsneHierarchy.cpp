@@ -204,6 +204,11 @@ void HsneHierarchy::initialize()
         // Set the dimensionality of the data in the HSNE object
         _hsne->setDimensionality(_numDimensions);
 
+        auto& datasetTask = _inputData->getTask();
+        datasetTask.setName("Initialize HSNE hierachy");
+        datasetTask.setRunning();
+        datasetTask.setProgress(.0f);
+
         // Load data and enabled dimensions
         std::vector<float> data;
         std::vector<unsigned int> dimensionIndices;
@@ -216,16 +221,24 @@ void HsneHierarchy::initialize()
         // Initialize HSNE with the input data and the given parameters
         _hsne->initialize((Hsne::scalar_type*)data.data(), _numPoints, _params);
 
+        datasetTask.setProgress(.33f);
+
         // Add a number of scales as indicated by the user
         for (int s = 0; s < _numScales - 1; ++s) {
             _hsne->addScale();
         }
 
+        datasetTask.setProgress(.66f);
+
         _influenceHierarchy.initialize(*this);
+
+        datasetTask.setProgress(.9f);
 
         // Write HSNE hierarchy to disk
         if(parameters.getSaveHierarchyToDisk())
             saveCacheHsne(_params); 
+
+        datasetTask.setFinished();
     }
 
     _isInit = true;
