@@ -189,7 +189,7 @@ void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, c
 
 void HsneHierarchy::initialize()
 {
-    assert(_inputData->isValid());
+    assert(_inputData.isValid());
 
     hdi::utils::CoutLog log;
 
