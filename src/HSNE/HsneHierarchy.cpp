@@ -235,7 +235,7 @@ void HsneHierarchy::initialize()
         datasetTask.setProgress(.9f);
 
         // Write HSNE hierarchy to disk
-        if(parameters.getSaveHierarchyToDisk())
+        if(_saveHierarchyToDisk)
             saveCacheHsne(_params); 
 
         datasetTask.setFinished();
@@ -360,6 +360,9 @@ void HsneHierarchy::saveCacheParameters(std::string fileName, const Hsne::Parame
 
 
 bool HsneHierarchy::loadCache(const Hsne::Parameters& internalParams, hdi::utils::CoutLog& log) {
+    if (!_saveHierarchyToDisk)
+        return false;
+
     std::cout << "HsneHierarchy::loadCache(): attempt to load cache from " + _cachePathFileName.string() << std::endl;
 
     auto pathParameter = _cachePathFileName.string() + _PARAMETERS_CACHE_EXTENSION_;

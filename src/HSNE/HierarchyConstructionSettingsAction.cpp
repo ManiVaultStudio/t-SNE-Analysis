@@ -48,7 +48,7 @@ HierarchyConstructionSettingsAction::HierarchyConstructionSettingsAction(HsneSet
     _useOutOfCoreComputationAction.setToolTip("Use out-of-core computation");
     _useMonteCarloSamplingAction.setToolTip("Use Monte Carlo Sampling");
     _seedAction.setToolTip("Random seed for initialization");
-    _saveHierarchyToDiskAction.setToolTip("Save computed hierarchy to disk. \nWhen computing HSNE again with the same settings, \nthe hierarchy is loaded instead of recomputed");
+    _saveHierarchyToDiskAction.setToolTip("Save (load) computed hierarchy to (from) disk. \nWhen computing HSNE again with the same settings, \nthe hierarchy is loaded instead of recomputed");
     _saveHierarchyToProjectAction.setToolTip("Save computed hierarchy when saving a project. \nThis enables selection refinements \nafter loading projects");
 
     const auto& hsneParameters = hsneSettingsAction.getHsneParameters();
