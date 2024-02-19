@@ -185,7 +185,7 @@ void HsneAnalysisPlugin::init()
         // Initialize the HSNE algorithm with the given parameters and compute the hierarchy
         auto inputData      = getInputDataset<Points>();
         std::vector<bool> enabledDimensions = inputData->getDimensionsPickerAction().getEnabledDimensions();
-        _hierarchy->setDataAndParameters(inputData, std::move(enabledDimensions), _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters());
+        _hierarchy->setDataAndParameters(inputData, getOutputDataset<Points>(), _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters(), std::move(enabledDimensions));
         
         _hierarchy->moveToThread(&_hierarchyThread);
 
@@ -360,7 +360,7 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     _hsneSettingsAction->fromVariantMap(variantMap["HSNE Settings"].toMap());
 
     std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
-    _hierarchy->setDataAndParameters(*getInputDataset<Points>(), std::move(enabledDimensions), _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters());
+    _hierarchy->setDataAndParameters(getInputDataset<Points>(), getOutputDataset<Points>(), _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters(), std::move(enabledDimensions));
 
     auto& hsne = _hierarchy->getHsne();
     hsne.setDimensionality(_hierarchy->getNumDimensions());

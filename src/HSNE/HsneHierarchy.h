@@ -72,7 +72,7 @@ signals:
     void finished();
 
 public:
-    void setDataAndParameters(const mv::Dataset<Points>& inputData, const std::vector<bool>&& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters);
+    void setDataAndParameters(const mv::Dataset<Points>& inputData, const mv::Dataset<Points>& outputData, const HsneParameters& parameters, const KnnParameters& knnParameters, std::vector<bool>&& enabledDimensions);
 
     HsneMatrix getTransitionMatrixAtScale(int scale) { return _hsne->scale(scale)._transition_matrix; }
 
@@ -152,6 +152,7 @@ private:
 
     std::vector<bool>       _enabledDimensions;
     mv::Dataset<Points>     _inputData;
+    mv::Dataset<Points>     _outputData;
     std::string             _inputDataName;
 
     int                     _numScales = 1;

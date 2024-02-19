@@ -136,7 +136,7 @@ void HsneHierarchy::printScaleInfo() const
     std::cout << "AoI size: " << _hsne->scale(getNumScales() - 1)._area_of_influence.size() << std::endl;
 }
 
-void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, const std::vector<bool>&& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters)
+void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, const mv::Dataset<Points>& outputData, const HsneParameters& parameters, const KnnParameters& knnParameters, std::vector<bool>&& enabledDimensions)
 {
     // Convert our own HSNE parameters to the HDI parameters
     _params = setParameters(parameters, knnParameters);
@@ -145,6 +145,7 @@ void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, c
 
     // Save enabled dimensions and data set to retrieve data
     _inputData = inputData;
+    _outputData = outputData;
     _enabledDimensions = std::move(enabledDimensions);
 
     // Extract the enabled dimensions from the data
@@ -204,7 +205,7 @@ void HsneHierarchy::initialize()
         // Set the dimensionality of the data in the HSNE object
         _hsne->setDimensionality(_numDimensions);
 
-        auto& datasetTask = _inputData->getTask();
+        auto& datasetTask = _outputData->getTask();
         datasetTask.setName("Initialize HSNE hierachy");
         datasetTask.setRunning();
         datasetTask.setProgress(.0f);
