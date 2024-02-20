@@ -189,7 +189,6 @@ void TsneWorker::computeSimilarities()
 {
     assert(_data.size() == _numDimensions * _numPoints);
 
-    //_tasks->getComputingSimilaritiesTask().setEnabled(true);
     _tasks->getComputingSimilaritiesTask().setRunning();
 
     double t = 0.0;

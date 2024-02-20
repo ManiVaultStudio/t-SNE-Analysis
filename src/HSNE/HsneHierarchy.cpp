@@ -176,6 +176,12 @@ void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, c
         }
     }
 
+    _parentTask = &_outputData->getTask();
+    _parentTask->setName("Initialize HSNE hierarchy");
+    _parentTask->setProgressMode(mv::Task::ProgressMode::Manual);
+    _parentTask->setRunning();
+    _parentTask->setProgress(.0f);
+
     // Set cache paths
     if (inputLoadPath == std::string())
         _cachePath = std::filesystem::current_path() / _CACHE_SUBFOLDER_;
@@ -197,7 +203,7 @@ void HsneHierarchy::initialize()
     // Check of hsne data can be loaded from cache on disk, otherwise compute hsne hierarchy
     bool hsneLoadedFromCache = loadCache(_params, log);
     if (hsneLoadedFromCache == false) {
-        std::cout << "Initializing HSNE hierarchy " << std::endl;
+        std::cout << "Initializing HSNE hierarchy" << std::endl;
 
         // Set up a logger
         _hsne->setLogger(&log);
@@ -205,10 +211,7 @@ void HsneHierarchy::initialize()
         // Set the dimensionality of the data in the HSNE object
         _hsne->setDimensionality(_numDimensions);
 
-        auto& datasetTask = _outputData->getTask();
-        datasetTask.setName("Initialize HSNE hierachy");
-        datasetTask.setRunning();
-        datasetTask.setProgress(.0f);
+        _parentTask->setProgress(.1f, "Data similarities");
 
         // Load data and enabled dimensions
         std::vector<float> data;
@@ -222,24 +225,28 @@ void HsneHierarchy::initialize()
         // Initialize HSNE with the input data and the given parameters
         _hsne->initialize((Hsne::scalar_type*)data.data(), _numPoints, _params);
 
-        datasetTask.setProgress(.33f);
+        _parentTask->setProgress(.33f, "Adding scales");
+
+        float progressStep = .33f / _numScales;
 
         // Add a number of scales as indicated by the user
         for (int s = 0; s < _numScales - 1; ++s) {
             _hsne->addScale();
+            _parentTask->setProgress(.33f + (s + 1) * progressStep, "Adding scales");
         }
 
-        datasetTask.setProgress(.66f);
+        _parentTask->setProgress(.66f, "Selection mapping");
 
+        std::cout << "Initializing influence hierarchy... " << std::endl;
         _influenceHierarchy.initialize(*this);
-
-        datasetTask.setProgress(.9f);
 
         // Write HSNE hierarchy to disk
         if(_saveHierarchyToDisk)
-            saveCacheHsne(_params); 
+        {
+            _parentTask->setProgress(.9f, "Save to disk");
+            saveCacheHsne(_params);
+        }
 
-        datasetTask.setFinished();
     }
 
     _isInit = true;

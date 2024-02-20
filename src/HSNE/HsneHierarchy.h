@@ -154,6 +154,7 @@ private:
     mv::Dataset<Points>     _inputData;
     mv::Dataset<Points>     _outputData;
     std::string             _inputDataName;
+    mv::Task*               _parentTask = nullptr;
 
     int                     _numScales = 1;
     unsigned int            _numPoints = 0;

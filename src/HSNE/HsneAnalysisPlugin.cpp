@@ -8,6 +8,8 @@
 #include <PointData/InfoAction.h>
 #include <PointData/PointData.h>
 
+#include <Task.h>
+
 #include <actions/PluginTriggerAction.h>
 #include <event/Event.h>
 #include <util/Icon.h>
@@ -27,12 +29,9 @@ HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     _hierarchyThread(),
     _tsneAnalysis(),
     _hsneSettingsAction(nullptr),
-    _selectionHelperData(nullptr),
-    _dataPreparationTask(this, "Prepare data")
+    _selectionHelperData(nullptr)
 {
     setObjectName("HSNE");
-
-    _dataPreparationTask.setDescription("All operations prior to HSNE computation");
 }
 
 HsneAnalysisPlugin::~HsneAnalysisPlugin()
@@ -63,8 +62,6 @@ void HsneAnalysisPlugin::init()
 
     // Create new HSNE settings actions
     _hsneSettingsAction = new HsneSettingsAction(this);
-
-    _dataPreparationTask.setParentTask(&outputDataset->getTask());
 
     // Set the default number of hierarchy scales based on number of points
     int numHierarchyScales = std::max(1L, std::lround(log10(inputDataset->getNumPoints())) - 2);
@@ -235,9 +232,6 @@ void HsneAnalysisPlugin::init()
 
     auto& datasetTask = outputDataset->getTask();
 
-    datasetTask.setName("Compute HSNE top level embedding");
-    datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
-
     _tsneAnalysis.setTask(&datasetTask);
 }
 
@@ -245,9 +239,10 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 {
     auto embeddingDataset = getOutputDataset<Points>();
 
-    embeddingDataset->getTask().setRunning();
-
-    _dataPreparationTask.setRunning();
+    auto& datasetTask = embeddingDataset->getTask();
+    datasetTask.setFinished();
+    datasetTask.setName("Compute HSNE top level embedding");
+    datasetTask.setRunning();
 
     // Get the top scale of the HSNE hierarchy
     int topScaleIndex = _hierarchy->getTopScale();
@@ -329,8 +324,6 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         }
     }
 
-    _dataPreparationTask.setFinished();
-
     // Set t-SNE parameters
     TsneParameters tsneParameters = _hsneSettingsAction->getTsneParameters();
 
@@ -342,8 +335,6 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 void HsneAnalysisPlugin::continueComputation()
 {
     getOutputDataset()->getTask().setRunning();
-
-    _dataPreparationTask.setEnabled(false);
 
     _hsneSettingsAction->getTopLevelScaleAction().getComputationAction().getRunningAction().setChecked(true);
 
