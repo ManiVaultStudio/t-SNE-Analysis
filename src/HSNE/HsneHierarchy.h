@@ -4,16 +4,19 @@
 #include "hdi/utils/cout_log.h"
 #include "hdi/utils/graph_algorithms.h"
 
+#include "PointData/PointData.h"
+
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include <QObject>
+
 using HsneMatrix = std::vector<hdi::data::MapMemEff<uint32_t, float>>;
 using Hsne = hdi::dr::HierarchicalSNE<float, HsneMatrix>;
 
-class Points;
 class HsneParameters;
 class KnnParameters;
 class HsneHierarchy;
@@ -34,8 +37,10 @@ using Path = std::filesystem::path;
  *
  * @author Julian Thijssen
  */
-class InfluenceHierarchy
+class InfluenceHierarchy : public QObject
 {
+    Q_OBJECT
+
 public:
     void initialize(HsneHierarchy& hierarchy);
 
@@ -53,18 +58,21 @@ private:
  *
  * @author Julian Thijssen
  */
-class HsneHierarchy
+class HsneHierarchy : public QObject
 {
-public:
-    /**
-     * Initialize the HSNE hierarchy with a data-level scale.
-     *
-     * @param  data        The high-dimensional data
-     * @param  parameters  Parameters with which to run the HSNE algorithm
-     */
-    void initialize(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters);
+    Q_OBJECT
 
-    void setDataAndParameters(const Points& inputData, const std::vector<bool>& enabledDimensions, const HsneParameters& parameters, const KnnParameters& knnParameters);
+public slots:
+    /**
+     * Initialize the HSNE hierarchy with a data-level scale. First call setDataAndParameters() 
+     */
+    void initialize();
+
+signals:
+    void finished();
+
+public:
+    void setDataAndParameters(const mv::Dataset<Points>& inputData, const mv::Dataset<Points>& outputData, const HsneParameters& parameters, const KnnParameters& knnParameters, std::vector<bool>&& enabledDimensions);
 
     HsneMatrix getTransitionMatrixAtScale(int scale) { return _hsne->scale(scale)._transition_matrix; }
 
@@ -140,8 +148,13 @@ protected:
 
 private:
     std::unique_ptr<Hsne>   _hsne;
-
     InfluenceHierarchy      _influenceHierarchy;
+
+    std::vector<bool>       _enabledDimensions;
+    mv::Dataset<Points>     _inputData;
+    mv::Dataset<Points>     _outputData;
+    std::string             _inputDataName;
+    mv::Task*               _parentTask = nullptr;
 
     int                     _numScales = 1;
     unsigned int            _numPoints = 0;
@@ -151,7 +164,7 @@ private:
 
     Path                    _cachePath;                            /** Path for saving and loading cache */
     Path                    _cachePathFileName;                    /** cachePath() + data name */
-    std::string             _inputDataName;
+    bool                    _saveHierarchyToDisk = false;
 
     friend class HsneAnalysisPlugin;
 };
