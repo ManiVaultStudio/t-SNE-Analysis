@@ -218,6 +218,9 @@ void HsneAnalysisPlugin::init()
         // If the removed dataset is the output data (top level embedding), remove the accompanying _selectionHelperData
         if (outputDatasetID == datasetID)
         {
+            if (!_selectionHelperData.isValid())
+                return;
+
             qDebug() << "HSNE Plugin: remove (invisible) selection helper dataset " << _selectionHelperData->getId() << " used for deleted " << datasetID;
             mv::data().removeDataset(_selectionHelperData);
         }
