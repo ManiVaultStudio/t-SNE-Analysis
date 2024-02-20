@@ -53,15 +53,17 @@ message(STATUS "MV_INSTALL_DIR set to ${MV_INSTALL_DIR}")
 # -----------------------------------------------------------------------------
 # Install dependency libraries
 # -----------------------------------------------------------------------------
-set(HDILib_VERSION 1.2.6)
-set(flann_VERSION 1.9.2)
-set(lz4_VERSION 1.9.3)
 
 set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
 
 include(InstallArtifactoryPackage)
 if (USE_ARTIFACTORY_LIBS AND NOT ARTIFACTORY_LIBS_INSTALLED) 
     message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
+
+    set(HDILib_VERSION 1.2.6)
+    set(flann_VERSION 1.9.2)
+    set(lz4_VERSION 1.9.3)
+
     # Both HDILib and flann are available prebuilt in the lkeb-artifactory as combined Debug/Release packages
     # lz4 is also available in the lkb-artifactory in separate Debug and |Release packages
     install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) 
