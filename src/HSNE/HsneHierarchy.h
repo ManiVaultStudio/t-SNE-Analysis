@@ -22,6 +22,8 @@ class KnnParameters;
 class HsneHierarchy;
 
 namespace mv {
+    class Task;
+
     namespace utils {
         class CoutLog;
     }
@@ -64,7 +66,7 @@ class HsneHierarchy : public QObject
 
 public slots:
     /**
-     * Initialize the HSNE hierarchy with a data-level scale. First call setDataAndParameters() 
+     * Initialize the HSNE hierarchy with a data-level scale. First call setDataAndParameters() and initParentTask()
      */
     void initialize();
 
@@ -73,6 +75,9 @@ signals:
 
 public:
     void setDataAndParameters(const mv::Dataset<Points>& inputData, const mv::Dataset<Points>& outputData, const HsneParameters& parameters, const KnnParameters& knnParameters, std::vector<bool>&& enabledDimensions);
+
+    // Call before moving this object to another thread
+    void initParentTask();
 
     HsneMatrix getTransitionMatrixAtScale(int scale) { return _hsne->scale(scale)._transition_matrix; }
 

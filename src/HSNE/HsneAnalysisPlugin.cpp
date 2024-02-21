@@ -183,7 +183,8 @@ void HsneAnalysisPlugin::init()
         auto inputData      = getInputDataset<Points>();
         std::vector<bool> enabledDimensions = inputData->getDimensionsPickerAction().getEnabledDimensions();
         _hierarchy->setDataAndParameters(inputData, getOutputDataset<Points>(), _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters(), std::move(enabledDimensions));
-        
+        _hierarchy->initParentTask();
+
         _hierarchy->moveToThread(&_hierarchyThread);
 
         _hierarchyThread.start();
