@@ -176,12 +176,6 @@ void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, c
         }
     }
 
-    _parentTask = &_outputData->getTask();
-    _parentTask->setName("Initialize HSNE hierarchy");
-    _parentTask->setProgressMode(mv::Task::ProgressMode::Manual);
-    _parentTask->setRunning();
-    _parentTask->setProgress(.0f);
-
     // Set cache paths
     if (inputLoadPath == std::string())
         _cachePath = std::filesystem::current_path() / _CACHE_SUBFOLDER_;
@@ -192,6 +186,18 @@ void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, c
     _cachePathFileName = _cachePath / _inputDataName;
 
     _hsne = std::make_unique<Hsne>();
+}
+
+void HsneHierarchy::initParentTask()
+{
+    if (!_outputData.isValid())
+        return;
+
+    _parentTask = &_outputData->getTask();
+    _parentTask->setName("Initialize HSNE hierarchy");
+    _parentTask->setProgressMode(mv::Task::ProgressMode::Manual);
+    _parentTask->setRunning();
+    _parentTask->setProgress(.0f);
 }
 
 void HsneHierarchy::initialize()

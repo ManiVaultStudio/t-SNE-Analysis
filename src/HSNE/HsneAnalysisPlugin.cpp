@@ -183,7 +183,8 @@ void HsneAnalysisPlugin::init()
         auto inputData      = getInputDataset<Points>();
         std::vector<bool> enabledDimensions = inputData->getDimensionsPickerAction().getEnabledDimensions();
         _hierarchy->setDataAndParameters(inputData, getOutputDataset<Points>(), _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters(), std::move(enabledDimensions));
-        
+        _hierarchy->initParentTask();
+
         _hierarchy->moveToThread(&_hierarchyThread);
 
         _hierarchyThread.start();
@@ -218,6 +219,9 @@ void HsneAnalysisPlugin::init()
         // If the removed dataset is the output data (top level embedding), remove the accompanying _selectionHelperData
         if (outputDatasetID == datasetID)
         {
+            if (!_selectionHelperData.isValid())
+                return;
+
             qDebug() << "HSNE Plugin: remove (invisible) selection helper dataset " << _selectionHelperData->getId() << " used for deleted " << datasetID;
             mv::data().removeDataset(_selectionHelperData);
         }
