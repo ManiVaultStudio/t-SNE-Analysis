@@ -126,7 +126,7 @@ std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
 
         float stdevCurrent = 0.f;
         for (size_t i = 0; i < numPoints; ++i)
-            stdevCurrent += std::powf(initPositions[i * 2] - mean, 2);
+            stdevCurrent += std::pow(initPositions[i * 2] - mean, 2);
 
         stdevCurrent = std::sqrt(stdevCurrent / numPoints);
 
