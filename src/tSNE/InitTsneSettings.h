@@ -1,7 +1,6 @@
 #pragma once
 
 #include "actions/DatasetPickerAction.h"
-#include "actions/DecimalAction.h"
 #include "actions/IntegralAction.h"
 #include "actions/ToggleAction.h"
 #include "PointData/DimensionPickerAction.h"
@@ -35,9 +34,11 @@ public: // Action getters
 
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; };
     ToggleAction& getRandomInitAction() { return _randomInitAction; };
+    ToggleAction& getNewSeedAction() { return _newSeedAction; };
     IntegralAction& getRandomSeedAction() { return _randomSeedAction; };
-    DatasetPickerAction& getDataSetInitAction() { return _dataSetInitAction; };
-    DimensionPickerAction& getDataDimensionAction() { return _dataDimensionAction; };
+    DatasetPickerAction& getDatasetInitAction() { return _datasetInitAction; };
+    DimensionPickerAction& getDataDimensionXAction() { return _dataDimensionActionX; };
+    DimensionPickerAction& getDataDimensionYAction() { return _dataDimensionActionY; };
     ToggleAction& getRescaleInitAction() { return _rescaleInitAction; }
 
 public: // Serialization
@@ -57,8 +58,10 @@ public: // Serialization
 protected:
     TsneSettingsAction&     _tsneSettingsAction;            /** Reference to parent tSNE settings action */
     ToggleAction            _randomInitAction;              /** Init t-SNE randomly */
+    ToggleAction            _newSeedAction;                 /** New random seed on re-init */
     IntegralAction          _randomSeedAction;              /** Random seed for init */
-    DatasetPickerAction     _dataSetInitAction;             /** Data set to use for init */
-    DimensionPickerAction   _dataDimensionAction;           /** Dimensions of dataset to use for init */
+    DatasetPickerAction     _datasetInitAction;             /** Data set to use for init */
+    DimensionPickerAction   _dataDimensionActionX;          /** Dimension of dataset to use for init X dim */
+    DimensionPickerAction   _dataDimensionActionY;          /** Dimension of dataset to use for init Y dim */
     ToggleAction            _rescaleInitAction;             /** Whether to rescale the init embedding */
 };
