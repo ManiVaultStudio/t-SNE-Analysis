@@ -216,7 +216,7 @@ void TsneAnalysisPlugin::reinitializeComputation()
 
     auto& initSettings = _tsneSettingsAction->getInitalEmbeddingSettingsAction();
 
-    if (initSettings.getNewSeedAction().isChecked())
+    if (initSettings.getRandomInitAction().isChecked() && initSettings.getNewRandomSeedAction().isChecked())
         initSettings.updateSeed();
 
     const auto numPoints = getOutputDataset<Points>()->getNumPoints();

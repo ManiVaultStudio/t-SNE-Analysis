@@ -22,25 +22,24 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     GroupAction(&tsneSettingsAction, "Initialization", true),
     _tsneSettingsAction(tsneSettingsAction),
     _randomInitAction(this, "Random inital embedding", true),
-    _newSeedAction(this, "New seed on re-initialization", true),
+    _newRandomSeedAction(this, "New seed on re-initialization", true),
     _randomSeedAction(this, "Random seed"),
     _datasetInitAction(this, "Init data"),
     _dataDimensionActionX(this, "Init dim X"),
     _dataDimensionActionY(this, "Init dim Y"),
     _rescaleInitAction(this, "Rescale to small std dev", true),
     _numPointsInputData(0)
-    _rescaleInitAction(this, "Rescale to small stdev", true)
 {
     addAction(&_randomInitAction);
     addAction(&_randomSeedAction);
-    addAction(&_newSeedAction);
+    addAction(&_newRandomSeedAction);
     addAction(&_datasetInitAction);
     addAction(&_dataDimensionActionX);
     addAction(&_dataDimensionActionY);
     addAction(&_rescaleInitAction);
 
     _randomInitAction.setToolTip("Init t-SNE randomly.");
-    _newSeedAction.setToolTip("Use a new random seed when re-initializing the embedding.");
+    _newRandomSeedAction.setToolTip("Use a new random seed when re-initializing the embedding.");
     _randomSeedAction.setToolTip("Seed for random init.");
     _datasetInitAction.setToolTip("Data set to use for init.");
     _dataDimensionActionX.setToolTip("Dimensions of dataset to use for inititial embedding X dimension.");
@@ -64,31 +63,38 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
         _dataDimensionActionY.setCurrentDimensionIndex(1);
     });
 
-    connect(&_randomInitAction, &ToggleAction::toggled , this, [this](bool checked) {
-        _newSeedAction.setEnabled(!checked);
-        _randomSeedAction.setEnabled(!checked);
+    connect(&_randomInitAction, &ToggleAction::toggled , this, [this](bool) {
+        const auto checked = _randomInitAction.isChecked();
 
-        _datasetInitAction.setEnabled(checked);
-        _dataDimensionActionX.setEnabled(checked);
-        _dataDimensionActionY.setEnabled(checked);
+        _newRandomSeedAction.setEnabled(checked);
+        _newRandomSeedAction.setCheckable(checked);
+        _randomSeedAction.setEnabled(checked);
+        _randomSeedAction.setCheckable(checked);
+
+        _datasetInitAction.setEnabled(!checked);
+        _dataDimensionActionX.setEnabled(!checked);
+        _dataDimensionActionY.setEnabled(!checked);
     });
 
     const auto updateReadOnly = [this]() -> void {
-        const auto enable = !isReadOnly();
+        auto enable = !isReadOnly();
 
         _randomInitAction.setEnabled(enable);
         _randomSeedAction.setEnabled(enable);
+        _newRandomSeedAction.setEnabled(enable);
+        _rescaleInitAction.setEnabled(enable);
+
+        if (enable && _randomInitAction.isChecked())
+            enable = false;
+
         _datasetInitAction.setEnabled(enable);
         _dataDimensionActionX.setEnabled(enable);
         _dataDimensionActionY.setEnabled(enable);
-        _rescaleInitAction.setEnabled(enable);
     };
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
         updateReadOnly();
     });
-
-    updateReadOnly();
 }
 
 void InitTsneSettings::updateDataPicker(size_t numPointsInputData) {
@@ -117,6 +123,8 @@ std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
 
     if (_randomInitAction.isChecked())
     {
+        qDebug() << "Initializa t-SNE embedding randomly";
+
         std::default_random_engine gen(_randomSeedAction.getValue());
         std::uniform_real_distribution<float> dis(0, 1);
 
@@ -141,12 +149,16 @@ std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
         auto xDim = _dataDimensionActionX.getCurrentDimensionIndex();
         auto yDim = _dataDimensionActionY.getCurrentDimensionIndex();
 
+        qDebug() << "Initializa t-SNE embedding with " << initData->getGuiName() << " using dimensions " << xDim << " and " << yDim;
+
         initData->populateDataForDimensions(initPositions, std::vector<int32_t>{ xDim , yDim });
     }
 
     if (_rescaleInitAction.isChecked())
     {
-        float stdevDesired = 0.0001f;
+        const float stdevDesired = 0.0001f;
+
+        qDebug() << "Rescale initial embedding to such that the the standard deviation of the its first dimension is " << stdevDesired;
 
         // Calculate the mean and standard deviation of the first embedding dimension
         float sum = 0.f;
@@ -183,7 +195,7 @@ void InitTsneSettings::fromVariantMap(const QVariantMap& variantMap)
     GroupAction::fromVariantMap(variantMap);
 
     _randomInitAction.fromParentVariantMap(variantMap);
-    _newSeedAction.fromParentVariantMap(variantMap);
+    _newRandomSeedAction.fromParentVariantMap(variantMap);
     _randomSeedAction.fromParentVariantMap(variantMap);
     _datasetInitAction.fromParentVariantMap(variantMap);
     _dataDimensionActionX.fromParentVariantMap(variantMap);
@@ -196,7 +208,7 @@ QVariantMap InitTsneSettings::toVariantMap() const
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _randomInitAction.insertIntoVariantMap(variantMap);
-    _newSeedAction.insertIntoVariantMap(variantMap);
+    _newRandomSeedAction.insertIntoVariantMap(variantMap);
     _randomSeedAction.insertIntoVariantMap(variantMap);
     _datasetInitAction.insertIntoVariantMap(variantMap);
     _dataDimensionActionX.insertIntoVariantMap(variantMap);
