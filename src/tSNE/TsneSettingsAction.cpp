@@ -9,6 +9,7 @@ TsneSettingsAction::TsneSettingsAction(QObject* parent) :
     _tsneParameters(),
     _knnParameters(),
     _generalTsneSettingsAction(*this),
+    _initTsneSettingsAction(*this),
     _gradientDescentSettingsAction(this, _tsneParameters),
     _knnSettingsAction(this, _knnParameters)
 {
@@ -43,6 +44,7 @@ void TsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
     GroupAction::fromVariantMap(variantMap);
 
     _generalTsneSettingsAction.fromParentVariantMap(variantMap);
+    _initTsneSettingsAction.fromParentVariantMap(variantMap);
     _gradientDescentSettingsAction.fromVariantMap(variantMap["Gradient Descent Settings"].toMap());
     _knnSettingsAction.fromVariantMap(variantMap["Knn Settings"].toMap());
 }
@@ -52,6 +54,7 @@ QVariantMap TsneSettingsAction::toVariantMap() const
     QVariantMap variantMap = GroupAction::toVariantMap();
 
     _generalTsneSettingsAction.insertIntoVariantMap(variantMap);
+    _initTsneSettingsAction.insertIntoVariantMap(variantMap);
     _gradientDescentSettingsAction.insertIntoVariantMap(variantMap);
     _knnSettingsAction.insertIntoVariantMap(variantMap);
 
