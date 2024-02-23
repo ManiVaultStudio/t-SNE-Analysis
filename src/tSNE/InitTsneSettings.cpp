@@ -158,7 +158,7 @@ std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
     {
         const float stdevDesired = 0.0001f;
 
-        qDebug() << "Rescale initial embedding to such that the the standard deviation of the its first dimension is " << stdevDesired;
+        qDebug() << "Rescale initial embedding such that the standard deviation of its first dimension is " << stdevDesired;
 
         // Calculate the mean and standard deviation of the first embedding dimension
         float sum = 0.f;
