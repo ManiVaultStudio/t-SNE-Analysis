@@ -7,6 +7,15 @@
 #include <random>
 #include <utility>
 
+constexpr auto SEEDMIN = -1000;
+constexpr auto SEEDMAX =  1000;
+
+static std::random_device rd;
+static std::default_random_engine gen(rd());
+static std::uniform_int_distribution<int> dst(SEEDMIN, SEEDMAX);
+
+static inline int NewRandomSeed() { return dst(gen); }
+
 using namespace mv::gui;
 
 InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
@@ -37,10 +46,7 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     _rescaleInitAction.setToolTip("Whether to rescale the init embedding.");
 
     // always start with a random seed
-    std::random_device rd;
-    std::default_random_engine gen(rd());
-    std::uniform_int_distribution<int> dst(-1000, 1000);
-    _randomSeedAction.initialize(-1000, 1000, dst(gen));
+    _randomSeedAction.initialize(SEEDMIN, SEEDMAX, NewRandomSeed());
 
     // only list point datasets with at least 2 dimensions
     _datasetInitAction.setDatasetsFilterFunction([](const mv::Datasets& datasets) -> Datasets {
