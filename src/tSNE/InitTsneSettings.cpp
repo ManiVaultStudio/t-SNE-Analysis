@@ -21,13 +21,13 @@ using namespace mv::gui;
 InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     GroupAction(&tsneSettingsAction, "Initialization", true),
     _tsneSettingsAction(tsneSettingsAction),
-    _randomInitAction(this, "Random", true),
-    _newSeedAction(this, "New seed", true),
+    _randomInitAction(this, "Random inital embedding", true),
+    _newSeedAction(this, "New seed on re-initialization", true),
     _randomSeedAction(this, "Random seed"),
     _datasetInitAction(this, "Init data"),
     _dataDimensionActionX(this, "Init dim X"),
     _dataDimensionActionY(this, "Init dim Y"),
-    _rescaleInitAction(this, "Rescale", true)
+    _rescaleInitAction(this, "Rescale to small stdev", true)
 {
     addAction(&_randomInitAction);
     addAction(&_randomSeedAction);
@@ -43,7 +43,11 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     _datasetInitAction.setToolTip("Data set to use for init.");
     _dataDimensionActionX.setToolTip("Dimensions of dataset to use for inititial embedding X dimension.");
     _dataDimensionActionY.setToolTip("Dimensions of dataset to use for inititial embedding Y dimension.");
-    _rescaleInitAction.setToolTip("Whether to rescale the init embedding.");
+    _rescaleInitAction.setToolTip("Whether to rescale the init embedding such that the the standard deviation of \nthe first embedding dimension is 0.0001.");
+
+    _datasetInitAction.setEnabled(false);
+    _dataDimensionActionX.setEnabled(false);
+    _dataDimensionActionY.setEnabled(false);
 
     // always start with a random seed
     _randomSeedAction.initialize(SEEDMIN, SEEDMAX, NewRandomSeed());
@@ -58,6 +62,23 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
                     pointDatasets << dataset;
 
         return pointDatasets;
+    });
+
+    connect(&_datasetInitAction, &DatasetPickerAction::datasetPicked , this, [this](mv::Dataset<mv::DatasetImpl> pickedDataset) {
+        _dataDimensionActionX.setPointsDataset(pickedDataset);
+        _dataDimensionActionY.setPointsDataset(pickedDataset);
+
+        _dataDimensionActionX.setCurrentDimensionIndex(0);
+        _dataDimensionActionY.setCurrentDimensionIndex(1);
+    });
+
+    connect(&_randomInitAction, &ToggleAction::toggled , this, [this](bool checked) {
+        _newSeedAction.setEnabled(!checked);
+        _randomSeedAction.setEnabled(!checked);
+
+        _datasetInitAction.setEnabled(checked);
+        _dataDimensionActionX.setEnabled(checked);
+        _dataDimensionActionY.setEnabled(checked);
     });
 
     const auto updateReadOnly = [this]() -> void {
