@@ -10,7 +10,7 @@
 using namespace mv::gui;
 
 InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
-    GroupAction(&tsneSettingsAction, "TSNE", true),
+    GroupAction(&tsneSettingsAction, "Initialization", true),
     _tsneSettingsAction(tsneSettingsAction),
     _randomInitAction(this, "Random", true),
     _newSeedAction(this, "New seed", true),
