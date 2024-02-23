@@ -24,7 +24,7 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     _randomInitAction(this, "Random inital embedding", true),
     _newRandomSeedAction(this, "New seed on re-initialization", true),
     _randomSeedAction(this, "Random seed"),
-    _datasetInitAction(this, "Init data"),
+    _datasetInitAction(this, "Init dataset"),
     _dataDimensionActionX(this, "Init dim X"),
     _dataDimensionActionY(this, "Init dim Y"),
     _rescaleInitAction(this, "Rescale to small std dev", true),
@@ -41,10 +41,10 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     _randomInitAction.setToolTip("Init t-SNE randomly.");
     _newRandomSeedAction.setToolTip("Use a new random seed when re-initializing the embedding.");
     _randomSeedAction.setToolTip("Seed for random init.");
-    _datasetInitAction.setToolTip("Data set to use for init.");
+    _datasetInitAction.setToolTip("Dataset to use for init.");
     _dataDimensionActionX.setToolTip("Dimensions of dataset to use for inititial embedding X dimension.");
     _dataDimensionActionY.setToolTip("Dimensions of dataset to use for inititial embedding Y dimension.");
-    _rescaleInitAction.setToolTip("Whether to rescale the init embedding such that the the standard deviation of \nthe first embedding dimension is 0.0001.");
+    _rescaleInitAction.setToolTip("Whether to rescale the init embedding such that the standard deviation of \nthe first embedding dimension is 0.0001.");
 
     _datasetInitAction.setEnabled(false);
     _dataDimensionActionX.setEnabled(false);
