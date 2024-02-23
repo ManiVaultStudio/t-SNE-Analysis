@@ -123,7 +123,7 @@ std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
 
     if (_randomInitAction.isChecked())
     {
-        qDebug() << "Initializa t-SNE embedding randomly";
+        qDebug() << "Initialize t-SNE embedding randomly";
 
         std::default_random_engine gen(_randomSeedAction.getValue());
         std::uniform_real_distribution<float> dis(0, 1);
@@ -149,7 +149,7 @@ std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
         auto xDim = _dataDimensionActionX.getCurrentDimensionIndex();
         auto yDim = _dataDimensionActionY.getCurrentDimensionIndex();
 
-        qDebug() << "Initializa t-SNE embedding with " << initData->getGuiName() << " using dimensions " << xDim << " and " << yDim;
+        qDebug() << "Initialize t-SNE embedding with " << initData->getGuiName() << " using dimensions " << xDim << " and " << yDim;
 
         initData->populateDataForDimensions(initPositions, std::vector<int32_t>{ xDim , yDim });
     }
