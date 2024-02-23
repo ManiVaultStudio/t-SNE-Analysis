@@ -80,6 +80,8 @@ void TsneAnalysisPlugin::init()
 
     outputDataset->addAction(*dimensionsGroupAction);
 
+    _tsneSettingsAction->getInitalEmbeddingSettingsAction().updateDataPicker(inputDataset->getNumPoints());
+
     auto& computationAction = _tsneSettingsAction->getComputationAction();
 
     const auto updateComputationAction = [this, &computationAction]() {
@@ -154,7 +156,7 @@ void TsneAnalysisPlugin::init()
 
     updateComputationAction();
 
-    auto& datasetTask = getOutputDataset()->getTask();
+    auto& datasetTask = outputDataset->getTask();
 
     datasetTask.setName("Compute TSNE");
     datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);

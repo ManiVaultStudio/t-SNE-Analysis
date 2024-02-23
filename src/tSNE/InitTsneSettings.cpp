@@ -27,6 +27,8 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     _datasetInitAction(this, "Init data"),
     _dataDimensionActionX(this, "Init dim X"),
     _dataDimensionActionY(this, "Init dim Y"),
+    _rescaleInitAction(this, "Rescale to small std dev", true),
+    _numPointsInputData(0)
     _rescaleInitAction(this, "Rescale to small stdev", true)
 {
     addAction(&_randomInitAction);
@@ -52,17 +54,7 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     // always start with a random seed
     _randomSeedAction.initialize(SEEDMIN, SEEDMAX, NewRandomSeed());
 
-    // only list point datasets with at least 2 dimensions
-    _datasetInitAction.setDatasetsFilterFunction([](const mv::Datasets& datasets) -> Datasets {
-        Datasets pointDatasets;
-
-        for (const auto& dataset : datasets)
-            if (dataset->getDataType() == PointType)
-                if(Dataset<Points>(dataset)->getNumDimensions() >= 2)
-                    pointDatasets << dataset;
-
-        return pointDatasets;
-    });
+    updateDataPicker(0);
 
     connect(&_datasetInitAction, &DatasetPickerAction::datasetPicked , this, [this](mv::Dataset<mv::DatasetImpl> pickedDataset) {
         _dataDimensionActionX.setPointsDataset(pickedDataset);
@@ -98,6 +90,24 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
 
     updateReadOnly();
 }
+
+void InitTsneSettings::updateDataPicker(size_t numPointsInputData) {
+    _numPointsInputData = numPointsInputData;
+
+    _datasetInitAction.setDatasetsFilterFunction([numPointsInput = this->_numPointsInputData](const mv::Datasets& datasets) -> Datasets {
+        Datasets possibleInitDataset;
+
+        for (const auto& dataset : datasets)
+            if (dataset->getDataType() == PointType)
+            {
+                const auto pointDataset = Dataset<Points>(dataset);
+                if (pointDataset->getNumDimensions() >= 2 && pointDataset->getNumPoints() == numPointsInput)
+                    possibleInitDataset << dataset;
+            }
+
+        return possibleInitDataset;
+    });
+};
 
 std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
 {

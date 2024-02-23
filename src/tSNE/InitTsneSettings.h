@@ -32,11 +32,17 @@ public:
 
     void updateSeed();
 
+    /**
+     * only list point datasets with at least 2 dimensions
+     * and the same number of points as the input data
+    */
+    void updateDataPicker(size_t numPointsInputData);
+
 public: // Action getters
 
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; };
     ToggleAction& getRandomInitAction() { return _randomInitAction; };
-    ToggleAction& getNewSeedAction() { return _newSeedAction; };
+    ToggleAction& getNewRandomSeedAction() { return _newRandomSeedAction; };
     IntegralAction& getRandomSeedAction() { return _randomSeedAction; };
     DatasetPickerAction& getDatasetInitAction() { return _datasetInitAction; };
     DimensionPickerAction& getDataDimensionXAction() { return _dataDimensionActionX; };
@@ -60,10 +66,13 @@ public: // Serialization
 protected:
     TsneSettingsAction&     _tsneSettingsAction;            /** Reference to parent tSNE settings action */
     ToggleAction            _randomInitAction;              /** Init t-SNE randomly */
-    ToggleAction            _newSeedAction;                 /** New random seed on re-init */
+    ToggleAction            _newRandomSeedAction;                 /** New random seed on re-init */
     IntegralAction          _randomSeedAction;              /** Random seed for init */
     DatasetPickerAction     _datasetInitAction;             /** Data set to use for init */
     DimensionPickerAction   _dataDimensionActionX;          /** Dimension of dataset to use for init X dim */
     DimensionPickerAction   _dataDimensionActionY;          /** Dimension of dataset to use for init Y dim */
     ToggleAction            _rescaleInitAction;             /** Whether to rescale the init embedding */
+
+private:
+    size_t                  _numPointsInputData;            /** Number of points of the input dataset */
 };
