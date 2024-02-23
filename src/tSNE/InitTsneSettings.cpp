@@ -141,6 +141,11 @@ std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
     return initPositions;
 }
 
+void InitTsneSettings::updateSeed()
+{
+    _randomSeedAction.setValue(NewRandomSeed());
+}
+
 
 void InitTsneSettings::fromVariantMap(const QVariantMap& variantMap)
 {

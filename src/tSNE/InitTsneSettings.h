@@ -30,6 +30,8 @@ public:
 
     std::vector<float> getInitEmbedding(size_t numPoints);
 
+    void updateSeed();
+
 public: // Action getters
 
     TsneSettingsAction& getTsneSettingsAction() { return _tsneSettingsAction; };
