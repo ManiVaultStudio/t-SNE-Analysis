@@ -213,8 +213,9 @@ void HsneScaleAction::initNonTopScale(const std::vector<uint32_t>& drillIndices)
     _drillIndices = drillIndices;
     _isTopScale = false;
 
-    // Updates exxageration and exponential decay in _tsneParameters
+    // Updates exageration and exponential decay in _tsneParameters
     auto gradDescentAction = new GradientDescentSettingsAction(this, _tsneParameters);
+    gradDescentAction->getExaggerationFactorAction().setValue(4.f + drillIndices.size() / 60000.0f);
     _embedding->addAction(*gradDescentAction);
 }
 

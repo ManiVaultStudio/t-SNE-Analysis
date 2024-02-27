@@ -1,5 +1,6 @@
 #pragma once
 
+#include "actions/DecimalAction.h"
 #include "actions/GroupAction.h"
 #include "actions/IntegralAction.h"
 
@@ -26,7 +27,8 @@ public:
 
 public: // Action getters
     
-    IntegralAction& getExaggerationAction() { return _exaggerationAction; };
+    DecimalAction& getExaggerationFactorAction() { return _exaggerationFactorAction; };
+    IntegralAction& getExaggerationIterAction() { return _exaggerationIterAction; };
     IntegralAction& getExponentialDecayAction() { return _exponentialDecayAction; };
 
 public: // Serialization
@@ -45,6 +47,7 @@ public: // Serialization
 
 protected:
     TsneParameters&         _tsneParameters;            /** Reference to tSNE parameters */
-    IntegralAction          _exaggerationAction;        /** Exaggeration action */
+    DecimalAction           _exaggerationFactorAction;  /** Exaggeration factor action */
+    IntegralAction          _exaggerationIterAction;    /** Exaggeration iteration action */
     IntegralAction          _exponentialDecayAction;    /** Exponential decay action */
 };

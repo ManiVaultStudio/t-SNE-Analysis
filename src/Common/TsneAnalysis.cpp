@@ -43,7 +43,6 @@ TsneWorker::TsneWorker(TsneParameters tsneParameters, KnnParameters knnParameter
     _numDimensions = numDimensions;
     _data = data;
     _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
-    _tsneParameters.setExaggerationFactor(4 + _numPoints / 60000.0);
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -58,7 +57,6 @@ TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, s
     _numDimensions = numDimensions;
     _data = std::move(data);
     _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
-    _tsneParameters.setExaggerationFactor(4 + _numPoints / 60000.0);
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -71,7 +69,6 @@ TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::M
     _hasProbabilityDistribution = true;
     _numPoints = numPoints;
     _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
-    _tsneParameters.setExaggerationFactor(4 + _numPoints / 60000.0);
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -136,7 +133,7 @@ void TsneWorker::setCurrentIteration(int currentIteration)
     
     _currentIteration = currentIteration;
 
-    // we do not want to reapeat the exxageration phase when continuing the gradient descent
+    // we do not want to reapeat the exageration phase when continuing the gradient descent
     if (_currentIteration > (_tsneParameters.getExaggerationIter() + _tsneParameters.getExponentialDecayIter()))
     {
         _tsneParameters.setExaggerationFactor(1);
@@ -162,9 +159,9 @@ hdi::dr::TsneParameters TsneWorker::tsneParameters()
     tsneParameters._embedding_dimensionality    = _tsneParameters.getNumDimensionsOutput();
     tsneParameters._mom_switching_iter          = _tsneParameters.getExaggerationIter();
     tsneParameters._remove_exaggeration_iter    = _tsneParameters.getExaggerationIter();
+    tsneParameters._exaggeration_factor         = _tsneParameters.getExaggerationFactor();
     tsneParameters._exponential_decay_iter      = _tsneParameters.getExponentialDecayIter();
     tsneParameters._presetEmbedding             = _tsneParameters.getPresetEmbedding();
-    tsneParameters._exaggeration_factor         = _tsneParameters.getExaggerationFactor();
 
     return tsneParameters;
 }
@@ -238,11 +235,15 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
     {
         hdi::utils::ScopedTimer<double> timer(t_init);
 
+        auto params = tsneParameters();
+
         // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
         if (_hasProbabilityDistribution)
-            _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, tsneParameters());
+            _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
         else
-            _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, tsneParameters());
+            _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, params);
+
+        qDebug() << "A-tSNE: Exaggeration factor: " << params._exaggeration_factor << ", exaggeration iterations: " << params._remove_exaggeration_iter << ", exaggeration decay iter: " << params._exponential_decay_iter;
     }
 
     updateEmbedding(_outEmbedding);
@@ -257,7 +258,7 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
     double elapsed = 0;
     double t_grad = 0;
     {
-        qDebug() << "A-tSNE: Computing gradient descent...";
+        qDebug() << "A-tSNE: Computing " << endIteration - beginIteration << " gradient descent iterations...";
 
         _tasks->getComputeGradientDescentTask().setRunning();
         _tasks->getComputeGradientDescentTask().setSubtasks(iterations);
