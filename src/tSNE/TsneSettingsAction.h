@@ -2,6 +2,7 @@
 
 #include "GeneralTsneSettingsAction.h"
 #include "GradientDescentSettingsAction.h"
+#include "InitTsneSettings.h"
 #include "KnnParameters.h"
 #include "KnnSettingsAction.h"
 #include "TsneParameters.h"
@@ -42,6 +43,7 @@ public:
 public: // Action getters
 
     GeneralTsneSettingsAction& getGeneralTsneSettingsAction() { return _generalTsneSettingsAction; }
+    InitTsneSettings& getInitalEmbeddingSettingsAction() { return _initTsneSettingsAction; }
     GradientDescentSettingsAction& getGradientDescentSettingsAction() { return _gradientDescentSettingsAction; }
     KnnSettingsAction& getKnnSettingsAction() { return _knnSettingsAction; }
     TsneComputationAction& getComputationAction() { return _generalTsneSettingsAction.getComputationAction(); }
@@ -66,6 +68,7 @@ private:
 
 private:
     GeneralTsneSettingsAction       _generalTsneSettingsAction;         /** General tSNE settings action */
+    InitTsneSettings                _initTsneSettingsAction;            /** Inital embedding settings action */
     GradientDescentSettingsAction   _gradientDescentSettingsAction;     /** Gradient descent settings action */
     KnnSettingsAction               _knnSettingsAction;                 /** knn settings action */
 

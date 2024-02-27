@@ -68,6 +68,7 @@ void TsneAnalysisPlugin::init()
     outputDataset->_infoAction->collapse();
 
     outputDataset->addAction(_tsneSettingsAction->getGeneralTsneSettingsAction());
+    outputDataset->addAction(_tsneSettingsAction->getInitalEmbeddingSettingsAction());
     outputDataset->addAction(_tsneSettingsAction->getGradientDescentSettingsAction());
     outputDataset->addAction(_tsneSettingsAction->getKnnSettingsAction());
 
@@ -79,6 +80,8 @@ void TsneAnalysisPlugin::init()
 
     outputDataset->addAction(*dimensionsGroupAction);
 
+    _tsneSettingsAction->getInitalEmbeddingSettingsAction().updateDataPicker(inputDataset->getNumPoints());
+
     auto& computationAction = _tsneSettingsAction->getComputationAction();
 
     const auto updateComputationAction = [this, &computationAction]() {
@@ -89,28 +92,29 @@ void TsneAnalysisPlugin::init()
         computationAction.getStopComputationAction().setEnabled(isRunning);
     };
 
-    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this, &computationAction]() {
+    auto changeSettingsReadOnly = [this](bool readonly) -> void {
+        _tsneSettingsAction->getGeneralTsneSettingsAction().setReadOnly(readonly);
+        _tsneSettingsAction->getInitalEmbeddingSettingsAction().setReadOnly(readonly);
+        _tsneSettingsAction->getGradientDescentSettingsAction().setReadOnly(readonly);
+        _tsneSettingsAction->getKnnSettingsAction().setReadOnly(readonly);
+    };
+
+    connect(&_tsneAnalysis, &TsneAnalysis::finished, this, [this, &computationAction, changeSettingsReadOnly]() {
         computationAction.getRunningAction().setChecked(false);
 
-        _tsneSettingsAction->getGeneralTsneSettingsAction().setReadOnly(false);
-        _tsneSettingsAction->getGradientDescentSettingsAction().setReadOnly(false);
-        _tsneSettingsAction->getKnnSettingsAction().setReadOnly(false);
+        changeSettingsReadOnly(false);
     });
 
-    connect(&_tsneAnalysis, &TsneAnalysis::aborted, this, [this, &computationAction, updateComputationAction]() {
+    connect(&_tsneAnalysis, &TsneAnalysis::aborted, this, [this, &computationAction, updateComputationAction, changeSettingsReadOnly]() {
         updateComputationAction();
 
         computationAction.getRunningAction().setChecked(false);
 
-        _tsneSettingsAction->getGeneralTsneSettingsAction().setReadOnly(false);
-        _tsneSettingsAction->getGradientDescentSettingsAction().setReadOnly(false);
-        _tsneSettingsAction->getKnnSettingsAction().setReadOnly(false);
+        changeSettingsReadOnly(false);    
     });
 
-    connect(&computationAction.getStartComputationAction(), &TriggerAction::triggered, this, [this, &computationAction]() {
-        _tsneSettingsAction->getGeneralTsneSettingsAction().setReadOnly(true);
-        _tsneSettingsAction->getGradientDescentSettingsAction().setReadOnly(true);
-        _tsneSettingsAction->getKnnSettingsAction().setReadOnly(true);
+    connect(&computationAction.getStartComputationAction(), &TriggerAction::triggered, this, [this, &computationAction, changeSettingsReadOnly]() {
+        changeSettingsReadOnly(true);
 
         if(_tsneSettingsAction->getGeneralTsneSettingsAction().getReinitAction().isChecked())
             reinitializeComputation();
@@ -120,10 +124,8 @@ void TsneAnalysisPlugin::init()
         _tsneSettingsAction->getGeneralTsneSettingsAction().getReinitAction().setCheckable(true);   // only enable re-init after first computation
     });
 
-    connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
-        _tsneSettingsAction->getGeneralTsneSettingsAction().setReadOnly(true);
-        _tsneSettingsAction->getGradientDescentSettingsAction().setReadOnly(true);
-        _tsneSettingsAction->getKnnSettingsAction().setReadOnly(true);
+    connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this, changeSettingsReadOnly]() {
+        changeSettingsReadOnly(true);
 
         continueComputation();
     });
@@ -154,7 +156,7 @@ void TsneAnalysisPlugin::init()
 
     updateComputationAction();
 
-    auto& datasetTask = getOutputDataset()->getTask();
+    auto& datasetTask = outputDataset->getTask();
 
     datasetTask.setName("Compute TSNE");
     datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
@@ -182,7 +184,8 @@ void TsneAnalysisPlugin::startComputation()
 
     _tsneSettingsAction->getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().reset();
 
-    data.resize((inputPoints->isFull() ? inputPoints->getNumPoints() : inputPoints->indices.size()) * numEnabledDimensions);
+    const auto numPoints = inputPoints->isFull() ? inputPoints->getNumPoints() : inputPoints->indices.size();
+    data.resize(numPoints * numEnabledDimensions);
 
     for (int i = 0; i < inputPoints->getNumDimensions(); i++)
         if (enabledDimensions[i])
@@ -191,10 +194,13 @@ void TsneAnalysisPlugin::startComputation()
     inputPoints->populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
     _tsneSettingsAction->getComputationAction().getRunningAction().setChecked(true);
-    
+
+    // Init embedding: random or set from other dataset, e.g. PCA
+    auto initEmbedding = _tsneSettingsAction->getInitalEmbeddingSettingsAction().getInitEmbedding(numPoints);
+
     _dataPreparationTask.setFinished();
 
-    _tsneAnalysis.startComputation(_tsneSettingsAction->getTsneParameters(), _tsneSettingsAction->getKnnParameters(), std::move(data), numEnabledDimensions);
+    _tsneAnalysis.startComputation(_tsneSettingsAction->getTsneParameters(), _tsneSettingsAction->getKnnParameters(), std::move(data), numEnabledDimensions, &initEmbedding);
 }
 
 void TsneAnalysisPlugin::reinitializeComputation()
@@ -202,13 +208,22 @@ void TsneAnalysisPlugin::reinitializeComputation()
     if (_tsneAnalysis.canContinue())
         _probDistMatrix = std::move(*_tsneAnalysis.getProbabilityDistribution().value());
     
-    if(_probDistMatrix.size() > 0)
+    if(_probDistMatrix.size() == 0)
     {
-        _tsneAnalysis.startComputation(_tsneSettingsAction->getTsneParameters(), std::move(_probDistMatrix), getOutputDataset<Points>()->getNumPoints());
+        qDebug() << "TsneAnalysisPlugin::reinitializeComputation: cannot reinitialize embedding - start computation first";
         return;
     }
 
-    qDebug() << "TsneAnalysisPlugin::reinitializeComputation: cannot reinitialize embedding - start computation first";
+    auto& initSettings = _tsneSettingsAction->getInitalEmbeddingSettingsAction();
+
+    if (initSettings.getRandomInitAction().isChecked() && initSettings.getNewRandomSeedAction().isChecked())
+        initSettings.updateSeed();
+
+    const auto numPoints = getOutputDataset<Points>()->getNumPoints();
+
+    auto initEmbedding = initSettings.getInitEmbedding(numPoints);
+
+    _tsneAnalysis.startComputation(_tsneSettingsAction->getTsneParameters(), std::move(_probDistMatrix), numPoints, &initEmbedding);
 }
 
 void TsneAnalysisPlugin::continueComputation()

@@ -12,5 +12,7 @@ set(TSNE_ACTIONS_SOURCES
     ${DIR}/TsneSettingsAction.cpp
     ${DIR}/GeneralTsneSettingsAction.h
     ${DIR}/GeneralTsneSettingsAction.cpp
+    ${DIR}/InitTsneSettings.h
+    ${DIR}/InitTsneSettings.cpp
     PARENT_SCOPE
 )

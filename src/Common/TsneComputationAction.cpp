@@ -10,7 +10,7 @@ using namespace mv::gui;
 
 TsneComputationAction::TsneComputationAction(GroupAction* parent, TsneParameters* tsneParameters) :
     WidgetAction(parent, "TsneComputationAction"),
-    _numIterationsAction(this, "New iterations", 1, 10000, 1000),
+    _numIterationsAction(this, "New iterations", 0, 10000, 1000),
     _numberOfComputatedIterationsAction(this, "Computed iterations", 0, std::numeric_limits<int>::max(), 0),
     _updateIterationsAction(this, "Core update every", 0, 10000, 10),
     _startComputationAction(this, "Start"),
