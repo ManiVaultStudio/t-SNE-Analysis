@@ -10,7 +10,7 @@ public:
         _exponentialDecayIter(150),
         _numDimensionsOutput(2),
         _presetEmbedding(false),
-        _exaggeration_factor(4),
+        _exaggerationFactor(4),
         _updateCore(10)
     {
 
@@ -22,7 +22,7 @@ public:
     void setExponentialDecayIter(int exponentialDecayIter) { _exponentialDecayIter = exponentialDecayIter; }
     void setNumDimensionsOutput(int numDimensionsOutput) { _numDimensionsOutput = numDimensionsOutput; }
     void setPresetEmbedding(bool presetEmbedding) { _presetEmbedding = presetEmbedding; }
-    void setExaggerationFactor(double exaggerationFactor) { _exaggeration_factor = exaggerationFactor; }
+    void setExaggerationFactor(double exaggerationFactor) { _exaggerationFactor = exaggerationFactor; }
     void setUpdateCore(int updateCore) { _updateCore = updateCore; }
 
     int getNumIterations() const { return _numIterations; }
@@ -31,7 +31,7 @@ public:
     int getExponentialDecayIter() const { return _exponentialDecayIter; }
     int getNumDimensionsOutput() const { return _numDimensionsOutput; }
     int getPresetEmbedding() const { return _presetEmbedding; }
-    int getExaggerationFactor() const { return _exaggeration_factor; }
+    int getExaggerationFactor() const { return _exaggerationFactor; }
     int getUpdateCore() const { return _updateCore; }
 
 private:
@@ -40,7 +40,7 @@ private:
     int _exaggerationIter;
     int _exponentialDecayIter;
     int _numDimensionsOutput;
-    double _exaggeration_factor;
+    double _exaggerationFactor;
     bool _presetEmbedding;
 
     int _updateCore;        // Gradient descent iterations after which the embedding data set in ManiVault's core will be updated

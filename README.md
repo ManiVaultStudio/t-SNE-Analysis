@@ -1,12 +1,14 @@
 # t-SNE & HSNE Analysis  [![Actions Status](https://github.com/ManiVaultStudio/t-SNE-Analysis/actions/workflows/build.yml/badge.svg)](https://github.com/ManiVaultStudio/t-SNE-Analysis/actions)
 
-t-SNE and HSNE analyis plugins for [ManiVault](https://github.com/ManiVaultStudio/core).
+t-SNE and HSNE analysis plugins for [ManiVault](https://github.com/ManiVaultStudio/core).
 
 ```bash
 git clone git@github.com:ManiVaultStudio/t-SNE-Analysis.git
 ```
 
-This project builds two plugins which wrap the functionality of the [HDILib](https://github.com/biovault/HDILib).
+This project builds two plugins which wrap the functionality of the [HDILib](https://github.com/biovault/HDILib):
+- t-SNE: fast embedding computation with the GPU-based [A-tSNE](https://doi.org/10.1109/TVCG.2016.2570755)
+- HSNE: hierarchical embeddings with [Hierarchical Stochastic Neighbor Embedding](https://doi.org/10.1111/cgf.12878)
 
 <p align="center">
   <img src="https://github.com/ManiVaultStudio/t-SNE-Analysis/assets/58806453/b179dffb-8222-4431-96a3-162c579fc149" alt="t-SNE and HSNE embeddings">
@@ -26,3 +28,15 @@ Tested with Ubuntu 22.10, gcc 12.2.0:
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DUSE_ARTIFACTORY_LIBS=OFF -DHDILIB_ROOT=/PATH/TO/YOUR/LOCALHDILIB -DMV_INSTALL_DIR=/PATH/TO/MANIVAULT
 cmake --build build --config Release --target install
 ```
+
+## Notes on settings
+
+- Exaggeration factor: Defaults to `4 + number of points / 60'000`
+- Initialization:
+  - Defaults to random. Optional: Use another data set as the initial embedding coordinates, e.g. the first two [PCA](https://github.com/ManiVaultStudio/PcaPlugin/) components.
+  - Defaults to rescaling the initial coordinates such that the first embedding dimension has a standard deviation of 0.0001. If turned off, the random initialization will uniformly sample coordinates from a circle with radius 1.
+  - See e.g. [The art of using t-SNE for single-cell transcriptomics](https://doi.org/10.1038/s41467-019-13056-x) for more details on recommended t-SNE settings
+- Changed t-SNE gradient descent parameters are not taken into account when "continuing" the gradient descent, but when "reinitializing" they are
+- knn settings specify search structure construction and query characteristics:
+  - (Annoy) Trees & Checks: correspond to `n_trees` and `search_k`, see their [docs](https://github.com/spotify/annoy?tab=readme-ov-file#tradeoffs)
+  - (HNSW): M & ef: are detailed in the respective [docs](https://github.com/nmslib/hnswlib/blob/master/ALGO_PARAMS.md#hnsw-algorithm-parameters)

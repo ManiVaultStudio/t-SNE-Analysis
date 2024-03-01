@@ -88,6 +88,9 @@ void HsneAnalysisPlugin::init()
 
     inputDataset->setProperty("selectionHelperCount", 0);
 
+    // update settings that depend on number of data points
+    _hsneSettingsAction->getGradientDescentSettingsAction().getExaggerationFactorAction().setValue(4.f + inputDataset->getNumPoints() / 60000.0f);
+
     auto& computationAction = _hsneSettingsAction->getTopLevelScaleAction().getComputationAction();
 
     const auto updateComputationAction = [this, &computationAction]() {

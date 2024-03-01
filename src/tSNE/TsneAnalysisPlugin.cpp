@@ -80,6 +80,8 @@ void TsneAnalysisPlugin::init()
 
     outputDataset->addAction(*dimensionsGroupAction);
 
+    // update settings that depend on number of data points
+    _tsneSettingsAction->getGradientDescentSettingsAction().getExaggerationFactorAction().setValue(4.f + inputDataset->getNumPoints() / 60000.0f);
     _tsneSettingsAction->getInitalEmbeddingSettingsAction().updateDataPicker(inputDataset->getNumPoints());
 
     auto& computationAction = _tsneSettingsAction->getComputationAction();
