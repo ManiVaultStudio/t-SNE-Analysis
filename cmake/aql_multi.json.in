@@ -9,6 +9,7 @@ items.find(
 		"@conan.settings.os": {"$eq" : "@os_name@"},
 		"@conan.settings.compiler": {"$eq" : "@compiler_name@"},
 		"@conan.settings.compiler.version": {"$match" : "@compiler_version@*"},
+		"@conan.settings.arch": {"$eq" : "@package_arch@"},
 		"@conan.settings.build_type":{"$nmatch" : "Release"},
 		"@conan.settings.build_type":{"$nmatch" : "Debug"}
 	}

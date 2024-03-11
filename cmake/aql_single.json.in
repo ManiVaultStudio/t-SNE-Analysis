@@ -7,6 +7,7 @@ items.find(
 		"@conan.settings.os": {"$eq" : "@os_name@"},
 		"@conan.settings.compiler": {"$eq" : "@compiler_name@"},
 		"@conan.settings.compiler.version": {"$match" : "@compiler_version@*"},
+		"@conan.settings.arch": {"$eq" : "@package_arch@"},
 		@build_runtime_type@,
 		"@conan.options.shared":{"$eq" : "@option_shared@"}
 	}
