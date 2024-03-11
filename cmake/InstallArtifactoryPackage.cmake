@@ -93,7 +93,7 @@ endfunction()
 
 macro(get_artifactory_package
         package_name package_version package_builder
-        compiler_name compiler_version os_name is_combined_package)
+        compiler_name compiler_version os_name is_combined_package package_arch)
     if(is_combined_package)
         # retrieve the single combined package from lkeb-artifactory
         file(REMOVE ${PROJECT_BINARY_DIR}/aql.json)
@@ -159,10 +159,14 @@ function(install_artifactory_package package_name package_version package_builde
     set(package_version ${package_version})
     set(package_builder ${package_builder})
     set(is_combined_package ${is_combined_package})
+    set(package_arch "x86_64")
+    if(APPLE AND CMAKE_OSX_ARCHITECTURES  MATCHES "arm64")
+        set(package_arch "armv8")
+    endif()
 
     get_artifactory_package("${package_name}" "${package_version}" "${package_builder}"
         "${compiler_name}" "${compiler_version}"
-        "${os_name}" "${is_combined_package}")
+        "${os_name}" "${is_combined_package}" "${package_arch}")
     # add the HDILib to the module path
     set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/${package_name}" ${CMAKE_MODULE_PATH} PARENT_SCOPE)
 endfunction()
