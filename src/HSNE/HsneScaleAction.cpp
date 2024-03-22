@@ -298,13 +298,15 @@ void HsneScaleAction::refine()
         auto& hsneScaleSubset = _selectionHelpers.back();
 
         // Create derived data for the embedding
-        _refineEmbeddings.push_back(mv::data().createDerivedDataset<Points>(QString("Hsne scale %1").arg(refinedScaleLevel), hsneScaleSubset, _embedding));
+        _refineEmbeddings.push_back(mv::data().createDerivedDataset<Points>(QString("Hsne scale %1").arg(refinedScaleLevel), hsneScaleSubset, _embedding, false));
         auto& refineEmbedding = _refineEmbeddings.back();
         refineEmbedding->setProperty("selectionHelperID", hsneScaleSubset->getId());
 
         //qDebug() << "refineEmbedding " << refineEmbedding->getId() << " with hsneScaleSubset " << hsneScaleSubset->getId();
 
         refineEmbedding->setData(nullptr, 0, 2);
+
+        events().notifyDatasetAdded(refineEmbedding);
         events().notifyDatasetDataChanged(refineEmbedding);
 
         // Handle data hierarchy item
