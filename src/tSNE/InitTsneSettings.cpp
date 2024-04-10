@@ -100,18 +100,13 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
 void InitTsneSettings::updateDataPicker(size_t numPointsInputData) {
     _numPointsInputData = numPointsInputData;
 
-    _datasetInitAction.setDatasetsFilterFunction([numPointsInput = this->_numPointsInputData](const mv::Datasets& datasets) -> Datasets {
-        Datasets possibleInitDataset;
+    _datasetInitAction.setFilterFunction([numPointsInputData](Dataset<DatasetImpl> dataset) -> bool {
+        if (dataset->getDataType() != PointType)
+            return false;
 
-        for (const auto& dataset : datasets)
-            if (dataset->getDataType() == PointType)
-            {
-                const auto pointDataset = Dataset<Points>(dataset);
-                if (pointDataset->getNumDimensions() >= 2 && pointDataset->getNumPoints() == numPointsInput)
-                    possibleInitDataset << dataset;
-            }
+        const auto pointDataset = Dataset<Points>(dataset);
 
-        return possibleInitDataset;
+        return pointDataset->getNumDimensions() >= 2 && pointDataset->getNumPoints() == numPointsInputData;
     });
 };
 
