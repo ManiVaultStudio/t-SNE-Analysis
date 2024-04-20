@@ -100,19 +100,25 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
 void InitTsneSettings::updateDataPicker(size_t numPointsInputData) {
     _numPointsInputData = numPointsInputData;
 
-    _datasetInitAction.setDatasetsFilterFunction([numPointsInput = this->_numPointsInputData](const mv::Datasets& datasets) -> Datasets {
-        Datasets possibleInitDataset;
-
-        for (const auto& dataset : datasets)
-            if (dataset->getDataType() == PointType)
+    _datasetInitAction.setFilterFunction([numPointsInput = this->_numPointsInputData](mv::Dataset<DatasetImpl> dataset) -> bool {
+        if (dataset->getDataType() == PointType)
+        {
+            const auto pointDataset = Dataset<Points>(dataset);
+            if (pointDataset->getNumDimensions() >= 2 && pointDataset->getNumPoints() == numPointsInput)
             {
-                const auto pointDataset = Dataset<Points>(dataset);
-                if (pointDataset->getNumDimensions() >= 2 && pointDataset->getNumPoints() == numPointsInput)
-                    possibleInitDataset << dataset;
+                return true;
             }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+        });
 
-        return possibleInitDataset;
-    });
 };
 
 std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
