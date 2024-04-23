@@ -37,7 +37,7 @@ cmake --build build --config Release --target install
   - Defaults to rescaling the initial coordinates such that the first embedding dimension has a standard deviation of 0.0001. If turned off, the random initialization will uniformly sample coordinates from a circle with radius 1.
   - See e.g. [The art of using t-SNE for single-cell transcriptomics](https://doi.org/10.1038/s41467-019-13056-x) for more details on recommended t-SNE settings
 - Gradient Descent:
-  - GPU-based implementation (default) requires OpenGL 3.3 and benefits from compute shaders (introduces in OpenGL 4.4 and not available on Apple devices)
+  - GPU-based implementation (default) requires OpenGL 3.3 and benefits from compute shaders (introduced in OpenGL 4.4 and not available on Apple devices)
   - CPU-based implementation of [Barnes-Hut t-SNE](https://jmlr.org/papers/v15/vandermaaten14a.html) automatically sets θ to `min(0.5, max(0.0, (numPoints - 1000.0) * 0.00005))`
   - Changes to gradient descent parameters are not taken into account when "continuing" the gradient descent, but when "reinitializing" they are
 - kNN (specify search structure construction and query characteristics):
