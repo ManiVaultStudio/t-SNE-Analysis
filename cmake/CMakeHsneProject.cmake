@@ -47,6 +47,10 @@ set_target_properties(${HSNE_PLUGIN} PROPERTIES CXX_STANDARD 17)
 
 target_compile_definitions(${HSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 
+if(MV_UNITY_BUILD)
+    set_target_properties(${HSNE_PLUGIN} PROPERTIES UNITY_BUILD ON)
+endif()
+
 # -----------------------------------------------------------------------------
 # Target library linking
 # -----------------------------------------------------------------------------

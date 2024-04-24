@@ -7,8 +7,9 @@ project("SNE-Analyses" C CXX)
 # -----------------------------------------------------------------------------
 option(USE_ARTIFACTORY_LIBS "Use the prebuilt libraries from artifactory" ON)
 option(ENABLE_AVX "Enable AVX support" OFF)
+option(MV_UNITY_BUILD "Combine target source files into batches for faster compilation" OFF)
 set(OPTIMIZATION_LEVEL "2" CACHE STRING "Optimization level for all targets in release builds, e.g. 0, 1, 2")
-        
+
 # -----------------------------------------------------------------------------
 # CMake options
 # -----------------------------------------------------------------------------

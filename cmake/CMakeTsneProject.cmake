@@ -44,6 +44,10 @@ set_target_properties(${TSNE_PLUGIN} PROPERTIES CXX_STANDARD 17)
 
 target_compile_definitions(${TSNE_PLUGIN} PRIVATE QT_MESSAGELOGCONTEXT)
 
+if(MV_UNITY_BUILD)
+    set_target_properties(${TSNE_PLUGIN} PROPERTIES UNITY_BUILD ON)
+endif()
+
 # -----------------------------------------------------------------------------
 # Target library linking
 # -----------------------------------------------------------------------------
