@@ -65,12 +65,12 @@ void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
 
     auto& bottomScale = hierarchy.getScale(0);
 
-    int numDataPoints = bottomScale.size();
+    size_t numDataPoints = bottomScale.size();
 
 #pragma omp parallel for
-    for (int i = 0; i < numDataPoints; i++)
+    for (std::int64_t i = 0; i < numDataPoints; i++)
     {
-        std::vector<std::unordered_map<unsigned int, float>> influence;
+        std::vector<std::unordered_map<std::uint64_t, float>> influence;
 
         float thresh = 0.01f;
 

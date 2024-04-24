@@ -235,8 +235,8 @@ void HsneScaleAction::refine()
     _embedding->selectedLocalIndices(selection->indices, selectedLocalIndices);
 
     // Transform local indices to scale relative indices
-    std::vector<unsigned int> selectedLandmarks; // Selected indices relative to scale
-    for (int i = 0; i < selectedLocalIndices.size(); i++)
+    std::vector<std::uint64_t> selectedLandmarks; // Selected indices relative to scale
+    for (size_t i = 0; i < selectedLocalIndices.size(); i++)
     {
         if (selectedLocalIndices[i])
         {
@@ -245,7 +245,7 @@ void HsneScaleAction::refine()
     }
     
     // Find the points in the previous level corresponding to selected landmarks
-    std::map<uint32_t, float> neighbors;
+    std::map<std::uint64_t, float> neighbors;
     _hsneHierarchy.getInfluencedLandmarksInPreviousScale(_currentScaleLevel, selectedLandmarks, neighbors);
 
     // Threshold neighbours with enough influence, these represent the indices of the refined points relative to their HSNE scale

@@ -63,7 +63,7 @@ TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, s
         setInitEmbedding(*initEmbedding);
 }
 
-TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
+TsneWorker::TsneWorker(TsneParameters parameters, const ProbDistMatrix& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
     TsneWorker(parameters)
 {
     _probabilityDistribution = probDist;
@@ -75,7 +75,7 @@ TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::M
         setInitEmbedding(*initEmbedding);
 }
 
-TsneWorker::TsneWorker(TsneParameters parameters, std::vector<hdi::data::MapMemEff<uint32_t, float>>&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
+TsneWorker::TsneWorker(TsneParameters parameters, ProbDistMatrix&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
     TsneWorker(parameters)
 {
     _probabilityDistribution = std::move(probDist);
@@ -441,7 +441,7 @@ void TsneAnalysis::deleteWorker()
     }
 }
 
-void TsneAnalysis::startComputation(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding, int previousIterations)
+void TsneAnalysis::startComputation(TsneParameters parameters, const ProbDistMatrix& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding, int previousIterations)
 {
     deleteWorker();
 
@@ -453,7 +453,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, const std::vector
     startComputation(_tsneWorker);
 }
 
-void TsneAnalysis::startComputation(TsneParameters parameters, std::vector<hdi::data::MapMemEff<uint32_t, float>>&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding, int previousIterations)
+void TsneAnalysis::startComputation(TsneParameters parameters, ProbDistMatrix&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding, int previousIterations)
 {
     deleteWorker();
 
