@@ -114,6 +114,8 @@ public:
      */
     void getTransitionMatrixForSelection(int currentScale, HsneMatrix& transitionMatrix, std::vector<uint32_t>& landmarkIdxs)
     {
+        assert(currentScale > 0);
+
         // Get full transition matrix of the previous scale
         HsneMatrix& fullTransitionMatrix = _hsne->scale(currentScale-1)._transition_matrix;
 
