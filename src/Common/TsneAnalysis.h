@@ -8,6 +8,7 @@
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
 #include "hdi/dimensionality_reduction/sparse_tsne_user_def_probabilities.h"
 #include "hdi/dimensionality_reduction/tsne_parameters.h"
+#include "hdi/utils/cout_log.h"
 
 #include <Task.h>
 
@@ -105,6 +106,7 @@ private:
     GradienDescentCPU                       _CPU_tSNE;                      /** CPU t-SNE gradient descent implementation */
     hdi::data::Embedding<float>             _embedding;                     /** Storage of current embedding */
     TsneData                                _outEmbedding;                  /** Transfer embedding data array */
+    hdi::utils::CoutLog                     _logger;
     OffscreenBuffer*                        _offscreenBuffer;               /** Offscreen OpenGL buffer required to run the gradient descent */
     bool                                    _shouldStop;                    /** Termination flags */
 

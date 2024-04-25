@@ -28,11 +28,15 @@ TsneWorker::TsneWorker(TsneParameters tsneParameters) :
     _outEmbedding(),
     _offscreenBuffer(nullptr),
     _shouldStop(false),
+    _logger(),
     _parentTask(nullptr),
     _tasks(nullptr)
 {
     // Offscreen buffer must be created in the UI thread because it is a QWindow, afterwards we move it
     _offscreenBuffer = new OffscreenBuffer();
+
+    _GPGPU_tSNE.setLogger(&_logger);
+    _CPU_tSNE.setLogger(&_logger);
 }
 
 TsneWorker::TsneWorker(TsneParameters tsneParameters, KnnParameters knnParameters, const std::vector<float>& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
@@ -198,6 +202,8 @@ void TsneWorker::computeSimilarities()
         qDebug() << "Sparse matrix allocated.";
 
         hdi::dr::HDJointProbabilityGenerator<float> probabilityGenerator;
+
+        probabilityGenerator.setLogger(&_logger);
 
         qDebug() << "Computing high dimensional probability distributions: Num dims: " << _numDimensions << " Num data points: " << _numPoints;
         probabilityGenerator.computeJointProbabilityDistribution(_data.data(), _numDimensions, _numPoints, _probabilityDistribution, probGenParameters());         // The _probabilityDistribution is symmetrized here.
