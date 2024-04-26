@@ -20,7 +20,13 @@
 
 class OffscreenBuffer;
 
-using ProbDistMatrix = hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type;
+using ProbDistMatrix      = std::vector<hdi::data::MapMemEff<std::uint64_t, float>>;
+using ProbDistGenerator   = hdi::dr::HDJointProbabilityGenerator<float, ProbDistMatrix>;
+using GradienDescentGPU   = hdi::dr::GradientDescentTSNETexture<float, ProbDistMatrix>;
+using GradienDescentCPU   = hdi::dr::SparseTSNEUserDefProbabilities<float, ProbDistMatrix>;
+
+using ProbDistMatrix32      = std::vector<hdi::data::MapMemEff<std::uint32_t, float>>;
+using GradienDescentGPU32   = hdi::dr::GradientDescentTSNETexture<float, ProbDistMatrix32>;
 
 class TsneWorkerTasks : public QObject
 {
@@ -42,9 +48,6 @@ private:
 class TsneWorker : public QObject
 {
     Q_OBJECT
-
-    using GradienDescentGPU = hdi::dr::GradientDescentTSNETexture<float>;
-    using GradienDescentCPU = hdi::dr::SparseTSNEUserDefProbabilities<float>;
 
 private:
     // default construction is inaccessible to outsiders
@@ -89,7 +92,7 @@ private:
     void copyEmbeddingOutput();
 
     hdi::dr::TsneParameters tsneParameters();
-    hdi::dr::HDJointProbabilityGenerator<float>::Parameters probGenParameters();
+    ProbDistGenerator::Parameters probGenParameters();
 
     void resetThread();
 
@@ -102,12 +105,14 @@ private:
     std::vector<float>                      _data;                          /** High-dimensional input data */
     ProbDistMatrix                          _probabilityDistribution;       /** High-dimensional probability distribution encoding point similarities */
     bool                                    _hasProbabilityDistribution;    /** Check if the worker was initialized with a probability distribution or data */
-    GradienDescentGPU                       _GPGPU_tSNE;                    /** GPGPU t-SNE gradient descent implementation */
+    GradienDescentGPU                       _GPGPU_tSNE;                    /** GPGPU t-SNE gradient descent implementation, 64 bit */
+    GradienDescentGPU32                     _GPGPU_tSNE32;                  /** GPGPU t-SNE gradient descent implementation, 32 bit */
     GradienDescentCPU                       _CPU_tSNE;                      /** CPU t-SNE gradient descent implementation */
     hdi::data::Embedding<float>             _embedding;                     /** Storage of current embedding */
     TsneData                                _outEmbedding;                  /** Transfer embedding data array */
     hdi::utils::CoutLog                     _logger;
     OffscreenBuffer*                        _offscreenBuffer;               /** Offscreen OpenGL buffer required to run the gradient descent */
+    bool                                    _supportsGPU64;                 /** */
     bool                                    _shouldStop;                    /** Termination flags */
 
 private: 

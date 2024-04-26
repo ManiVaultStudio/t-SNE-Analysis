@@ -4,6 +4,7 @@
 #include "OffscreenBuffer.h"
 
 #include <cassert>
+#include <cstring>
 #include <vector>
 
 #include <QCoreApplication>
@@ -27,6 +28,7 @@ TsneWorker::TsneWorker(TsneParameters tsneParameters) :
     _embedding(),
     _outEmbedding(),
     _offscreenBuffer(nullptr),
+    _supportsGPU64(false),
     _shouldStop(false),
     _logger(),
     _parentTask(nullptr),
@@ -171,9 +173,9 @@ hdi::dr::TsneParameters TsneWorker::tsneParameters()
     return tsneParameters;
 }
 
-hdi::dr::HDJointProbabilityGenerator<float>::Parameters TsneWorker::probGenParameters()
+ProbDistGenerator::Parameters TsneWorker::probGenParameters()
 {
-    hdi::dr::HDJointProbabilityGenerator<float>::Parameters probGenParams;
+    ProbDistGenerator::Parameters probGenParams;
 
     probGenParams._perplexity               = _tsneParameters.getPerplexity();
     probGenParams._perplexity_multiplier    = 3;
@@ -189,7 +191,7 @@ hdi::dr::HDJointProbabilityGenerator<float>::Parameters TsneWorker::probGenParam
 
 void TsneWorker::computeSimilarities()
 {
-    assert(_data.size() == _numDimensions * _numPoints);
+    assert(_data.size() == static_cast<size_t>(_numDimensions) * _numPoints);
 
     _tasks->getComputingSimilaritiesTask().setRunning();
 
@@ -201,7 +203,7 @@ void TsneWorker::computeSimilarities()
         _probabilityDistribution.resize(_numPoints);
         qDebug() << "Sparse matrix allocated.";
 
-        hdi::dr::HDJointProbabilityGenerator<float> probabilityGenerator;
+        ProbDistGenerator probabilityGenerator;
 
         probabilityGenerator.setLogger(&_logger);
 
@@ -226,27 +228,59 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
         emit embeddingUpdate(tsneData);
         };
 
-    auto initGPUTSNE = [this]() {
+    // Compute shaders only works with 64-bit integers if the GL_ARB_gpu_shader_int64 extension is available 
+    auto checkGpu64Support = [this]() {
+#ifndef __APPLE__
+        const GLubyte* glExtensions = glGetString(GL_EXTENSIONS);
+        _supportsGPU64 = std::strstr((const char*)glExtensions, "GL_ARB_gpu_shader_int64") != nullptr;
+#else        
+        _supportsGPU64 = true;
+#endif
+    };
+
+    auto initGPUTSNE = [this, checkGpu64Support]() {
         // Initialize offscreen buffer
         double t_buffer = 0.0;
         {
             hdi::utils::ScopedTimer<double> timer(t_buffer);
             _offscreenBuffer->bindContext();
+
+            checkGpu64Support();
         }
         qDebug() << "tSNE: Set up offscreen buffer in " << t_buffer / 1000 << " seconds.";
 
-        if (!_GPGPU_tSNE.isInitialized())
-        {
-            auto params = tsneParameters();
+        auto params = tsneParameters();
 
+        if (_supportsGPU64 && !_GPGPU_tSNE.isInitialized())
+        {
             // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
             if (_hasProbabilityDistribution)
                 _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
             else
                 _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, params);
 
-            qDebug() << "A-tSNE (GPU): Exaggeration factor: " << params._exaggeration_factor << ", exaggeration iterations: " << params._remove_exaggeration_iter << ", exaggeration decay iter: " << params._exponential_decay_iter;
         }
+        else if (!_GPGPU_tSNE32.isInitialized())
+        {
+            qDebug() << "TsneWorker:: This GPU does not support 64-bit integers, transforming prob dist to 32-bit integers...";
+            ProbDistMatrix32 probabilityDistribution32;
+            probabilityDistribution32.resize(_probabilityDistribution.size());
+
+#pragma omp parallel for
+            for (std::int64_t i = 0; i < _probabilityDistribution.size(); i++)
+                for (const auto& elem : _probabilityDistribution[i])
+                    probabilityDistribution32[i][static_cast<std::uint32_t>(elem.first)] = elem.second;
+
+            // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
+            if (_hasProbabilityDistribution)
+                _GPGPU_tSNE32.initialize(probabilityDistribution32, &_embedding, params);
+            else
+                _GPGPU_tSNE32.initializeWithJointProbabilityDistribution(probabilityDistribution32, &_embedding, params);
+
+        }
+
+        qDebug() << "A-tSNE (GPU): Exaggeration factor: " << params._exaggeration_factor << ", exaggeration iterations: " << params._remove_exaggeration_iter << ", exaggeration decay iter: " << params._exponential_decay_iter;
+
     };
 
     auto initCPUTSNE = [this]() {
@@ -284,7 +318,12 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
 
     auto singleTSNEIteration = [this]() {
         if (_tsneParameters.getGradienDescentType() == GradienDescentType::GPU)
-            _GPGPU_tSNE.doAnIteration();
+        {
+            if (_supportsGPU64)
+                _GPGPU_tSNE.doAnIteration();
+            else
+                _GPGPU_tSNE32.doAnIteration();
+        }
         else
             _CPU_tSNE.doAnIteration();
     };

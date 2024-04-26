@@ -130,10 +130,12 @@ void InfluenceHierarchy::initialize(HsneHierarchy& hierarchy)
 
 void HsneHierarchy::printScaleInfo() const
 {
-    std::cout << "Landmark to Orig size: " << _hsne->scale(getNumScales() - 1)._landmark_to_original_data_idx.size() << std::endl;
-    std::cout << "Landmark to Prev size: " << _hsne->scale(getNumScales() - 1)._landmark_to_previous_scale_idx.size() << std::endl;
-    std::cout << "Prev to Landmark size: " << _hsne->scale(getNumScales() - 1)._previous_scale_to_landmark_idx.size() << std::endl;
-    std::cout << "AoI size: " << _hsne->scale(getNumScales() - 1)._area_of_influence.size() << std::endl;
+    const auto scaleID = static_cast<Hsne::unsigned_int_type>(getNumScales()) - 1;
+
+    std::cout << "Landmark to Orig size: " << _hsne->scale(scaleID)._landmark_to_original_data_idx.size() << std::endl;
+    std::cout << "Landmark to Prev size: " << _hsne->scale(scaleID)._landmark_to_previous_scale_idx.size() << std::endl;
+    std::cout << "Prev to Landmark size: " << _hsne->scale(scaleID)._previous_scale_to_landmark_idx.size() << std::endl;
+    std::cout << "AoI size: " << _hsne->scale(scaleID)._area_of_influence.size() << std::endl;
 }
 
 void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, const mv::Dataset<Points>& outputData, const HsneParameters& parameters, const KnnParameters& knnParameters, std::vector<bool>&& enabledDimensions)

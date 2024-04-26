@@ -14,8 +14,8 @@
 
 #include <QObject>
 
-using HsneMatrix = std::vector<hdi::data::MapMemEff<std::uint32_t, float>>;
-using Hsne = hdi::dr::HierarchicalSNE<float, HsneMatrix>;
+using HsneMatrix    = std::vector<hdi::data::MapMemEff<std::uint64_t, float>>;
+using Hsne          = hdi::dr::HierarchicalSNE<float, HsneMatrix>;
 
 class HsneParameters;
 class KnnParameters;
@@ -29,7 +29,7 @@ namespace mv {
     }
 }
 
-using LandmarkMap = std::vector<std::vector<unsigned int>>;
+using LandmarkMap = std::vector<std::vector<std::uint64_t>>;
 using Path = std::filesystem::path;
 
 /**
@@ -117,7 +117,7 @@ public:
         assert(currentScale > 0);
 
         // Get full transition matrix of the previous scale
-        HsneMatrix& fullTransitionMatrix = _hsne->scale(currentScale-1)._transition_matrix;
+        HsneMatrix& fullTransitionMatrix = _hsne->scale(static_cast<Hsne::unsigned_int_type>(currentScale) - 1)._transition_matrix;
 
         // Extract the selected subportion of the transition matrix
         std::vector<std::uint32_t> dummy;
