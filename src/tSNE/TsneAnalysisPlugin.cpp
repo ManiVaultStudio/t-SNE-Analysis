@@ -145,8 +145,6 @@ void TsneAnalysisPlugin::init()
 
         _tsneSettingsAction->getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
 
-        QCoreApplication::processEvents();
-
         // Notify others that the embedding data changed
         events().notifyDatasetDataChanged(getOutputDataset());
     });
