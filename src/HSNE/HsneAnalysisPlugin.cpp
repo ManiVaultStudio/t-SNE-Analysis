@@ -252,17 +252,17 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     datasetTask.setRunning();
 
     // Get the top scale of the HSNE hierarchy
-    int topScaleIndex = _hierarchy->getTopScale();
+    const int topScaleIndex = _hierarchy->getTopScale();
     Hsne::scale_type& topScale = _hierarchy->getScale(topScaleIndex);
     _hsneSettingsAction->getTopLevelScaleAction().setScale(topScaleIndex);
 
     _hierarchy->printScaleInfo();
 
     // Number of landmarks on the top scale
-    int numLandmarks = topScale.size();
+    const uint32_t numLandmarks = topScale.size();
 
-    // Only create new selection helper if it does not exist yet
-    if (!_selectionHelperData.isValid())
+    // Only create new selection helper if a) it does not exist yet and b) we are above the data scale
+    if (!_selectionHelperData.isValid() && topScaleIndex > 0)
     {
         // Create a subset of the points corresponding to the top level HSNE landmarks,
         // Then derive the embedding from this subset
@@ -274,14 +274,14 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
         if (inputDataset->isFull())
         {
-            for (int i = 0; i < numLandmarks; i++)
+            for (uint32_t i = 0; i < numLandmarks; i++)
                 selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
         }
         else
         {
             std::vector<unsigned int> globalIndices;
             inputDataset->getGlobalIndices(globalIndices);
-            for (int i = 0; i < numLandmarks; i++)
+            for (uint32_t i = 0; i < numLandmarks; i++)
                 selectionDataset->indices[i] = globalIndices[topScale._landmark_to_original_data_idx[i]];
         }
 
@@ -306,7 +306,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
                 std::vector<unsigned int> globalIndices;
                 _selectionHelperData->getGlobalIndices(globalIndices);
 
-                for (int i = 0; i < landmarkMap.size(); i++)
+                for (unsigned int i = 0; i < landmarkMap.size(); i++)
                 {
                     selectionMap[globalIndices[i]] = landmarkMap[i];
                 }
@@ -315,14 +315,14 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
             {
                 std::vector<unsigned int> globalIndices;
                 inputDataset->getGlobalIndices(globalIndices);
-                for (int i = 0; i < landmarkMap.size(); i++)
+                for (unsigned int i = 0; i < landmarkMap.size(); i++)
                 {
                     std::vector<unsigned int> bottomMap = landmarkMap[i];
-                    for (int j = 0; j < bottomMap.size(); j++)
+                    for (unsigned int j = 0; j < bottomMap.size(); j++)
                     {
                         bottomMap[j] = globalIndices[bottomMap[j]];
                     }
-                    int bottomLevelIdx = _hierarchy->getScale(topScaleIndex)._landmark_to_original_data_idx[i];
+                    auto bottomLevelIdx = _hierarchy->getScale(topScaleIndex)._landmark_to_original_data_idx[i];
                     selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
                 }
             }
