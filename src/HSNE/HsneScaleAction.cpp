@@ -159,7 +159,7 @@ void HsneScaleAction::initLayoutAndConnection()
         auto selection = _input->getSelection<Points>();
         const auto enabled = !isReadOnly();
 
-        _refineAction.setEnabled(!isReadOnly() && !selection->indices.empty());
+        _refineAction.setEnabled(!isReadOnly() && !selection->indices.empty() && _hsneHierarchy.getNumScales() > 1);
         _computationAction.getNumIterationsAction().setEnabled(enabled);
     };
 
