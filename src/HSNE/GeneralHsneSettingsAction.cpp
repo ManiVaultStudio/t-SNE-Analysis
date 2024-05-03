@@ -7,7 +7,7 @@ using namespace mv::gui;
 GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSettingsAction) :
     GroupAction(&hsneSettingsAction, "HSNE", true),
     _hsneSettingsAction(hsneSettingsAction),
-    _numScalesAction(this, "Number of Hierarchy Scales"),
+    _numScalesAction(this, "Hierarchy Scales"),
     _knnAlgorithmAction(this, "kNN Algorithm"),
     _distanceMetricAction(this, "Distance metric"),
     _numKnnAction(this, "Number of NN"),
@@ -29,6 +29,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
     _numKnnAction.initialize(3, 300, 90);
 
+    _numScalesAction.setToolTip("Number of hierarchy scales: e.g. 2 scales indicates one abstraction scale \nabove the data level, which is a scale itself.");
     _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 
     const auto updateNumScales = [this]() -> void {

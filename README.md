@@ -43,3 +43,5 @@ cmake --build build --config Release --target install
 - kNN (specify search structure construction and query characteristics):
   - (Annoy) Trees & Checks: correspond to `n_trees` and `search_k`, see their [docs](https://github.com/spotify/annoy?tab=readme-ov-file#tradeoffs)
   - (HNSW): M & ef: are detailed in the respective [docs](https://github.com/nmslib/hnswlib/blob/master/ALGO_PARAMS.md#hnsw-algorithm-parameters)
+- HSNE:
+  - The number of scales includes the data scale, i.e., a setting of 2 scales indicates one abstraction scale above the data scale. Specifying 1 scale will not compute any abstraction level.
