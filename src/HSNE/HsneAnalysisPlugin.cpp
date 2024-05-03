@@ -261,7 +261,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     // Number of landmarks on the top scale
     const uint32_t numLandmarks = topScale.size();
 
-    // Only create new selection helper if it does not exist yet
+    // Only create new selection helper if a) it does not exist yet and b) we are above the data scale
     if (!_selectionHelperData.isValid() && topScaleIndex > 0)
     {
         // Create a subset of the points corresponding to the top level HSNE landmarks,
