@@ -274,14 +274,14 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
         if (inputDataset->isFull())
         {
-            for (int i = 0; i < numLandmarks; i++)
+            for (uint32_t i = 0; i < numLandmarks; i++)
                 selectionDataset->indices[i] = topScale._landmark_to_original_data_idx[i];
         }
         else
         {
             std::vector<unsigned int> globalIndices;
             inputDataset->getGlobalIndices(globalIndices);
-            for (int i = 0; i < numLandmarks; i++)
+            for (uint32_t i = 0; i < numLandmarks; i++)
                 selectionDataset->indices[i] = globalIndices[topScale._landmark_to_original_data_idx[i]];
         }
 
@@ -306,7 +306,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
                 std::vector<unsigned int> globalIndices;
                 _selectionHelperData->getGlobalIndices(globalIndices);
 
-                for (int i = 0; i < landmarkMap.size(); i++)
+                for (unsigned int i = 0; i < landmarkMap.size(); i++)
                 {
                     selectionMap[globalIndices[i]] = landmarkMap[i];
                 }
@@ -315,14 +315,14 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
             {
                 std::vector<unsigned int> globalIndices;
                 inputDataset->getGlobalIndices(globalIndices);
-                for (int i = 0; i < landmarkMap.size(); i++)
+                for (unsigned int i = 0; i < landmarkMap.size(); i++)
                 {
                     std::vector<unsigned int> bottomMap = landmarkMap[i];
-                    for (int j = 0; j < bottomMap.size(); j++)
+                    for (unsigned int j = 0; j < bottomMap.size(); j++)
                     {
                         bottomMap[j] = globalIndices[bottomMap[j]];
                     }
-                    int bottomLevelIdx = _hierarchy->getScale(topScaleIndex)._landmark_to_original_data_idx[i];
+                    auto bottomLevelIdx = _hierarchy->getScale(topScaleIndex)._landmark_to_original_data_idx[i];
                     selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
                 }
             }
