@@ -252,17 +252,17 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     datasetTask.setRunning();
 
     // Get the top scale of the HSNE hierarchy
-    int topScaleIndex = _hierarchy->getTopScale();
+    const int topScaleIndex = _hierarchy->getTopScale();
     Hsne::scale_type& topScale = _hierarchy->getScale(topScaleIndex);
     _hsneSettingsAction->getTopLevelScaleAction().setScale(topScaleIndex);
 
     _hierarchy->printScaleInfo();
 
     // Number of landmarks on the top scale
-    int numLandmarks = topScale.size();
+    const uint32_t numLandmarks = topScale.size();
 
     // Only create new selection helper if it does not exist yet
-    if (!_selectionHelperData.isValid())
+    if (!_selectionHelperData.isValid() && topScaleIndex > 0)
     {
         // Create a subset of the points corresponding to the top level HSNE landmarks,
         // Then derive the embedding from this subset
