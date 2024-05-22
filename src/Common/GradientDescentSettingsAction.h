@@ -3,6 +3,7 @@
 #include "actions/DecimalAction.h"
 #include "actions/GroupAction.h"
 #include "actions/IntegralAction.h"
+#include "actions/OptionAction.h"
 
 using namespace mv::gui;
 
@@ -30,6 +31,7 @@ public: // Action getters
     DecimalAction& getExaggerationFactorAction() { return _exaggerationFactorAction; };
     IntegralAction& getExaggerationIterAction() { return _exaggerationIterAction; };
     IntegralAction& getExponentialDecayAction() { return _exponentialDecayAction; };
+    OptionAction& getGadienDescentTypeAction() { return _gradienDescentTypeAction; };
 
 public: // Serialization
 
@@ -50,4 +52,5 @@ protected:
     DecimalAction           _exaggerationFactorAction;  /** Exaggeration factor action */
     IntegralAction          _exaggerationIterAction;    /** Exaggeration iteration action */
     IntegralAction          _exponentialDecayAction;    /** Exponential decay action */
+    OptionAction            _gradienDescentTypeAction;  /** GPU or CPU gradient descent */
 };

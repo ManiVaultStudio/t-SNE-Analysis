@@ -23,6 +23,7 @@ TsneWorker::TsneWorker(TsneParameters tsneParameters) :
     _probabilityDistribution(),
     _hasProbabilityDistribution(false),
     _GPGPU_tSNE(),
+    _CPU_tSNE(),
     _embedding(),
     _outEmbedding(),
     _offscreenBuffer(nullptr),
@@ -203,7 +204,7 @@ void TsneWorker::computeSimilarities()
     }
     
     qDebug() << "================================================================================";
-    qDebug() << "A-tSNE: Computed probability distribution: " << t / 1000 << " seconds";
+    qDebug() << "tSNE: Computed probability distribution: " << t / 1000 << " seconds";
     qDebug() << "--------------------------------------------------------------------------------";
 
     _tasks->getComputingSimilaritiesTask().setFinished();
@@ -219,36 +220,79 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
         emit embeddingUpdate(tsneData);
         };
 
+    auto initGPUTSNE = [this]() {
+        // Initialize offscreen buffer
+        double t_buffer = 0.0;
+        {
+            hdi::utils::ScopedTimer<double> timer(t_buffer);
+            _offscreenBuffer->bindContext();
+        }
+        qDebug() << "tSNE: Set up offscreen buffer in " << t_buffer / 1000 << " seconds.";
+
+        if (!_GPGPU_tSNE.isInitialized())
+        {
+            auto params = tsneParameters();
+
+            // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
+            if (_hasProbabilityDistribution)
+                _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
+            else
+                _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, params);
+
+            qDebug() << "A-tSNE (GPU): Exaggeration factor: " << params._exaggeration_factor << ", exaggeration iterations: " << params._remove_exaggeration_iter << ", exaggeration decay iter: " << params._exponential_decay_iter;
+        }
+    };
+
+    auto initCPUTSNE = [this]() {
+        if (!_CPU_tSNE.isInitialized())
+        {
+            auto params = tsneParameters();
+
+            double theta = std::min(0.5, std::max(0.0, (_numPoints - 1000.0) * 0.00005));
+            _CPU_tSNE.setTheta(theta);
+
+            // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
+            if (_hasProbabilityDistribution)
+                _CPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
+            else
+                _CPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, params);
+
+            qDebug() << "t-SNE (CPU, Barnes-Hut): Exaggeration factor: " << params._exaggeration_factor << ", exaggeration iterations: " << params._remove_exaggeration_iter << ", exaggeration decay iter: " << params._exponential_decay_iter << ", theta: " << theta;
+        }
+    };
+
+    auto initTSNE = [this, initGPUTSNE, initCPUTSNE, updateEmbedding]() {
+        double t_init = 0.0;
+        {
+            hdi::utils::ScopedTimer<double> timer(t_init);
+
+            if (_tsneParameters.getGradienDescentType() == GradienDescentType::GPU)
+                initGPUTSNE();
+            else
+                initCPUTSNE();
+
+            updateEmbedding(_outEmbedding);
+        }
+        qDebug() << "tSNE: Init t-SNE " << t_init / 1000 << " seconds.";
+    };
+
+    auto singleTSNEIteration = [this]() {
+        if (_tsneParameters.getGradienDescentType() == GradienDescentType::GPU)
+            _GPGPU_tSNE.doAnIteration();
+        else
+            _CPU_tSNE.doAnIteration();
+    };
+
+    auto gradientDescentCleanup = [this]() {
+        if (_tsneParameters.getGradienDescentType() == GradienDescentType::GPU)
+            _offscreenBuffer->releaseContext();
+        else
+            return; // Nothing to do for CPU implementation
+    };
+
     _tasks->getInitializeTsneTask().setRunning();
 
-    // Initialize offscreen buffer
-    double t_buffer = 0.0;
-    {
-        hdi::utils::ScopedTimer<double> timer(t_buffer);
-        _offscreenBuffer->bindContext();
-    }
-    qDebug() << "A-tSNE: Set up offscreen buffer in " << t_buffer / 1000 << " seconds.";
-
-    // Initialize GPGPU-SNE
-    double t_init = 0.0;
-    if (!_GPGPU_tSNE.isInitialized())
-    {
-        hdi::utils::ScopedTimer<double> timer(t_init);
-
-        auto params = tsneParameters();
-
-        // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
-        if (_hasProbabilityDistribution)
-            _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
-        else
-            _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, params);
-
-        qDebug() << "A-tSNE: Exaggeration factor: " << params._exaggeration_factor << ", exaggeration iterations: " << params._remove_exaggeration_iter << ", exaggeration decay iter: " << params._exponential_decay_iter;
-    }
-
-    updateEmbedding(_outEmbedding);
-
-    qDebug() << "A-tSNE: Init t-SNE " << t_init / 1000 << " seconds.";
+    initTSNE();
 
     _tasks->getInitializeTsneTask().setFinished();
 
@@ -258,7 +302,7 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
     double elapsed = 0;
     double t_grad = 0;
     {
-        qDebug() << "A-tSNE: Computing " << endIteration - beginIteration << " gradient descent iterations...";
+        qDebug() << "tSNE: Computing " << endIteration - beginIteration << " gradient descent iterations...";
 
         _tasks->getComputeGradientDescentTask().setRunning();
         _tasks->getComputeGradientDescentTask().setSubtasks(iterations);
@@ -272,8 +316,8 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
 
             hdi::utils::ScopedTimer<double> timer(t_grad);
 
-            // Perform a GPGPU-SNE iteration
-            _GPGPU_tSNE.doAnIteration();
+            // Perform t-SNE iteration
+            singleTSNEIteration();
 
             if (_currentIteration > 0 && _tsneParameters.getUpdateCore() > 0 && _currentIteration % _tsneParameters.getUpdateCore() == 0)
                 updateEmbedding(_outEmbedding);
@@ -294,7 +338,7 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
             QCoreApplication::processEvents();
         }
 
-        _offscreenBuffer->releaseContext();
+        gradientDescentCleanup();
 
         updateEmbedding(_outEmbedding);
 
@@ -302,7 +346,7 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
     }
 
     qDebug() << "--------------------------------------------------------------------------------";
-    qDebug() << "A-tSNE: Finished embedding in: " << elapsed / 1000 << " seconds, with " << _currentIteration << " total iterations (" << endIteration - beginIteration << " new iterations)";
+    qDebug() << "tSNE: Finished embedding in: " << elapsed / 1000 << " seconds, with " << _currentIteration << " total iterations (" << endIteration - beginIteration << " new iterations)";
     qDebug() << "================================================================================";
 
     emit finished();

@@ -6,6 +6,7 @@
 
 #include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h"
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
+#include "hdi/dimensionality_reduction/sparse_tsne_user_def_probabilities.h"
 #include "hdi/dimensionality_reduction/tsne_parameters.h"
 
 #include <Task.h>
@@ -40,6 +41,9 @@ private:
 class TsneWorker : public QObject
 {
     Q_OBJECT
+
+    using GradienDescentGPU = hdi::dr::GradientDescentTSNETexture;
+    using GradienDescentCPU = hdi::dr::SparseTSNEUserDefProbabilities<float>;
 
 private:
     // default construction is inaccessible to outsiders
@@ -97,7 +101,8 @@ private:
     std::vector<float>                      _data;                          /** High-dimensional input data */
     ProbDistMatrix                          _probabilityDistribution;       /** High-dimensional probability distribution encoding point similarities */
     bool                                    _hasProbabilityDistribution;    /** Check if the worker was initialized with a probability distribution or data */
-    hdi::dr::GradientDescentTSNETexture     _GPGPU_tSNE;                    /** GPGPU t-SNE gradient descent implementation */
+    GradienDescentGPU                       _GPGPU_tSNE;                    /** GPGPU t-SNE gradient descent implementation */
+    GradienDescentCPU                       _CPU_tSNE;                      /** CPU t-SNE gradient descent implementation */
     hdi::data::Embedding<float>             _embedding;                     /** Storage of current embedding */
     TsneData                                _outEmbedding;                  /** Transfer embedding data array */
     OffscreenBuffer*                        _offscreenBuffer;               /** Offscreen OpenGL buffer required to run the gradient descent */
