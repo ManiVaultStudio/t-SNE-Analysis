@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <limits>
 
 #include "nlohmann/json.hpp"
 
@@ -140,23 +141,21 @@ void HsneHierarchy::printScaleInfo() const
 
 void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, const mv::Dataset<Points>& outputData, const HsneParameters& parameters, const KnnParameters& knnParameters, std::vector<bool>&& enabledDimensions)
 {
-    // Convert our own HSNE parameters to the HDI parameters
-    _params = setParameters(parameters, knnParameters);
-
-    _saveHierarchyToDisk = parameters.getSaveHierarchyToDisk();
-
     // Save enabled dimensions and data set to retrieve data
     _inputData = inputData;
     _outputData = outputData;
     _enabledDimensions = std::move(enabledDimensions);
 
-    // Extract the enabled dimensions from the data
-    unsigned int numEnabledDimensions = count_if(_enabledDimensions.begin(), _enabledDimensions.end(), [](bool b) { return b; });
-
     // Get data and hierarchy info
     _numScales = parameters.getNumScales();
     _numPoints = _inputData->getNumPoints();
-    _numDimensions = numEnabledDimensions;
+    _numDimensions = count_if(_enabledDimensions.begin(), _enabledDimensions.end(), [](bool b) { return b; });
+
+    // Check if data is not too large
+    const std::uint64_t maxIndexProbdist = _numPoints * (parameters.getNumNearestNeighbors() + 1) * 1.5;   // could be max *2 due to symmetrization, but that's very unlikely
+    constexpr std::uint64_t maxUint32_t = std::numeric_limits<std::uint32_t>::max();
+    if (maxIndexProbdist >= maxUint32_t)
+        qWarning() << "(WARNING) HsneHierarchy: There will likely be integer overflows in the HSNE computation. Data is too large for current 32 bit implementation";
 
     // Check for source data file path
     std::string inputLoadPath = std::string();
@@ -187,6 +186,10 @@ void HsneHierarchy::setDataAndParameters(const mv::Dataset<Points>& inputData, c
     _inputDataName = _inputData->text().toStdString();
     _cachePathFileName = _cachePath / _inputDataName;
 
+    _saveHierarchyToDisk = parameters.getSaveHierarchyToDisk();
+
+    // Create data structures
+    _params = setParameters(parameters, knnParameters);
     _hsne = std::make_unique<Hsne>();
 }
 
