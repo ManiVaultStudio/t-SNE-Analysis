@@ -8,18 +8,26 @@
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
 #include "hdi/dimensionality_reduction/sparse_tsne_user_def_probabilities.h"
 #include "hdi/dimensionality_reduction/tsne_parameters.h"
+#include "hdi/utils/cout_log.h"
 
 #include <Task.h>
 
 #include <QThread>
 
 #include <optional>
-#include <string>
 #include <vector>
 
 class OffscreenBuffer;
 
-using ProbDistMatrix = hdi::dr::HDJointProbabilityGenerator<float>::sparse_scalar_matrix_type;
+using ProbDistMatrix      = std::vector<hdi::data::MapMemEff<std::uint32_t, float>>;
+using ProbDistGenerator   = hdi::dr::HDJointProbabilityGenerator<float, ProbDistMatrix>;
+using GradienDescentGPU   = hdi::dr::GradientDescentTSNETexture<float, ProbDistMatrix>;
+using GradienDescentCPU   = hdi::dr::SparseTSNEUserDefProbabilities<float, ProbDistMatrix>;
+
+using ProbDistMatrix64      = std::vector<hdi::data::MapMemEff<std::uint64_t, float>>;
+using ProbDistGenerator64   = hdi::dr::HDJointProbabilityGenerator<float, ProbDistMatrix64, std::uint64_t, std::int64_t>;
+using GradienDescentGPU64   = hdi::dr::GradientDescentTSNETexture<float, ProbDistMatrix64, std::uint64_t, std::int64_t>;
+using GradienDescentCPU64   = hdi::dr::SparseTSNEUserDefProbabilities<float, ProbDistMatrix64, std::uint64_t, std::int64_t>;
 
 class TsneWorkerTasks : public QObject
 {
@@ -42,9 +50,6 @@ class TsneWorker : public QObject
 {
     Q_OBJECT
 
-    using GradienDescentGPU = hdi::dr::GradientDescentTSNETexture;
-    using GradienDescentCPU = hdi::dr::SparseTSNEUserDefProbabilities<float>;
-
 private:
     // default construction is inaccessible to outsiders
     TsneWorker(TsneParameters tsneParameters);
@@ -54,9 +59,13 @@ public:
     // The tsne object will compute knn and a probablility distribution before starting the embedding, moving the input data
     TsneWorker(TsneParameters tsneParameters, KnnParameters knnParameters, std::vector<float>&& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
     // The tsne object expects a probDist that is not symmetrized, no knn are computed
-    TsneWorker(TsneParameters tsneParameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
+    TsneWorker(TsneParameters tsneParameters, const ProbDistMatrix& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
     // The tsne object expects a probDist that is not symmetrized, no knn are computed, moving the probDist
-    TsneWorker(TsneParameters tsneParameters, std::vector<hdi::data::MapMemEff<uint32_t, float>>&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
+    TsneWorker(TsneParameters tsneParameters, ProbDistMatrix&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
+    // The tsne object expects a probDist that is not symmetrized, no knn are computed
+    TsneWorker(TsneParameters tsneParameters, const ProbDistMatrix64& probDist64, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
+    // The tsne object expects a probDist that is not symmetrized, no knn are computed, moving the probDist
+    TsneWorker(TsneParameters tsneParameters, ProbDistMatrix64&& probDist64, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding);
     ~TsneWorker();
 
     void createTasks();
@@ -88,8 +97,10 @@ private:
     void copyEmbeddingOutput();
 
     hdi::dr::TsneParameters tsneParameters();
-    hdi::dr::HDJointProbabilityGenerator<float>::Parameters probGenParameters();
+    ProbDistGenerator::Parameters probGenParameters();
+    ProbDistGenerator64::Parameters probGenParameters64();
 
+    void check64bit();
     void resetThread();
 
 private:
@@ -100,12 +111,17 @@ private:
     uint32_t                                _numDimensions;                 /** Data variable */
     std::vector<float>                      _data;                          /** High-dimensional input data */
     ProbDistMatrix                          _probabilityDistribution;       /** High-dimensional probability distribution encoding point similarities */
+    ProbDistMatrix64                        _probabilityDistribution64;     /** High-dimensional probability distribution encoding point similarities, 64 bit */
     bool                                    _hasProbabilityDistribution;    /** Check if the worker was initialized with a probability distribution or data */
-    GradienDescentGPU                       _GPGPU_tSNE;                    /** GPGPU t-SNE gradient descent implementation */
-    GradienDescentCPU                       _CPU_tSNE;                      /** CPU t-SNE gradient descent implementation */
+    GradienDescentGPU                       _GPGPU_tSNE;                    /** GPGPU t-SNE gradient descent implementation, 32 bit */
+    GradienDescentGPU64                     _GPGPU_tSNE64;                  /** GPGPU t-SNE gradient descent implementation, 64 bit */
+    GradienDescentCPU                       _CPU_tSNE;                      /** CPU t-SNE gradient descent implementation, 32 bit */
+    GradienDescentCPU64                     _CPU_tSNE64;                    /** CPU t-SNE gradient descent implementation, 64 bit */
     hdi::data::Embedding<float>             _embedding;                     /** Storage of current embedding */
     TsneData                                _outEmbedding;                  /** Transfer embedding data array */
+    hdi::utils::CoutLog                     _logger;                        /** HDILib logger class */
     OffscreenBuffer*                        _offscreenBuffer;               /** Offscreen OpenGL buffer required to run the gradient descent */
+    bool                                    _use64BitImplementation;        /** Wheter to use 64 bit implementation for large data (cannot make use of compute shader) */
     bool                                    _shouldStop;                    /** Termination flags */
 
 private: 
@@ -123,9 +139,9 @@ public:
 public: // Interactions
     
     // Compute embedding based on pre-computed similarites
-    void startComputation(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding = nullptr, int iterations = -1);
+    void startComputation(TsneParameters parameters, const ProbDistMatrix& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding = nullptr, int iterations = -1);
     // Compute embedding based on pre-computed similarites, moves the input probDist
-    void startComputation(TsneParameters parameters, std::vector<hdi::data::MapMemEff<uint32_t, float>>&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding = nullptr, int iterations = -1);
+    void startComputation(TsneParameters parameters, ProbDistMatrix&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding = nullptr, int iterations = -1);
     // Compute similarities (aknn search) and embedding
     void startComputation(TsneParameters parameters, KnnParameters knnParameters, const std::vector<float>& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding = nullptr);
     // Compute similarities (aknn search) and embedding, moves the input data

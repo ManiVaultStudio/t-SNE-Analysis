@@ -306,7 +306,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
                 std::vector<unsigned int> globalIndices;
                 _selectionHelperData->getGlobalIndices(globalIndices);
 
-                for (unsigned int i = 0; i < landmarkMap.size(); i++)
+                for (size_t i = 0; i < landmarkMap.size(); i++)
                 {
                     selectionMap[globalIndices[i]] = landmarkMap[i];
                 }
@@ -315,14 +315,17 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
             {
                 std::vector<unsigned int> globalIndices;
                 inputDataset->getGlobalIndices(globalIndices);
-                for (unsigned int i = 0; i < landmarkMap.size(); i++)
+                for (size_t i = 0; i < landmarkMap.size(); i++)
                 {
-                    std::vector<unsigned int> bottomMap = landmarkMap[i];
-                    for (unsigned int j = 0; j < bottomMap.size(); j++)
-                    {
-                        bottomMap[j] = globalIndices[bottomMap[j]];
-                    }
-                    auto bottomLevelIdx = _hierarchy->getScale(topScaleIndex)._landmark_to_original_data_idx[i];
+                    const LandmarkMap::value_type& bottomMapGlobal = landmarkMap[i];
+                    mv::SelectionMap::Indices bottomMap;
+                    bottomMap.resize(bottomMapGlobal.size());
+
+#pragma omp parallel for
+                    for (int64_t j = 0; j < bottomMapGlobal.size(); j++)
+                        bottomMap[j] = static_cast<mv::SelectionMap::Indices::value_type>(globalIndices[bottomMapGlobal[j]]);
+
+                    int bottomLevelIdx = _hierarchy->getScale(topScaleIndex)._landmark_to_original_data_idx[i];
                     selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
                 }
             }

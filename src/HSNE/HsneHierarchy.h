@@ -14,8 +14,8 @@
 
 #include <QObject>
 
-using HsneMatrix = std::vector<hdi::data::MapMemEff<uint32_t, float>>;
-using Hsne = hdi::dr::HierarchicalSNE<float, HsneMatrix>;
+using HsneMatrix    = std::vector<hdi::data::MapMemEff<std::uint32_t, float>>;
+using Hsne          = hdi::dr::HierarchicalSNE<float, HsneMatrix>;
 
 class HsneParameters;
 class KnnParameters;
@@ -29,7 +29,7 @@ namespace mv {
     }
 }
 
-using LandmarkMap = std::vector<std::vector<unsigned int>>;
+using LandmarkMap = std::vector<std::vector<std::uint32_t>>;
 using Path = std::filesystem::path;
 
 /**
@@ -98,12 +98,12 @@ public:
      * Returns a map of landmark indices and influences on the previous scale in the hierarchy,
      * that are influenced by landmarks specified by their index in the current scale.
      */
-    void getInfluencedLandmarksInPreviousScale(int currentScale, std::vector<unsigned int> indices, std::map<uint32_t, float>& neighbors)
+    void getInfluencedLandmarksInPreviousScale(int currentScale, std::vector<std::uint32_t> indices, std::map<std::uint32_t, float>& neighbors)
     {
         _hsne->getInfluencedLandmarksInPreviousScale(currentScale, indices, neighbors);
     }
 
-    void getInfluenceOnDataPoint(unsigned int dataPointId, std::vector<std::unordered_map<unsigned int, float>>& influence, float thresh = 0, bool normalized = true)
+    void getInfluenceOnDataPoint(std::uint32_t dataPointId, std::vector<std::unordered_map<std::uint32_t, float>>& influence, float thresh = 0, bool normalized = true)
     {
         _hsne->getInfluenceOnDataPoint(dataPointId, influence, thresh, normalized);
     }
@@ -112,13 +112,15 @@ public:
      * Extract a subgraph with the selected indexes and the vertices connected to them by an edge with a weight higher then thresh
      * 
      */
-    void getTransitionMatrixForSelection(int currentScale, HsneMatrix& transitionMatrix, std::vector<uint32_t>& landmarkIdxs)
+    void getTransitionMatrixForSelection(int currentScale, HsneMatrix& transitionMatrix, std::vector<std::uint32_t>& landmarkIdxs)
     {
+        assert(currentScale > 0);
+
         // Get full transition matrix of the previous scale
-        HsneMatrix& fullTransitionMatrix = _hsne->scale(currentScale-1)._transition_matrix;
+        HsneMatrix& fullTransitionMatrix = _hsne->scale(static_cast<Hsne::unsigned_int_type>(currentScale) - 1)._transition_matrix;
 
         // Extract the selected subportion of the transition matrix
-        std::vector<unsigned int> dummy;
+        std::vector<std::uint32_t> dummy;
         hdi::utils::extractSubGraph(fullTransitionMatrix, landmarkIdxs, transitionMatrix, dummy, 1);
     }
 
@@ -128,26 +130,26 @@ public:
     int getNumPoints() const { return _numPoints; }
     int getNumDimensions() const { return _numDimensions; }
 
+protected:
     /** Save HSNE hierarchy from this class to disk */
-    void saveCacheHsne(const Hsne::Parameters& internalParams) const;
+    void saveCacheHsne() const;
 
     /** Load HSNE hierarchy from disk */
-    bool loadCache(const Hsne::Parameters& internalParams, hdi::utils::CoutLog& log);
+    bool loadCache(hdi::utils::CoutLog& log);
 
-protected:
     /** Save HsneHierarchy to disk */
     void saveCacheHsneHierarchy(std::string fileName) const;
     /** Save InfluenceHierarchy to disk */
     void saveCacheHsneInfluenceHierarchy(std::string fileName, const std::vector<LandmarkMap>& influenceHierarchy) const;
     /** Save HSNE parameters to disk */
-    void saveCacheParameters(std::string fileName, const Hsne::Parameters& internalParams) const;
+    void saveCacheParameters(std::string fileName) const;
 
     /** Load HsneHierarchy from disk */
     bool loadCacheHsneHierarchy(std::string fileName, hdi::utils::CoutLog& _log);
     /** Load InfluenceHierarchy from disk */
     bool loadCacheHsneInfluenceHierarchy(std::string fileName, std::vector<LandmarkMap>& influenceHierarchy);
     /** Check whether HSNE parameters of the cached values on disk correspond with the current settings */
-    bool checkCacheParameters(const std::string fileName, const Hsne::Parameters& params) const;
+    bool checkCacheParameters(const std::string fileName) const;
 
     void setIsInitialized(bool init) { _isInit = true; }
 
@@ -164,7 +166,8 @@ private:
     int                     _numScales = 1;
     unsigned int            _numPoints = 0;
     unsigned int            _numDimensions = 0;
-    Hsne::Parameters        _params;
+    
+    Hsne::Parameters        _params = {};
     bool                    _isInit = false;
 
     Path                    _cachePath;                            /** Path for saving and loading cache */
