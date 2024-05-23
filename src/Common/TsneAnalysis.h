@@ -118,7 +118,7 @@ private:
     GradienDescentCPU64                     _CPU_tSNE64;                    /** CPU t-SNE gradient descent implementation, 64 bit */
     hdi::data::Embedding<float>             _embedding;                     /** Storage of current embedding */
     TsneData                                _outEmbedding;                  /** Transfer embedding data array */
-    hdi::utils::CoutLog                     _logger;
+    hdi::utils::CoutLog                     _logger;                        /** HDILib logger class */
     OffscreenBuffer*                        _offscreenBuffer;               /** Offscreen OpenGL buffer required to run the gradient descent */
     bool                                    _use64BitImplementation;        /** Wheter to use 64 bit implementation for large data (cannot make use of compute shader) */
     bool                                    _shouldStop;                    /** Termination flags */
