@@ -56,6 +56,8 @@ TsneWorker::TsneWorker(TsneParameters tsneParameters, KnnParameters knnParameter
     _data = data;
     _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
 
+    check64bit();
+
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
 }
@@ -69,6 +71,8 @@ TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, s
     _numDimensions = numDimensions;
     _data = std::move(data);
     _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+
+    check64bit();
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -237,6 +241,13 @@ ProbDistGenerator64::Parameters TsneWorker::probGenParameters64()
     return probGenParams;
 }
 
+void TsneWorker::check64bit()
+{
+    const std::uint64_t maxIndexProbdist = _numPoints * (_tsneParameters.getPerplexity() * 3 + 1) * 1.5;   // could be max *2 due to symmetrization, but that's very unlikely
+    constexpr std::uint64_t maxUint32_t = std::numeric_limits<std::uint32_t>::max();
+    _use64BitImplementation = maxIndexProbdist >= maxUint32_t;
+}
+
 void TsneWorker::computeSimilarities()
 {
     assert(_data.size() == static_cast<size_t>(_numDimensions) * _numPoints);
@@ -247,10 +258,6 @@ void TsneWorker::computeSimilarities()
     {
         hdi::utils::ScopedTimer<double> timer(t);
 
-        const std::uint64_t maxIndexProbdist = _numPoints * (_tsneParameters.getPerplexity() * 3 + 1) * 1.5;   // could be max *2 due to symmetrization, but that's very unlikely
-        constexpr std::uint64_t maxUint32_t = std::numeric_limits<std::uint32_t>::max();
-        _use64BitImplementation = maxIndexProbdist >= maxUint32_t;
-
         _probabilityDistribution.clear();
         _probabilityDistribution64.clear();
 
@@ -258,6 +265,8 @@ void TsneWorker::computeSimilarities()
 
         if (_use64BitImplementation)
         {
+            qDebug() << "Using 64 bit implementation";
+
             _probabilityDistribution64.resize(_numPoints);
 
             ProbDistGenerator64 probabilityGenerator;

@@ -100,6 +100,7 @@ private:
     ProbDistGenerator::Parameters probGenParameters();
     ProbDistGenerator64::Parameters probGenParameters64();
 
+    void check64bit();
     void resetThread();
 
 private:
