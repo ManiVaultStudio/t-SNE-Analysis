@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <limits>
 #include <vector>
 
 #include <QCoreApplication>
@@ -22,13 +23,14 @@ TsneWorker::TsneWorker(TsneParameters tsneParameters) :
     _numDimensions(0),
     _data(),
     _probabilityDistribution(),
+    _probabilityDistribution64(),
     _hasProbabilityDistribution(false),
     _GPGPU_tSNE(),
     _CPU_tSNE(),
     _embedding(),
     _outEmbedding(),
     _offscreenBuffer(nullptr),
-    _supportsGPU64(false),
+    _use64BitImplementation(false),
     _shouldStop(false),
     _logger(),
     _parentTask(nullptr),
@@ -39,6 +41,9 @@ TsneWorker::TsneWorker(TsneParameters tsneParameters) :
 
     _GPGPU_tSNE.setLogger(&_logger);
     _CPU_tSNE.setLogger(&_logger);
+
+    _GPGPU_tSNE64.setLogger(&_logger);
+    _CPU_tSNE64.setLogger(&_logger);
 }
 
 TsneWorker::TsneWorker(TsneParameters tsneParameters, KnnParameters knnParameters, const std::vector<float>& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
@@ -85,6 +90,33 @@ TsneWorker::TsneWorker(TsneParameters parameters, ProbDistMatrix&& probDist, uin
     TsneWorker(parameters)
 {
     _probabilityDistribution = std::move(probDist);
+    _hasProbabilityDistribution = true;
+    _numPoints = numPoints;
+    _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+    _tsneParameters.setExaggerationFactor(4 + _numPoints / 60000.0);
+
+    if (initEmbedding)
+        setInitEmbedding(*initEmbedding);
+}
+
+TsneWorker::TsneWorker(TsneParameters parameters, const ProbDistMatrix64& probDist64, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
+    TsneWorker(parameters)
+{
+    _probabilityDistribution64 = probDist64;
+    _use64BitImplementation = true;
+    _hasProbabilityDistribution = true;
+    _numPoints = numPoints;
+    _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+
+    if (initEmbedding)
+        setInitEmbedding(*initEmbedding);
+}
+
+TsneWorker::TsneWorker(TsneParameters parameters, ProbDistMatrix64&& probDist64, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
+    TsneWorker(parameters)
+{
+    _probabilityDistribution64 = std::move(probDist64);
+    _use64BitImplementation = true;
     _hasProbabilityDistribution = true;
     _numPoints = numPoints;
     _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
@@ -189,6 +221,22 @@ ProbDistGenerator::Parameters TsneWorker::probGenParameters()
     return probGenParams;
 }
 
+ProbDistGenerator64::Parameters TsneWorker::probGenParameters64()
+{
+    ProbDistGenerator64::Parameters probGenParams;
+
+    probGenParams._perplexity               = _tsneParameters.getPerplexity();
+    probGenParams._perplexity_multiplier    = 3;
+    probGenParams._num_trees                = _knnParameters.getAnnoyNumTrees();
+    probGenParams._num_checks               = _knnParameters.getAnnoyNumChecks();
+    probGenParams._aknn_algorithmP1         = _knnParameters.getHNSWm();
+    probGenParams._aknn_algorithmP2         = _knnParameters.getHNSWef();
+    probGenParams._aknn_algorithm           = _knnParameters.getKnnAlgorithm();
+    probGenParams._aknn_metric              = _knnParameters.getKnnDistanceMetric();
+
+    return probGenParams;
+}
+
 void TsneWorker::computeSimilarities()
 {
     assert(_data.size() == static_cast<size_t>(_numDimensions) * _numPoints);
@@ -199,16 +247,34 @@ void TsneWorker::computeSimilarities()
     {
         hdi::utils::ScopedTimer<double> timer(t);
 
+        const std::uint64_t maxIndexProbdist = _numPoints * (_tsneParameters.getPerplexity() * 3 + 1) * 1.5;   // could be max *2 due to symmetrization, but that's very unlikely
+        constexpr std::uint64_t maxUint32_t = std::numeric_limits<std::uint32_t>::max();
+        _use64BitImplementation = maxIndexProbdist >= maxUint32_t;
+
         _probabilityDistribution.clear();
-        _probabilityDistribution.resize(_numPoints);
-        qDebug() << "Sparse matrix allocated.";
-
-        ProbDistGenerator probabilityGenerator;
-
-        probabilityGenerator.setLogger(&_logger);
+        _probabilityDistribution64.clear();
 
         qDebug() << "Computing high dimensional probability distributions: Num dims: " << _numDimensions << " Num data points: " << _numPoints;
-        probabilityGenerator.computeJointProbabilityDistribution(_data.data(), _numDimensions, _numPoints, _probabilityDistribution, probGenParameters());         // The _probabilityDistribution is symmetrized here.
+
+        if (_use64BitImplementation)
+        {
+            _probabilityDistribution64.resize(_numPoints);
+
+            ProbDistGenerator64 probabilityGenerator;
+            probabilityGenerator.setLogger(&_logger);
+            // The _probabilityDistribution is symmetrized here.
+            probabilityGenerator.computeJointProbabilityDistribution(_data.data(), _numDimensions, _numPoints, _probabilityDistribution64, probGenParameters64());
+        }
+        else
+        {
+            _probabilityDistribution.resize(_numPoints);
+
+            ProbDistGenerator probabilityGenerator;
+            probabilityGenerator.setLogger(&_logger);
+            // The _probabilityDistribution is symmetrized here.
+            probabilityGenerator.computeJointProbabilityDistribution(_data.data(), _numDimensions, _numPoints, _probabilityDistribution, probGenParameters());
+        }
+
     }
     
     qDebug() << "================================================================================";
@@ -228,54 +294,34 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
         emit embeddingUpdate(tsneData);
         };
 
-    // Compute shaders only works with 64-bit integers if the GL_ARB_gpu_shader_int64 extension is available 
-    auto checkGpu64Support = [this]() {
-#ifndef __APPLE__
-        const GLubyte* glExtensions = glGetString(GL_EXTENSIONS);
-        _supportsGPU64 = std::strstr((const char*)glExtensions, "GL_ARB_gpu_shader_int64") != nullptr;
-#else        
-        _supportsGPU64 = true;
-#endif
-    };
-
-    auto initGPUTSNE = [this, checkGpu64Support]() {
+    auto initGPUTSNE = [this]() {
         // Initialize offscreen buffer
         double t_buffer = 0.0;
         {
             hdi::utils::ScopedTimer<double> timer(t_buffer);
             _offscreenBuffer->bindContext();
-
-            checkGpu64Support();
         }
         qDebug() << "tSNE: Set up offscreen buffer in " << t_buffer / 1000 << " seconds.";
 
-        auto params = tsneParameters();
+        const auto params = tsneParameters();
 
-        if (_supportsGPU64 && !_GPGPU_tSNE.isInitialized())
+        if (!_GPGPU_tSNE.isInitialized())
         {
             // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
-            if (_hasProbabilityDistribution)
-                _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
+            if (_use64BitImplementation)
+            {
+                if (_hasProbabilityDistribution)
+                    _GPGPU_tSNE64.initialize(_probabilityDistribution64, &_embedding, params);
+                else
+                    _GPGPU_tSNE64.initializeWithJointProbabilityDistribution(_probabilityDistribution64, &_embedding, params);
+            }
             else
-                _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, params);
-
-        }
-        else if (!_GPGPU_tSNE32.isInitialized())
-        {
-            qDebug() << "TsneWorker:: This GPU does not support 64-bit integers, transforming prob dist to 32-bit integers...";
-            ProbDistMatrix32 probabilityDistribution32;
-            probabilityDistribution32.resize(_probabilityDistribution.size());
-
-#pragma omp parallel for
-            for (std::int64_t i = 0; i < _probabilityDistribution.size(); i++)
-                for (const auto& elem : _probabilityDistribution[i])
-                    probabilityDistribution32[i][static_cast<std::uint32_t>(elem.first)] = elem.second;
-
-            // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
-            if (_hasProbabilityDistribution)
-                _GPGPU_tSNE32.initialize(probabilityDistribution32, &_embedding, params);
-            else
-                _GPGPU_tSNE32.initializeWithJointProbabilityDistribution(probabilityDistribution32, &_embedding, params);
+            {
+                if (_hasProbabilityDistribution)
+                    _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
+                else
+                    _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, params);
+            }
 
         }
 
@@ -289,13 +335,27 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
             auto params = tsneParameters();
 
             double theta = std::min(0.5, std::max(0.0, (_numPoints - 1000.0) * 0.00005));
-            _CPU_tSNE.setTheta(theta);
 
             // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
-            if (_hasProbabilityDistribution)
-                _CPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
-            else
-                _CPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, params);
+
+            if (_use64BitImplementation)
+            {
+                _CPU_tSNE64.setTheta(theta);
+
+                if (_hasProbabilityDistribution)
+                    _CPU_tSNE64.initialize(_probabilityDistribution64, &_embedding, params);
+                else
+                    _CPU_tSNE64.initializeWithJointProbabilityDistribution(_probabilityDistribution64, &_embedding, params);
+            }
+            else 
+            {
+                _CPU_tSNE.setTheta(theta);
+
+                if (_hasProbabilityDistribution)
+                    _CPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
+                else
+                    _CPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, params);
+            }
 
             qDebug() << "t-SNE (CPU, Barnes-Hut): Exaggeration factor: " << params._exaggeration_factor << ", exaggeration iterations: " << params._remove_exaggeration_iter << ", exaggeration decay iter: " << params._exponential_decay_iter << ", theta: " << theta;
         }
@@ -319,13 +379,18 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
     auto singleTSNEIteration = [this]() {
         if (_tsneParameters.getGradienDescentType() == GradienDescentType::GPU)
         {
-            if (_supportsGPU64)
-                _GPGPU_tSNE.doAnIteration();
+            if (_use64BitImplementation)
+                _GPGPU_tSNE64.doAnIteration();
             else
-                _GPGPU_tSNE32.doAnIteration();
+                _GPGPU_tSNE.doAnIteration();
         }
         else
-            _CPU_tSNE.doAnIteration();
+        {
+            if (_use64BitImplementation)
+                _CPU_tSNE64.doAnIteration();
+            else
+                _CPU_tSNE.doAnIteration();
+        }
     };
 
     auto gradientDescentCleanup = [this]() {
