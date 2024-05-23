@@ -209,7 +209,7 @@ void HsneHierarchy::initialize()
     hdi::utils::CoutLog log;
 
     // Check of hsne data can be loaded from cache on disk, otherwise compute hsne hierarchy
-    bool hsneLoadedFromCache = loadCache(_params, log);
+    bool hsneLoadedFromCache = loadCache(log);
     if (hsneLoadedFromCache == false) {
         std::cout << "Initializing HSNE hierarchy" << std::endl;
 
@@ -252,7 +252,7 @@ void HsneHierarchy::initialize()
         if(_saveHierarchyToDisk)
         {
             _parentTask->setProgress(.9f, "Save to disk");
-            saveCacheHsne(_params);
+            saveCacheHsne();
         }
 
     }
@@ -264,7 +264,7 @@ void HsneHierarchy::initialize()
 }
 
 
-void HsneHierarchy::saveCacheHsne(const Hsne::Parameters& internalParams) const {
+void HsneHierarchy::saveCacheHsne() const {
     if (!_hsne) return; // only save if initialize() has been called
 
     if (!std::filesystem::exists(_cachePath))
@@ -274,7 +274,7 @@ void HsneHierarchy::saveCacheHsne(const Hsne::Parameters& internalParams) const 
 
     saveCacheHsneHierarchy(_cachePathFileName.string() + _HIERARCHY_CACHE_EXTENSION_);
     saveCacheHsneInfluenceHierarchy(_cachePathFileName.string() + _INFLUENCE_TOPDOWN_CACHE_EXTENSION_, _influenceHierarchy.getMap());
-    saveCacheParameters(_cachePathFileName.string() + _PARAMETERS_CACHE_EXTENSION_, internalParams);
+    saveCacheParameters(_cachePathFileName.string() + _PARAMETERS_CACHE_EXTENSION_);
 }
 
 void HsneHierarchy::saveCacheHsneHierarchy(std::string fileName) const {
@@ -305,7 +305,7 @@ void HsneHierarchy::saveCacheHsneInfluenceHierarchy(std::string fileName, const 
         return;
     }
 
-    size_t iSize = influenceHierarchy.size();
+    const size_t iSize = influenceHierarchy.size();
 
     saveFile.write((const char*)&iSize, sizeof(decltype(iSize)));
     for (size_t i = 0; i < iSize; i++)
@@ -327,7 +327,7 @@ void HsneHierarchy::saveCacheHsneInfluenceHierarchy(std::string fileName, const 
 }
 
 
-void HsneHierarchy::saveCacheParameters(std::string fileName, const Hsne::Parameters& internalParams) const {
+void HsneHierarchy::saveCacheParameters(std::string fileName) const {
     std::cout << "Writing " + fileName << std::endl;
 
     std::ofstream saveFile(fileName, std::ios::out | std::ios::trunc);
@@ -348,26 +348,26 @@ void HsneHierarchy::saveCacheParameters(std::string fileName, const Hsne::Parame
 
     parameters["Number of Scales"] = _numScales;
 
-    parameters["Knn library"] = internalParams._aknn_algorithm;
-    parameters["Knn distance metric"] = internalParams._aknn_metric;
-    parameters["Knn number of neighbors"] = internalParams._num_neighbors;
+    parameters["Knn library"] = _params._aknn_algorithm;
+    parameters["Knn distance metric"] = _params._aknn_metric;
+    parameters["Knn number of neighbors"] = _params._num_neighbors;
 
-    parameters["Nr. Checks in AKNN"] = internalParams._aknn_num_checks;
-    parameters["Nr. Trees for AKNN"] = internalParams._aknn_num_trees;
-    parameters["HNSW Param 1"] = internalParams._aknn_algorithmP1;
-    parameters["HNSW Param 2"] = internalParams._aknn_algorithmP2;
+    parameters["Nr. Checks in AKNN"] = _params._aknn_num_checks;
+    parameters["Nr. Trees for AKNN"] = _params._aknn_num_trees;
+    parameters["HNSW Param 1"] = _params._aknn_algorithmP1;
+    parameters["HNSW Param 2"] = _params._aknn_algorithmP2;
 
-    parameters["Memory preserving computation"] = internalParams._out_of_core_computation;
-    parameters["Nr. RW for influence"] = internalParams._num_walks_per_landmark;
-    parameters["Nr. RW for Monte Carlo"] = internalParams._mcmcs_num_walks;
-    parameters["Random walks threshold"] = internalParams._mcmcs_landmark_thresh;
-    parameters["Random walks length"] = internalParams._mcmcs_walk_length;
-    parameters["Pruning threshold"] = internalParams._transition_matrix_prune_thresh;
-    parameters["Fixed Percentile Landmark Selection"] = internalParams._hard_cut_off;
-    parameters["Percentile Landmark Selection"] = internalParams._hard_cut_off_percentage;
+    parameters["Memory preserving computation"] = _params._out_of_core_computation;
+    parameters["Nr. RW for influence"] = _params._num_walks_per_landmark;
+    parameters["Nr. RW for Monte Carlo"] = _params._mcmcs_num_walks;
+    parameters["Random walks threshold"] = _params._mcmcs_landmark_thresh;
+    parameters["Random walks length"] = _params._mcmcs_walk_length;
+    parameters["Pruning threshold"] = _params._transition_matrix_prune_thresh;
+    parameters["Fixed Percentile Landmark Selection"] = _params._hard_cut_off;
+    parameters["Percentile Landmark Selection"] = _params._hard_cut_off_percentage;
 
-    parameters["Seed for random algorithms"] = internalParams._seed;
-    parameters["Select landmarks with a MCMCS"] = internalParams._monte_carlo_sampling;
+    parameters["Seed for random algorithms"] = _params._seed;
+    parameters["Select landmarks with a MCMCS"] = _params._monte_carlo_sampling;
 
     // Write to file
     saveFile << std::setw(4) << parameters << std::endl;
@@ -375,7 +375,7 @@ void HsneHierarchy::saveCacheParameters(std::string fileName, const Hsne::Parame
 }
 
 
-bool HsneHierarchy::loadCache(const Hsne::Parameters& internalParams, hdi::utils::CoutLog& log) {
+bool HsneHierarchy::loadCache(hdi::utils::CoutLog& log) {
     if (!_saveHierarchyToDisk)
         return false;
 
@@ -394,7 +394,7 @@ bool HsneHierarchy::loadCache(const Hsne::Parameters& internalParams, hdi::utils
         }
     }
 
-    if (!checkCacheParameters(pathParameter, internalParams))
+    if (!checkCacheParameters(pathParameter))
     {
         std::cout << "Loading cache failed: Current settings are different from cached parameters." << std::endl;
         return false;
@@ -478,7 +478,7 @@ bool HsneHierarchy::loadCacheHsneInfluenceHierarchy(std::string fileName, std::v
 
 }
 
-bool HsneHierarchy::checkCacheParameters(const std::string fileName, const Hsne::Parameters& params) const {
+bool HsneHierarchy::checkCacheParameters(const std::string fileName) const {
     if (!_hsne) return false;
 
     std::ifstream loadFile(fileName.c_str(), std::ios::in);
@@ -517,26 +517,26 @@ bool HsneHierarchy::checkCacheParameters(const std::string fileName, const Hsne:
 
     if (!checkParam("Number of Scales", _numScales)) return false;
 
-    if (!checkParam("Knn library", params._aknn_algorithm)) return false;
-    if (!checkParam("Knn distance metric", params._aknn_metric)) return false;
-    if (!checkParam("Knn number of neighbors", params._num_neighbors)) return false;
+    if (!checkParam("Knn library", _params._aknn_algorithm)) return false;
+    if (!checkParam("Knn distance metric", _params._aknn_metric)) return false;
+    if (!checkParam("Knn number of neighbors", _params._num_neighbors)) return false;
 
-    if (!checkParam("Nr. Checks in AKNN", params._aknn_num_checks)) return false;
-    if (!checkParam("Nr. Trees for AKNN", params._aknn_num_trees)) return false;
-    if (!checkParam("HNSW Param 1", params._aknn_algorithmP1)) return false;
-    if (!checkParam("HNSW Param 2", params._aknn_algorithmP2)) return false;
+    if (!checkParam("Nr. Checks in AKNN", _params._aknn_num_checks)) return false;
+    if (!checkParam("Nr. Trees for AKNN", _params._aknn_num_trees)) return false;
+    if (!checkParam("HNSW Param 1", _params._aknn_algorithmP1)) return false;
+    if (!checkParam("HNSW Param 2", _params._aknn_algorithmP2)) return false;
 
-    if (!checkParam("Memory preserving computation", params._out_of_core_computation)) return false;
-    if (!checkParam("Nr. RW for influence", params._num_walks_per_landmark)) return false;
-    if (!checkParam("Nr. RW for Monte Carlo", params._mcmcs_num_walks)) return false;
-    if (!checkParam("Random walks threshold", params._mcmcs_landmark_thresh)) return false;
-    if (!checkParam("Random walks length", params._mcmcs_walk_length)) return false;
-    if (!checkParam("Pruning threshold", params._transition_matrix_prune_thresh)) return false;
-    if (!checkParam("Fixed Percentile Landmark Selection", params._hard_cut_off)) return false;
-    if (!checkParam("Percentile Landmark Selection", params._hard_cut_off_percentage)) return false;
+    if (!checkParam("Memory preserving computation", _params._out_of_core_computation)) return false;
+    if (!checkParam("Nr. RW for influence", _params._num_walks_per_landmark)) return false;
+    if (!checkParam("Nr. RW for Monte Carlo", _params._mcmcs_num_walks)) return false;
+    if (!checkParam("Random walks threshold", _params._mcmcs_landmark_thresh)) return false;
+    if (!checkParam("Random walks length", _params._mcmcs_walk_length)) return false;
+    if (!checkParam("Pruning threshold", _params._transition_matrix_prune_thresh)) return false;
+    if (!checkParam("Fixed Percentile Landmark Selection", _params._hard_cut_off)) return false;
+    if (!checkParam("Percentile Landmark Selection", _params._hard_cut_off_percentage)) return false;
 
-    if (!checkParam("Seed for random algorithms", params._seed)) return false;
-    if (!checkParam("Select landmarks with a MCMCS", params._monte_carlo_sampling)) return false;
+    if (!checkParam("Seed for random algorithms", _params._seed)) return false;
+    if (!checkParam("Select landmarks with a MCMCS", _params._monte_carlo_sampling)) return false;
 
     std::cout << "Parameters of cache correspond to current settings." << std::endl;
 

@@ -130,26 +130,26 @@ public:
     int getNumPoints() const { return _numPoints; }
     int getNumDimensions() const { return _numDimensions; }
 
+protected:
     /** Save HSNE hierarchy from this class to disk */
-    void saveCacheHsne(const Hsne::Parameters& internalParams) const;
+    void saveCacheHsne() const;
 
     /** Load HSNE hierarchy from disk */
-    bool loadCache(const Hsne::Parameters& internalParams, hdi::utils::CoutLog& log);
+    bool loadCache(hdi::utils::CoutLog& log);
 
-protected:
     /** Save HsneHierarchy to disk */
     void saveCacheHsneHierarchy(std::string fileName) const;
     /** Save InfluenceHierarchy to disk */
     void saveCacheHsneInfluenceHierarchy(std::string fileName, const std::vector<LandmarkMap>& influenceHierarchy) const;
     /** Save HSNE parameters to disk */
-    void saveCacheParameters(std::string fileName, const Hsne::Parameters& internalParams) const;
+    void saveCacheParameters(std::string fileName) const;
 
     /** Load HsneHierarchy from disk */
     bool loadCacheHsneHierarchy(std::string fileName, hdi::utils::CoutLog& _log);
     /** Load InfluenceHierarchy from disk */
     bool loadCacheHsneInfluenceHierarchy(std::string fileName, std::vector<LandmarkMap>& influenceHierarchy);
     /** Check whether HSNE parameters of the cached values on disk correspond with the current settings */
-    bool checkCacheParameters(const std::string fileName, const Hsne::Parameters& params) const;
+    bool checkCacheParameters(const std::string fileName) const;
 
     void setIsInitialized(bool init) { _isInit = true; }
 
@@ -166,7 +166,8 @@ private:
     int                     _numScales = 1;
     unsigned int            _numPoints = 0;
     unsigned int            _numDimensions = 0;
-    Hsne::Parameters        _params;
+    
+    Hsne::Parameters        _params = {};
     bool                    _isInit = false;
 
     Path                    _cachePath;                            /** Path for saving and loading cache */
