@@ -308,17 +308,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
                 for (size_t i = 0; i < landmarkMap.size(); i++)
                 {
-                    const LandmarkMap::value_type& bottomMapGlobal = landmarkMap[i];
-                    mv::SelectionMap::Indices bottomMap;
-                    bottomMap.resize(bottomMapGlobal.size());
-
-                    // cast from 64int to 32 int
-#pragma omp parallel for
-                    for (int64_t j = 0; j < bottomMapGlobal.size(); j++)
-                        bottomMap[j] = static_cast<mv::SelectionMap::Indices::value_type>(bottomMapGlobal[j]);
-
-
-                    selectionMap[globalIndices[i]] = bottomMap;
+                    selectionMap[globalIndices[i]] = landmarkMap[i];
                 }
             }
             else

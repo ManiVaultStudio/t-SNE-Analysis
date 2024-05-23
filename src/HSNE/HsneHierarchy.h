@@ -14,7 +14,7 @@
 
 #include <QObject>
 
-using HsneMatrix    = std::vector<hdi::data::MapMemEff<std::uint64_t, float>>;
+using HsneMatrix    = std::vector<hdi::data::MapMemEff<std::uint32_t, float>>;
 using Hsne          = hdi::dr::HierarchicalSNE<float, HsneMatrix>;
 
 class HsneParameters;
@@ -29,7 +29,7 @@ namespace mv {
     }
 }
 
-using LandmarkMap = std::vector<std::vector<std::uint64_t>>;
+using LandmarkMap = std::vector<std::vector<std::uint32_t>>;
 using Path = std::filesystem::path;
 
 /**
@@ -98,12 +98,12 @@ public:
      * Returns a map of landmark indices and influences on the previous scale in the hierarchy,
      * that are influenced by landmarks specified by their index in the current scale.
      */
-    void getInfluencedLandmarksInPreviousScale(int currentScale, std::vector<std::uint64_t> indices, std::map<std::uint64_t, float>& neighbors)
+    void getInfluencedLandmarksInPreviousScale(int currentScale, std::vector<std::uint32_t> indices, std::map<std::uint32_t, float>& neighbors)
     {
         _hsne->getInfluencedLandmarksInPreviousScale(currentScale, indices, neighbors);
     }
 
-    void getInfluenceOnDataPoint(std::uint64_t dataPointId, std::vector<std::unordered_map<std::uint64_t, float>>& influence, float thresh = 0, bool normalized = true)
+    void getInfluenceOnDataPoint(std::uint32_t dataPointId, std::vector<std::unordered_map<std::uint32_t, float>>& influence, float thresh = 0, bool normalized = true)
     {
         _hsne->getInfluenceOnDataPoint(dataPointId, influence, thresh, normalized);
     }
@@ -112,7 +112,7 @@ public:
      * Extract a subgraph with the selected indexes and the vertices connected to them by an edge with a weight higher then thresh
      * 
      */
-    void getTransitionMatrixForSelection(int currentScale, HsneMatrix& transitionMatrix, std::vector<uint32_t>& landmarkIdxs)
+    void getTransitionMatrixForSelection(int currentScale, HsneMatrix& transitionMatrix, std::vector<std::uint32_t>& landmarkIdxs)
     {
         assert(currentScale > 0);
 

@@ -9,8 +9,6 @@
 
 #include <PointData/InfoAction.h>
 
-#include <limits>
-
 #include <QMenu>
 
 #ifdef _DEBUG
@@ -235,7 +233,7 @@ void HsneScaleAction::refine()
     _embedding->selectedLocalIndices(selection->indices, selectedLocalIndices);
 
     // Transform local indices to scale relative indices
-    std::vector<std::uint64_t> selectedLandmarks; // Selected indices relative to scale
+    std::vector<std::uint32_t> selectedLandmarks; // Selected indices relative to scale
     for (size_t i = 0; i < selectedLocalIndices.size(); i++)
     {
         if (selectedLocalIndices[i])
@@ -245,7 +243,7 @@ void HsneScaleAction::refine()
     }
     
     // Find the points in the previous level corresponding to selected landmarks
-    std::map<std::uint64_t, float> neighbors;
+    std::map<std::uint32_t, float> neighbors;
     _hsneHierarchy.getInfluencedLandmarksInPreviousScale(_currentScaleLevel, selectedLandmarks, neighbors);
 
     // Threshold neighbours with enough influence, these represent the indices of the refined points relative to their HSNE scale
@@ -344,17 +342,8 @@ void HsneScaleAction::refine()
         {
             for (const unsigned int& scaleIndex : refinedLandmarks)
             {
-                const LandmarkMap::value_type& bottomMapGlobal = landmarkMap[scaleIndex];
-                mv::SelectionMap::Indices bottomMap;
-                bottomMap.resize(bottomMapGlobal.size());
-
-                // cast from 64int to 32 int
-#pragma omp parallel for
-                for (int64_t j = 0; j < bottomMapGlobal.size(); j++)
-                    bottomMap[j] = static_cast<mv::SelectionMap::Indices::value_type>(bottomMapGlobal[j]);
-
                 int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
-                selectionMap[bottomLevelIdx] = bottomMap;
+                selectionMap[bottomLevelIdx] = landmarkMap[scaleIndex];
             }
         }
         else
@@ -371,7 +360,7 @@ void HsneScaleAction::refine()
                 // Transform bottom level indices to the global full set indices
 #pragma omp parallel for
                 for (int64_t j = 0; j < bottomMapGlobal.size(); j++)
-                    bottomMap[j] = static_cast<mv::SelectionMap::Indices::value_type>(globalIndices[bottomMapGlobal[j]]);
+                    bottomMap[j] = globalIndices[bottomMap[j]];
 
                 int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
                 selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
