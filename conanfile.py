@@ -75,7 +75,7 @@ class SNEAnalysesConan(ConanFile):
 
     def requirements(self):
         #if os.environ.get("CONAN_REQUIRE_HDILIB", None) is not None:
-        #    self.requires("HDILib/1.2.6@biovault/stable")
+        #    self.requires("HDILib/1.3.0@biovault/stable")
         branch_info = PluginBranchInfo(self.__get_git_path())
         print(f"Core requirement {branch_info.core_requirement}")
         self.requires(branch_info.core_requirement)

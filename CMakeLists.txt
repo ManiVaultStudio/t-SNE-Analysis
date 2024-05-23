@@ -61,7 +61,7 @@ include(InstallArtifactoryPackage)
 if (USE_ARTIFACTORY_LIBS AND NOT ARTIFACTORY_LIBS_INSTALLED) 
     message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
-    set(HDILib_VERSION 1.2.7)
+    set(HDILib_VERSION 1.3.0)
     set(flann_VERSION 1.9.2)
     set(lz4_VERSION 1.9.3)
 
