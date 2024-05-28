@@ -6,6 +6,7 @@
 #include <PointData/InfoAction.h>
 #include <PointData/PointData.h>
 
+#include <event/Event.h>
 #include <util/Icon.h>
 
 #include <actions/PluginTriggerAction.h>
@@ -59,7 +60,7 @@ void TsneAnalysisPlugin::init()
 
     auto outputDataset = getOutputDataset<Points>();
 
-    _tsneSettingsAction = new TsneSettingsAction(this);
+    _tsneSettingsAction = new TsneSettingsAction(this, inputDataset->getNumPoints());
 
     _dataPreparationTask.setParentTask(&outputDataset->getTask());
 
@@ -82,7 +83,6 @@ void TsneAnalysisPlugin::init()
 
     // update settings that depend on number of data points
     _tsneSettingsAction->getGradientDescentSettingsAction().getExaggerationFactorAction().setValue(4.f + inputDataset->getNumPoints() / 60000.0f);
-    _tsneSettingsAction->getInitalEmbeddingSettingsAction().updateDataPicker(inputDataset->getNumPoints());
 
     auto& computationAction = _tsneSettingsAction->getComputationAction();
 
@@ -162,6 +162,17 @@ void TsneAnalysisPlugin::init()
     datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
  
     _tsneAnalysis.setTask(&datasetTask);
+
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetDataChanged));
+    _eventListener.registerDataEvent([this](DatasetEvent* dataEvent) {
+        const auto& dataset = dataEvent->getDataset();
+
+        if (dataset->getDataType() != PointType)
+            return;
+
+        _tsneSettingsAction->getInitalEmbeddingSettingsAction().updateDatasetPicker();
+
+        }); 
 }
 
 void TsneAnalysisPlugin::startComputation()
