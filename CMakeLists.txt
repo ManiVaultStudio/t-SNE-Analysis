@@ -2,6 +2,15 @@ cmake_minimum_required(VERSION 3.15.0)
 
 project("SNE-Analyses" C CXX)
 
+include(FetchContent)
+FetchContent_Declare(cmakesupport
+	GIT_REPOSITORY https://github.com/ManiVaultStudio/github-actions
+	GIT_TAG main
+	GIT_SHALLOW TRUE
+	SOURCE_SUBDIR CMakeSupport
+)
+FetchContent_MakeAvailable(cmakesupport)
+
 # -----------------------------------------------------------------------------
 # User options
 # -----------------------------------------------------------------------------
@@ -56,8 +65,8 @@ message(STATUS "MV_INSTALL_DIR set to ${MV_INSTALL_DIR}")
 # -----------------------------------------------------------------------------
 
 set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
-
-include(InstallArtifactoryPackage)
+message(status "FetchContent: ${cmakesupport_SOURCE_DIR} ${cmakesupport_BINARY_DIR}")
+include("${cmakesupport_SOURCE_DIR}/CMakeSupport/InstallArtifactoryPackage.cmake")
 if (USE_ARTIFACTORY_LIBS AND NOT ARTIFACTORY_LIBS_INSTALLED) 
     message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
