@@ -266,7 +266,7 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
         {
             hdi::utils::ScopedTimer<double> timer(t_init);
 
-            if (_tsneParameters.getGradienDescentType() == GradienDescentType::GPU)
+            if (_tsneParameters.getGradientDescentType() == GradientDescentType::GPU)
                 initGPUTSNE();
             else
                 initCPUTSNE();
@@ -277,14 +277,14 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
     };
 
     auto singleTSNEIteration = [this]() {
-        if (_tsneParameters.getGradienDescentType() == GradienDescentType::GPU)
+        if (_tsneParameters.getGradientDescentType() == GradientDescentType::GPU)
             _GPGPU_tSNE.doAnIteration();
         else
             _CPU_tSNE.doAnIteration();
     };
 
     auto gradientDescentCleanup = [this]() {
-        if (_tsneParameters.getGradienDescentType() == GradienDescentType::GPU)
+        if (_tsneParameters.getGradientDescentType() == GradientDescentType::GPU)
             _offscreenBuffer->releaseContext();
         else
             return; // Nothing to do for CPU implementation

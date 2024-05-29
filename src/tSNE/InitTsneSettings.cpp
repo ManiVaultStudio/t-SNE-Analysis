@@ -18,7 +18,7 @@ static inline int NewRandomSeed() { return dst(gen); }
 
 using namespace mv::gui;
 
-InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
+InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction, size_t numPointsInputData) :
     GroupAction(&tsneSettingsAction, "Initialization", true),
     _tsneSettingsAction(tsneSettingsAction),
     _randomInitAction(this, "Random inital embedding", true),
@@ -28,7 +28,7 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     _dataDimensionActionX(this, "Init dim X"),
     _dataDimensionActionY(this, "Init dim Y"),
     _rescaleInitAction(this, "Rescale to small std dev", true),
-    _numPointsInputData(0)
+    _numPointsInputData(numPointsInputData)
 {
     addAction(&_randomInitAction);
     addAction(&_randomSeedAction);
@@ -53,7 +53,19 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     // always start with a random seed
     _randomSeedAction.initialize(SEEDMIN, SEEDMAX, NewRandomSeed());
 
-    updateDataPicker(0);
+    _datasetInitAction.setFilterFunction([this](mv::Dataset<DatasetImpl> dataset) -> bool {
+        if (dataset->getDataType() == PointType)
+        {
+            const auto pointDataset = Dataset<Points>(dataset);
+            if (pointDataset->getNumDimensions() >= 2 && pointDataset->getNumPoints() == _numPointsInputData)
+                return true;
+            
+            return false;
+        }
+
+        return false;
+
+        });
 
     connect(&_datasetInitAction, &DatasetPickerAction::datasetPicked , this, [this](mv::Dataset<mv::DatasetImpl> pickedDataset) {
         _dataDimensionActionX.setPointsDataset(pickedDataset);
@@ -97,29 +109,12 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction) :
     });
 }
 
-void InitTsneSettings::updateDataPicker(size_t numPointsInputData) {
-    _numPointsInputData = numPointsInputData;
-
-    _datasetInitAction.setFilterFunction([numPointsInput = this->_numPointsInputData](mv::Dataset<DatasetImpl> dataset) -> bool {
-        if (dataset->getDataType() == PointType)
-        {
-            const auto pointDataset = Dataset<Points>(dataset);
-            if (pointDataset->getNumDimensions() >= 2 && pointDataset->getNumPoints() == numPointsInput)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else
-        {
-            return false;
-        }
-        });
-
-};
+void InitTsneSettings::updateDatasetPicker()
+{
+    // Toggle to call filter function again
+    _datasetInitAction.setPopulationMode(AbstractDatasetsModel::PopulationMode::Manual);
+    _datasetInitAction.setPopulationMode(AbstractDatasetsModel::PopulationMode::Automatic);
+}
 
 std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
 {
