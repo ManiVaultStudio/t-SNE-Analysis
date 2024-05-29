@@ -26,17 +26,13 @@ public:
      * Constructor
      * @param tsneSettingsAction Reference to TSNE settings action
      */
-    InitTsneSettings(TsneSettingsAction& tsneSettingsAction);
+    InitTsneSettings(TsneSettingsAction& tsneSettingsAction, size_t numPointsInputData);
 
     std::vector<float> getInitEmbedding(size_t numPoints);
 
     void updateSeed();
 
-    /**
-     * only list point datasets with at least 2 dimensions
-     * and the same number of points as the input data
-    */
-    void updateDataPicker(size_t numPointsInputData);
+    void updateDatasetPicker();
 
 public: // Action getters
 
