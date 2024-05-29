@@ -22,8 +22,8 @@ GradientDescentSettingsAction::GradientDescentSettingsAction(QObject* parent, Ts
     _exponentialDecayAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
 
     _exaggerationFactorAction.initialize(0, 20, 4);
-    _exaggerationIterAction.initialize(1, 10000, 250);
-    _exponentialDecayAction.initialize(1, 10000, 70);
+    _exaggerationIterAction.initialize(0, 10000, 250);
+    _exponentialDecayAction.initialize(0, 10000, 70);
 
     _gradienDescentTypeAction.initialize({ "GPU", "CPU" });
 
