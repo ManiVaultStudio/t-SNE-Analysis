@@ -4,12 +4,12 @@
 
 using namespace mv::gui;
 
-TsneSettingsAction::TsneSettingsAction(QObject* parent) :
+TsneSettingsAction::TsneSettingsAction(QObject* parent, size_t numPointsInputData) :
     GroupAction(parent, "TSNE Settings"),
     _tsneParameters(),
     _knnParameters(),
     _generalTsneSettingsAction(*this),
-    _initTsneSettingsAction(*this),
+    _initTsneSettingsAction(*this, numPointsInputData),
     _gradientDescentSettingsAction(this, _tsneParameters),
     _knnSettingsAction(this, _knnParameters)
 {

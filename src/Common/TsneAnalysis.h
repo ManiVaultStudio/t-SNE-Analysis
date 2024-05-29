@@ -42,8 +42,8 @@ class TsneWorker : public QObject
 {
     Q_OBJECT
 
-    using GradienDescentGPU = hdi::dr::GradientDescentTSNETexture;
-    using GradienDescentCPU = hdi::dr::SparseTSNEUserDefProbabilities<float>;
+    using GradientDescentGPU = hdi::dr::GradientDescentTSNETexture;
+    using GradientDescentCPU = hdi::dr::SparseTSNEUserDefProbabilities<float>;
 
 private:
     // default construction is inaccessible to outsiders
@@ -101,8 +101,8 @@ private:
     std::vector<float>                      _data;                          /** High-dimensional input data */
     ProbDistMatrix                          _probabilityDistribution;       /** High-dimensional probability distribution encoding point similarities */
     bool                                    _hasProbabilityDistribution;    /** Check if the worker was initialized with a probability distribution or data */
-    GradienDescentGPU                       _GPGPU_tSNE;                    /** GPGPU t-SNE gradient descent implementation */
-    GradienDescentCPU                       _CPU_tSNE;                      /** CPU t-SNE gradient descent implementation */
+    GradientDescentGPU                       _GPGPU_tSNE;                   /** GPGPU t-SNE gradient descent implementation */
+    GradientDescentCPU                       _CPU_tSNE;                     /** CPU t-SNE gradient descent implementation */
     hdi::data::Embedding<float>             _embedding;                     /** Storage of current embedding */
     TsneData                                _outEmbedding;                  /** Transfer embedding data array */
     OffscreenBuffer*                        _offscreenBuffer;               /** Offscreen OpenGL buffer required to run the gradient descent */

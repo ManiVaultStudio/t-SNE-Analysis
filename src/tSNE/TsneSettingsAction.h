@@ -28,7 +28,7 @@ public:
      * Constructor
      * @param parent Pointer to parent object
      */
-    TsneSettingsAction(QObject* parent);
+    TsneSettingsAction(QObject* parent, size_t numPointsInputData);
 
     /**
      * Get the context menu for the action

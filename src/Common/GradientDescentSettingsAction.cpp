@@ -10,26 +10,26 @@ GradientDescentSettingsAction::GradientDescentSettingsAction(QObject* parent, Ts
     _exaggerationFactorAction(this, "Exaggeration factor"),
     _exaggerationIterAction(this, "Exaggeration iterations"),
     _exponentialDecayAction(this, "Exponential decay"),
-    _gradienDescentTypeAction(this, "GD implementation")
+    _gradientDescentTypeAction(this, "GD implementation")
 {
     addAction(&_exaggerationFactorAction);
     addAction(&_exaggerationIterAction);
     addAction(&_exponentialDecayAction);
-    addAction(&_gradienDescentTypeAction);
+    addAction(&_gradientDescentTypeAction);
 
     _exaggerationFactorAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _exaggerationIterAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
     _exponentialDecayAction.setDefaultWidgetFlags(IntegralAction::SpinBox);
 
     _exaggerationFactorAction.initialize(0, 20, 4);
-    _exaggerationIterAction.initialize(1, 10000, 250);
-    _exponentialDecayAction.initialize(1, 10000, 70);
+    _exaggerationIterAction.initialize(0, 10000, 250);
+    _exponentialDecayAction.initialize(0, 10000, 70);
 
-    _gradienDescentTypeAction.initialize({ "GPU", "CPU" });
+    _gradientDescentTypeAction.initialize({ "GPU", "CPU" });
 
     _exaggerationFactorAction.setToolTip("Defaults to 4 + number of points / 60'000");
     _exponentialDecayAction.setToolTip("Iterations after 'Exaggeration iterations' during \nwhich the exaggeration factor exponentionally decays towards 1");
-    _gradienDescentTypeAction.setToolTip("Gradient Descent Implementation: GPU (A-tSNE), CPU (Barnes-Hut)");
+    _gradientDescentTypeAction.setToolTip("Gradient Descent Implementation: GPU (A-tSNE), CPU (Barnes-Hut)");
 
     const auto updateExaggerationFactor = [this]() -> void {
         _tsneParameters.setExaggerationFactor(_exaggerationFactorAction.getValue());
@@ -43,11 +43,11 @@ GradientDescentSettingsAction::GradientDescentSettingsAction(QObject* parent, Ts
         _tsneParameters.setExponentialDecayIter(_exponentialDecayAction.getValue());
     };
 
-    const auto updateGradienDescentTypeAction = [this]() -> void {
-        switch (_gradienDescentTypeAction.getCurrentIndex())
+    const auto updateGradientDescentTypeAction = [this]() -> void {
+        switch (_gradientDescentTypeAction.getCurrentIndex())
         {
-        case 0: _tsneParameters.setGradienDescentType(GradienDescentType::GPU); break;
-        case 1: _tsneParameters.setGradienDescentType(GradienDescentType::CPU); break;
+        case 0: _tsneParameters.setGradientDescentType(GradientDescentType::GPU); break;
+        case 1: _tsneParameters.setGradientDescentType(GradientDescentType::CPU); break;
         }
         
     };
@@ -58,7 +58,7 @@ GradientDescentSettingsAction::GradientDescentSettingsAction(QObject* parent, Ts
         _exaggerationFactorAction.setEnabled(enable);
         _exaggerationIterAction.setEnabled(enable);
         _exponentialDecayAction.setEnabled(enable);
-        _gradienDescentTypeAction.setEnabled(enable);
+        _gradientDescentTypeAction.setEnabled(enable);
     };
 
     connect(&_exaggerationFactorAction, &DecimalAction::valueChanged, this, [this, updateExaggerationFactor](const float value) {
@@ -73,8 +73,8 @@ GradientDescentSettingsAction::GradientDescentSettingsAction(QObject* parent, Ts
         updateExponentialDecay();
     });
 
-    connect(&_gradienDescentTypeAction, &OptionAction::currentIndexChanged, this, [this, updateGradienDescentTypeAction](const std::int32_t& currentIndex) {
-        updateGradienDescentTypeAction();
+    connect(&_gradientDescentTypeAction, &OptionAction::currentIndexChanged, this, [this, updateGradientDescentTypeAction](const std::int32_t& currentIndex) {
+        updateGradientDescentTypeAction();
     });
 
     connect(this, &GroupAction::readOnlyChanged, this, [this, updateReadOnly](const bool& readOnly) {
@@ -84,7 +84,7 @@ GradientDescentSettingsAction::GradientDescentSettingsAction(QObject* parent, Ts
     updateExaggerationFactor();
     updateExaggerationIter();
     updateExponentialDecay();
-    updateGradienDescentTypeAction();
+    updateGradientDescentTypeAction();
     updateReadOnly();
 }
 
@@ -95,7 +95,7 @@ void GradientDescentSettingsAction::fromVariantMap(const QVariantMap& variantMap
     _exaggerationFactorAction.fromParentVariantMap(variantMap);
     _exaggerationIterAction.fromParentVariantMap(variantMap);
     _exponentialDecayAction.fromParentVariantMap(variantMap);
-    _gradienDescentTypeAction.fromParentVariantMap(variantMap);
+    _gradientDescentTypeAction.fromParentVariantMap(variantMap);
 }
 
 QVariantMap GradientDescentSettingsAction::toVariantMap() const
@@ -105,7 +105,7 @@ QVariantMap GradientDescentSettingsAction::toVariantMap() const
     _exaggerationFactorAction.insertIntoVariantMap(variantMap);
     _exaggerationIterAction.insertIntoVariantMap(variantMap);
     _exponentialDecayAction.insertIntoVariantMap(variantMap);
-    _gradienDescentTypeAction.insertIntoVariantMap(variantMap);
+    _gradientDescentTypeAction.insertIntoVariantMap(variantMap);
 
     return variantMap;
 }
