@@ -101,6 +101,7 @@ void TsneWorker::changeThread(QThread* targetThread)
 
     // Move the Offscreen buffer to the processing thread after creating it in the UI Thread
     _offscreenBuffer->moveToThread(targetThread);
+    _offscreenBuffer->getContext()->moveToThread(targetThread);
 }
 
 void TsneWorker::resetThread()
@@ -369,12 +370,12 @@ void TsneWorker::compute()
     {
         hdi::utils::ScopedTimer<double> timer(t);
 
-        _tasks->getInitializeOffScreenBufferTask().setRunning();
+        //_tasks->getInitializeOffScreenBufferTask().setRunning();
 
-        // Create a context local to this thread that shares with the global share context
-        _offscreenBuffer->initialize();
-        
-        _tasks->getInitializeOffScreenBufferTask().setFinished();
+        //// Create a context local to this thread that shares with the global share context
+        //_offscreenBuffer->initialize();
+        //
+        //_tasks->getInitializeOffScreenBufferTask().setFinished();
 
         if (!_hasProbabilityDistribution)
             computeSimilarities();
@@ -450,7 +451,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, const std::vector
     if (previousIterations >= 0)
         _tsneWorker->setCurrentIteration(previousIterations);
 
-    startComputation(_tsneWorker);
+    startComputation();
 }
 
 void TsneAnalysis::startComputation(TsneParameters parameters, std::vector<hdi::data::MapMemEff<uint32_t, float>>&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding, int previousIterations)
@@ -462,7 +463,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, std::vector<hdi::
     if (previousIterations >= 0)
         _tsneWorker->setCurrentIteration(previousIterations);
 
-    startComputation(_tsneWorker);
+    startComputation();
 }
 
 void TsneAnalysis::startComputation(TsneParameters parameters, KnnParameters knnParameters, const std::vector<float>& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding)
@@ -471,7 +472,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, KnnParameters knn
 
     _tsneWorker = new TsneWorker(parameters, knnParameters, data, numDimensions, initEmbedding);
     
-    startComputation(_tsneWorker);
+    startComputation();
 }
 
 void TsneAnalysis::startComputation(TsneParameters parameters, KnnParameters knnParameters, std::vector<float>&& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding)
@@ -480,7 +481,7 @@ void TsneAnalysis::startComputation(TsneParameters parameters, KnnParameters knn
 
     _tsneWorker = new TsneWorker(parameters, knnParameters, std::move(data), numDimensions, initEmbedding);
     
-    startComputation(_tsneWorker);
+    startComputation();
 }
 
 void TsneAnalysis::continueComputation(int iterations)
@@ -512,20 +513,21 @@ void TsneAnalysis::setInitEmbedding(const hdi::data::Embedding<float>::scalar_ve
         _tsneWorker->setInitEmbedding(initEmbedding);
 }
 
-void TsneAnalysis::startComputation(TsneWorker* tsneWorker)
+void TsneAnalysis::startComputation()
 {
-    tsneWorker->setParentTask(_task);
+    _tsneWorker->setParentTask(_task);
 
-    tsneWorker->changeThread(&_workerThread);
+    _tsneWorker->getOffscreenBuffer().initialize();
+    _tsneWorker->changeThread(&_workerThread);
     
     // To-Worker signals
-    connect(this, &TsneAnalysis::startWorker, tsneWorker, &TsneWorker::compute);
-    connect(this, &TsneAnalysis::continueWorker, tsneWorker, &TsneWorker::continueComputation);
-    connect(this, &TsneAnalysis::stopWorker, tsneWorker, &TsneWorker::stop, Qt::DirectConnection);
+    connect(this, &TsneAnalysis::startWorker, _tsneWorker, &TsneWorker::compute);
+    connect(this, &TsneAnalysis::continueWorker, _tsneWorker, &TsneWorker::continueComputation);
+    connect(this, &TsneAnalysis::stopWorker, _tsneWorker, &TsneWorker::stop, Qt::DirectConnection);
 
     // From-Worker signals
-    connect(tsneWorker, &TsneWorker::embeddingUpdate, this, &TsneAnalysis::embeddingUpdate);
-    connect(tsneWorker, &TsneWorker::finished, this, &TsneAnalysis::finished);
+    connect(_tsneWorker, &TsneWorker::embeddingUpdate, this, &TsneAnalysis::embeddingUpdate);
+    connect(_tsneWorker, &TsneWorker::finished, this, &TsneAnalysis::finished);
 
     _workerThread.start();
 
