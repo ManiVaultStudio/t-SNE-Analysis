@@ -42,25 +42,6 @@ if(MSVC)
 endif(MSVC)
 
 # -----------------------------------------------------------------------------
-# Set install directory
-# -----------------------------------------------------------------------------
-# Check if the directory to the ManiVault installation has been provided
-if(NOT DEFINED MV_INSTALL_DIR)
-    set(MV_INSTALL_DIR "" CACHE PATH "Directory where ManiVault is installed")
-    message(FATAL_ERROR "Please set MV_INSTALL_DIR to the directory where ManiVault is installed")
-endif()
-file(TO_CMAKE_PATH ${MV_INSTALL_DIR} MV_INSTALL_DIR)
-
-# Checks whether this is the first CMake run for this project.
-# If so, sets the CMake Install Prefix to the ManiVault install directory.
-# This if-statement must be placed after the project() command to work.
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${MV_INSTALL_DIR} CACHE PATH "..." FORCE)
-endif()
-
-message(STATUS "MV_INSTALL_DIR set to ${MV_INSTALL_DIR}")
-
-# -----------------------------------------------------------------------------
 # Install dependency libraries
 # -----------------------------------------------------------------------------
 
@@ -108,6 +89,8 @@ endif()
 
 find_package(Qt6 6.3.1 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
+find_package(ManiVault COMPONENTS Core PointData ImageData CONFIG)
+
 find_package(OpenGL REQUIRED)
 find_package(OpenMP)
 
@@ -123,6 +106,13 @@ endif(UNIX)
 set(THIRD_PARTY_JSON
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json/nlohmann/json.hpp
 )
+
+# Checks whether this is the first CMake run for this project.
+# If so, sets the CMake Install Prefix to the ManiVault install directory.
+# This if-statement must be placed after the project() command to work.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX ${MV_INSTALL_DIR} CACHE PATH "..." FORCE)
+endif()
 
 # -----------------------------------------------------------------------------
 # Project targets
