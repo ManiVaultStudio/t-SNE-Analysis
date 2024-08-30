@@ -6,7 +6,7 @@
 
 # Include flann includes via target_include_directories to the current project
 macro(set_flann_project_includes target)
-    if(USE_ARTIFACTORY_LIBS)
+    if(MV_SNE_USE_ARTIFACTORY_LIBS AND MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
         MESSAGE( STATUS "Including PREBUILT ARTIFACTORY flann ${LIBRARY_INSTALL_DIR}/flann")
         target_include_directories("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/flann/include")
     else()
@@ -16,7 +16,7 @@ endmacro()
 
 # Link the flann libraries via target_link_library to the current project
 macro(set_flann_project_link_libraries target)
-    if(USE_ARTIFACTORY_LIBS)
+    if(MV_SNE_USE_ARTIFACTORY_LIBS AND MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
         MESSAGE( STATUS "Linking PREBUILT flann libraries...")
         if(MSVC)
             target_link_libraries("${target}" PRIVATE debug "${LIBRARY_INSTALL_DIR}/flann/lib/Debug/flann.lib")
@@ -48,7 +48,7 @@ endmacro()
 
 # lz4 currently only with prebuilt libs - is used in flann 1.8.4 and greater.
 macro(set_lz4_project_includes target)
-    if(USE_ARTIFACTORY_LIBS)
+    if(MV_SNE_USE_ARTIFACTORY_LIBS AND MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
         if(MSVC)
             MESSAGE( STATUS "Including PREBUILT ARTIFACTORY lz4 ${LIBRARY_INSTALL_DIR}/lz4")
             target_include_directories("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/lz4/Release/include")
@@ -57,7 +57,7 @@ macro(set_lz4_project_includes target)
 endmacro()
 
 macro(set_lz4_project_link_libraries target)
-    if(USE_ARTIFACTORY_LIBS)
+    if(MV_SNE_USE_ARTIFACTORY_LIBS AND MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
         MESSAGE( STATUS "Linking PREBUILT lz4 libraries...")
         if(MSVC)
             target_link_libraries("${target}" PRIVATE debug "${LIBRARY_INSTALL_DIR}/lz4/Debug/lib/lz4.lib")
