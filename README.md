@@ -25,7 +25,7 @@ On Windows, in order to manage the HDILib dependency [flann](https://github.com/
 Tested with Ubuntu 22.10, gcc 12.2.0:
 ```bash
 # In your local t-SNE analysis plugin folder
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DUSE_ARTIFACTORY_LIBS=OFF -DHDILIB_ROOT=/PATH/TO/YOUR/LOCALHDILIB -DMV_INSTALL_DIR=/PATH/TO/MANIVAULT
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DUSE_ARTIFACTORY_LIBS=OFF -DHDILIB_ROOT=/PATH/TO/YOUR/LOCALHDILIB -DManiVault_DIR=/PATH/TO/MANIVAULT
 cmake --build build --config Release --target install
 ```
 

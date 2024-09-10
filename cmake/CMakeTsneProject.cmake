@@ -65,8 +65,8 @@ set_flann_project_link_libraries(${TSNE_PLUGIN})
 set_HDILib_project_link_libraries(${TSNE_PLUGIN})
 set_lz4_project_link_libraries(${TSNE_PLUGIN})
 
-set_optimization_level(${TSNE_PLUGIN} ${OPTIMIZATION_LEVEL})
-check_and_set_AVX(${TSNE_PLUGIN} ${ENABLE_AVX})
+set_optimization_level(${TSNE_PLUGIN} ${MV_SNE_OPTIMIZATION_LEVEL})
+check_and_set_AVX(${TSNE_PLUGIN} ${MV_SNE_USE_AVX})
 
 silence_opengl_deprecation(${TSNE_PLUGIN})
 
