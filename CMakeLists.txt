@@ -53,13 +53,13 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS AND NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
 
     set(HDILib_VERSION 1.2.7)
     set(flann_VERSION 1.9.2)
-    set(lz4_VERSION 1.9.3)
+    set(lz4_VERSION 1.10.0)
 
     # Both HDILib and flann are available prebuilt in the lkeb-artifactory as combined Debug/Release packages
     # lz4 is also available in the lkb-artifactory in separate Debug and |Release packages
     install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) 
     install_artifactory_package(flann ${flann_VERSION} lkeb TRUE)
-    install_artifactory_package(lz4 ${lz4_VERSION} _ FALSE)
+    install_artifactory_package(lz4 ${lz4_VERSION} lkeb TRUE)
 
     message(STATUS "module path ${CMAKE_MODULE_PATH}")
     message(STATUS "Call find_package HDILib search ${CMAKE_SOURCE_DIR}/HDILib/lib/cmake/HDILib")
