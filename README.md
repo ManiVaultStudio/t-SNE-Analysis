@@ -20,7 +20,7 @@ By default, during the cmake configuration, a pre-built version of HDILib will b
 You might want to compile the [HDILib](https://github.com/biovault/HDILib) locally instead. 
 To use this locally compiled library, set the cmake variable `MV_SNE_USE_ARTIFACTORY_LIBS` to `OFF` and provide `HDILIB_ROOT`, e.g. `PATH_TO_HDILib_install\lib\cmake\HDILib` for cmake to find the HDILib binaries.
 
-On Windows, in order to manage the HDILib dependency [flann](https://github.com/flann-lib/flann), we recommend using [vcpkg](https://github.com/microsoft/vcpkg/). Set up cmake to find pacakges with vcpkg by providing the variables CMAKE_TOOLCHAIN_FILE (`PATH_TO/vcpkg/scripts/buildsystems/vcpkg.cmake`) and VCPKG_TARGET_TRIPLET `x64-windows-static`.
+On Windows, in order to manage the HDILib dependency [flann](https://github.com/flann-lib/flann), we recommend using [vcpkg](https://github.com/microsoft/vcpkg/). Set up cmake to find packages with vcpkg by providing the variables CMAKE_TOOLCHAIN_FILE (`PATH_TO/vcpkg/scripts/buildsystems/vcpkg.cmake`) and VCPKG_TARGET_TRIPLET `x64-windows-static-md`. See the [HDILib](https://github.com/biovault/HDILib) Readme for more details.
 
 Tested with Ubuntu 22.10, gcc 12.2.0:
 ```bash
