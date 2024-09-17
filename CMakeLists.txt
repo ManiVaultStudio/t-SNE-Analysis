@@ -14,10 +14,10 @@ FetchContent_MakeAvailable(cmakesupport)
 # -----------------------------------------------------------------------------
 # User options
 # -----------------------------------------------------------------------------
-option(USE_ARTIFACTORY_LIBS "Use the prebuilt libraries from artifactory" ON)
-option(ENABLE_AVX "Enable AVX support" OFF)
+option(MV_SNE_USE_ARTIFACTORY_LIBS "Use the prebuilt libraries from artifactory" ON)
+option(MV_SNE_USE_AVX "Enable AVX support" OFF)
 option(MV_UNITY_BUILD "Combine target source files into batches for faster compilation" OFF)
-set(OPTIMIZATION_LEVEL "2" CACHE STRING "Optimization level for all targets in release builds, e.g. 0, 1, 2")
+set(MV_SNE_OPTIMIZATION_LEVEL "2" CACHE STRING "Optimization level for all targets in release builds, e.g. 0, 1, 2")
 
 # -----------------------------------------------------------------------------
 # CMake options
@@ -48,31 +48,31 @@ endif(MSVC)
 set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
 message(status "FetchContent: ${cmakesupport_SOURCE_DIR} ${cmakesupport_BINARY_DIR}")
 include("${cmakesupport_SOURCE_DIR}/CMakeSupport/InstallArtifactoryPackage.cmake")
-if (USE_ARTIFACTORY_LIBS AND NOT ARTIFACTORY_LIBS_INSTALLED) 
+if (MV_SNE_USE_ARTIFACTORY_LIBS AND NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED) 
     message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
     set(HDILib_VERSION 1.2.7)
     set(flann_VERSION 1.9.2)
-    set(lz4_VERSION 1.9.3)
+    set(lz4_VERSION 1.10.0)
 
     # Both HDILib and flann are available prebuilt in the lkeb-artifactory as combined Debug/Release packages
     # lz4 is also available in the lkb-artifactory in separate Debug and |Release packages
     install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) 
     install_artifactory_package(flann ${flann_VERSION} lkeb TRUE)
-    install_artifactory_package(lz4 ${lz4_VERSION} _ FALSE)
+    install_artifactory_package(lz4 ${lz4_VERSION} lkeb TRUE)
 
     message(STATUS "module path ${CMAKE_MODULE_PATH}")
     message(STATUS "Call find_package HDILib search ${CMAKE_SOURCE_DIR}/HDILib/lib/cmake/HDILib")
     message(STATUS "Run find_package HDILib")
 
-    set(ARTIFACTORY_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
+    set(MV_SNE_ARTIFACTORY_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
 endif()
 
 # -----------------------------------------------------------------------------
 # Dependencies
 # -----------------------------------------------------------------------------
 
-if(USE_ARTIFACTORY_LIBS AND ARTIFACTORY_LIBS_INSTALLED)
+if(MV_SNE_USE_ARTIFACTORY_LIBS AND MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
     # If the HDILib_VERSION is not a x.y.z version number 
     # omit the version argument from find package
     find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${LIBRARY_INSTALL_DIR}/HDILib" CONFIG REQUIRED)
@@ -84,7 +84,7 @@ else()
     find_package(flann CONFIG REQUIRED)
     find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${HDILIB_ROOT}" CONFIG REQUIRED)
 
-    message(STATUS "HDILib found at ${HDILIB_ROOT} with ${HDILib_LINK_LIBS}")    
+    message(STATUS "HDILib found at ${HDILIB_ROOT} with ${HDILib_LINK_LIBS}")
 endif()
 
 find_package(Qt6 6.3.1 COMPONENTS Widgets WebEngineWidgets REQUIRED)
