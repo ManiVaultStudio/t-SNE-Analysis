@@ -370,13 +370,6 @@ void TsneWorker::compute()
     {
         hdi::utils::ScopedTimer<double> timer(t);
 
-        //_tasks->getInitializeOffScreenBufferTask().setRunning();
-
-        //// Create a context local to this thread that shares with the global share context
-        //_offscreenBuffer->initialize();
-        //
-        //_tasks->getInitializeOffScreenBufferTask().setFinished();
-
         if (!_hasProbabilityDistribution)
             computeSimilarities();
 
