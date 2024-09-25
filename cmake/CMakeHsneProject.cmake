@@ -34,8 +34,6 @@ target_include_directories(${HSNE_PLUGIN} PRIVATE "src/Common")
 target_include_directories(${HSNE_PLUGIN} PRIVATE "third_party/json")
 
 set_HDILib_project_includes(${HSNE_PLUGIN})
-set_flann_project_includes(${HSNE_PLUGIN})
-set_lz4_project_includes(${HSNE_PLUGIN})
 
 # -----------------------------------------------------------------------------
 # Target properties
