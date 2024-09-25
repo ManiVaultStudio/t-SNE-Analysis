@@ -2,15 +2,6 @@ cmake_minimum_required(VERSION 3.15.0)
 
 project("SNE-Analyses" C CXX)
 
-include(FetchContent)
-FetchContent_Declare(cmakesupport
-	GIT_REPOSITORY https://github.com/ManiVaultStudio/github-actions
-	GIT_TAG main
-	GIT_SHALLOW TRUE
-	SOURCE_SUBDIR CMakeSupport
-)
-FetchContent_MakeAvailable(cmakesupport)
-
 # -----------------------------------------------------------------------------
 # User options
 # -----------------------------------------------------------------------------
@@ -45,25 +36,34 @@ endif(MSVC)
 # Install dependency libraries
 # -----------------------------------------------------------------------------
 
-set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
-message(status "FetchContent: ${cmakesupport_SOURCE_DIR} ${cmakesupport_BINARY_DIR}")
-include("${cmakesupport_SOURCE_DIR}/CMakeSupport/InstallArtifactoryPackage.cmake")
+# HDILib, flann and lz4 are available prebuilt in the lkeb-artifactory
 if (MV_SNE_USE_ARTIFACTORY_LIBS AND NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED) 
+    set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
     message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
-    set(HDILib_VERSION 1.2.7)
+    set(HDILib_VERSION 1.2.8)
     set(flann_VERSION 1.9.2)
     set(lz4_VERSION 1.10.0)
 
-    # Both HDILib and flann are available prebuilt in the lkeb-artifactory as combined Debug/Release packages
-    # lz4 is also available in the lkb-artifactory in separate Debug and |Release packages
+    include(FetchContent)
+    FetchContent_Declare(cmakesupport
+        GIT_REPOSITORY https://github.com/ManiVaultStudio/github-actions
+        GIT_TAG main
+        GIT_SHALLOW TRUE
+        SOURCE_SUBDIR CMakeSupport
+    )
+    FetchContent_MakeAvailable(cmakesupport)
+
+    message(STATUS "FetchContent: ${cmakesupport_SOURCE_DIR} ${cmakesupport_BINARY_DIR}")
+    include("${cmakesupport_SOURCE_DIR}/CMakeSupport/InstallArtifactoryPackage.cmake")
+
     install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) 
     install_artifactory_package(flann ${flann_VERSION} lkeb TRUE)
     install_artifactory_package(lz4 ${lz4_VERSION} lkeb TRUE)
 
-    message(STATUS "module path ${CMAKE_MODULE_PATH}")
-    message(STATUS "Call find_package HDILib search ${CMAKE_SOURCE_DIR}/HDILib/lib/cmake/HDILib")
-    message(STATUS "Run find_package HDILib")
+    set(lz4_ROOT "${LIBRARY_INSTALL_DIR}/lz4/lib/cmake/lz4" CACHE PATH "Location of lz4 cmake file")
+    set(flann_ROOT "${LIBRARY_INSTALL_DIR}/flann/lib/cmake/flann" CACHE PATH "Location of flann cmake file")
+    set(HDILIB_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/HDILib" CACHE PATH "Location of HDILib cmake file")
 
     set(MV_SNE_ARTIFACTORY_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
 endif()
@@ -72,24 +72,22 @@ endif()
 # Dependencies
 # -----------------------------------------------------------------------------
 
-if(MV_SNE_USE_ARTIFACTORY_LIBS AND MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
-    # If the HDILib_VERSION is not a x.y.z version number 
-    # omit the version argument from find package
-    find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${LIBRARY_INSTALL_DIR}/HDILib" CONFIG REQUIRED)
-else()
-    if(NOT HDILIB_ROOT)
-        message(FATAL_ERROR "Define HDILIB_ROOT")
-    endif()
-
-    find_package(flann CONFIG REQUIRED)
-    find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata PATHS "${HDILIB_ROOT}" CONFIG REQUIRED)
-
-    message(STATUS "HDILib found at ${HDILIB_ROOT} with ${HDILib_LINK_LIBS}")
-endif()
-
 find_package(Qt6 6.3.1 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
 find_package(ManiVault COMPONENTS Core PointData ImageData CONFIG)
+
+if(NOT HDILIB_ROOT)
+    message(FATAL_ERROR "Define HDILIB_ROOT")
+endif()
+
+find_package(lz4 CONFIG REQUIRED)
+find_package(flann CONFIG REQUIRED)
+cmake_policy(SET CMP0144 NEW)
+find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata CONFIG REQUIRED)
+
+if(${HDILib_FOUND})
+    message(STATUS "HDILib found at ${HDILIB_ROOT} with ${HDILib_LINK_LIBS}")
+endif()
 
 find_package(OpenGL REQUIRED)
 find_package(OpenMP)

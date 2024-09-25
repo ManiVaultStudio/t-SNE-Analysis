@@ -31,8 +31,6 @@ target_include_directories(${TSNE_PLUGIN} PRIVATE "${ManiVault_INCLUDE_DIR}")
 target_include_directories(${TSNE_PLUGIN} PRIVATE "src/Common")
 
 set_HDILib_project_includes(${TSNE_PLUGIN})
-set_flann_project_includes(${TSNE_PLUGIN})
-set_lz4_project_includes(${TSNE_PLUGIN})
 
 # -----------------------------------------------------------------------------
 # Target properties
