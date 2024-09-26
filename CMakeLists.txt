@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.27.0)
+cmake_minimum_required(VERSION 3.17.0)
+
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27.0")
+    cmake_policy(SET CMP0144 NEW)    # Remove once we set min cmake version accordingly
+endif()
 
 project("SNE-Analyses" C CXX)
 
@@ -72,7 +76,7 @@ endif()
 # Dependencies
 # -----------------------------------------------------------------------------
 
-find_package(Qt6 6.3.1 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+find_package(Qt6 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
 find_package(ManiVault COMPONENTS Core PointData ImageData CONFIG)
 
@@ -82,7 +86,6 @@ endif()
 
 find_package(lz4 CONFIG REQUIRED)
 find_package(flann CONFIG REQUIRED)
-cmake_policy(SET CMP0144 NEW)
 find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata CONFIG REQUIRED)
 
 if(${HDILib_FOUND})
