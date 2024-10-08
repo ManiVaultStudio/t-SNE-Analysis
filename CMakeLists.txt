@@ -80,12 +80,37 @@ find_package(Qt6 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
 find_package(ManiVault COMPONENTS Core PointData ImageData CONFIG)
 
+find_package(lz4 CONFIG)
+if(NOT ${lz4_FOUND})
+    find_package(PkgConfig REQUIRED)
+
+    pkg_check_modules(lz4 REQUIRED IMPORTED_TARGET liblz4)
+    set(LZ4_TARGET PkgConfig::lz4)
+endif()
+
+if(NOT ${lz4_FOUND})
+    message (FATAL_ERROR "lz4 NOT found")
+endif()
+message (STATUS "Found lz4 version ${lz4_VERSION}")
+
+find_package(flann CONFIG)
+if(NOT ${flann_FOUND})
+    find_package(PkgConfig REQUIRED)
+
+    pkg_check_modules(flann REQUIRED flann)
+    set(FLANN_TARGET flann_cpp)
+    set(flann_INCLUDE_DIR "${flann_INCLUDE_DIRS}/flann")
+endif()
+
+if(NOT ${flann_FOUND})
+    message (FATAL_ERROR "flann NOT found")
+endif()
+message (STATUS "Found flann version ${flann_VERSION}")
+
 if(NOT HDILIB_ROOT)
     message(FATAL_ERROR "Define HDILIB_ROOT")
 endif()
 
-find_package(lz4 CONFIG REQUIRED)
-find_package(flann CONFIG REQUIRED)
 find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata CONFIG REQUIRED)
 
 if(${HDILib_FOUND})
