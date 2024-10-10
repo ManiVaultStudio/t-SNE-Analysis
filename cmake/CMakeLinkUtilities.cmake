@@ -2,36 +2,26 @@
 # libraries or the PREBUILT libraries for flann and HDILib from the LKEB
 # artifactory.
 
-# TODO complete for MacOS and Linux
-
-# Include flann includes via target_include_directories to the current project
-macro(set_flann_project_includes target)
-    if(MV_SNE_USE_ARTIFACTORY_LIBS AND MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
-        MESSAGE( STATUS "Including PREBUILT ARTIFACTORY flann ${LIBRARY_INSTALL_DIR}/flann")
-        target_include_directories("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/flann/include")
-    else()
-
-    endif()
-endmacro()
-
 # Link the flann libraries via target_link_library to the current project
 macro(set_flann_project_link_libraries target)
-    if(MV_SNE_USE_ARTIFACTORY_LIBS AND MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
-        MESSAGE( STATUS "Linking PREBUILT flann libraries...")
-        if(MSVC)
-            target_link_libraries("${target}" PRIVATE debug "${LIBRARY_INSTALL_DIR}/flann/lib/Debug/flann_cpp.lib")
-            target_link_libraries("${target}" PRIVATE optimized "${LIBRARY_INSTALL_DIR}/flann/lib/Release/flann_cpp.lib")
-        endif()
-    else()
+
+    # prefer static linking
+    if(NOT FLANN_TARGET)
         if(TARGET flann::flann_cpp_s)
             set(FLANN_TARGET flann::flann_cpp_s)
+        elseif(TARGET flann::flann_cpp)
+            set(FLANN_TARGET flann::flann_cpp)
+        elseif(TARGET flann::flann_s)
+            set(FLANN_TARGET flann::flann_s)
         elseif(TARGET flann::flann)
             set(FLANN_TARGET flann::flann)
+        else()
+            message(FATAL_ERROR "No Flann target found.")
         endif()
-
-        message (STATUS "Linking Flann library: " ${FLANN_TARGET})
-        target_link_libraries(${target} PRIVATE ${FLANN_TARGET})
     endif()
+
+    message (STATUS "Linking Flann library " ${FLANN_TARGET})
+    target_link_libraries(${target} PRIVATE ${FLANN_TARGET})
 endmacro()
 
 # Include HDILib includes via target_include_directories to the current project
@@ -42,26 +32,29 @@ endmacro()
 
 # Link the HDILib libraries via target_link_library to the current project
 macro(set_HDILib_project_link_libraries target)
-    MESSAGE( STATUS "Linking HDILib libraries...")
+    MESSAGE( STATUS "Linking HDILib libraries ${HDILib_LINK_LIBS}")
     target_link_libraries("${target}" PRIVATE ${HDILib_LINK_LIBS})
 endmacro()
 
-# lz4 currently only with prebuilt libs - is used in flann 1.8.4 and greater.
-macro(set_lz4_project_includes target)
-    if(MV_SNE_USE_ARTIFACTORY_LIBS AND MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
-        if(MSVC)
-            MESSAGE( STATUS "Including PREBUILT ARTIFACTORY lz4 ${LIBRARY_INSTALL_DIR}/lz4")
-            target_include_directories("${target}" PRIVATE "${LIBRARY_INSTALL_DIR}/lz4/Release/include")
+macro(set_lz4_project_link_libraries target)
+
+    # prefer static linking
+    if(NOT LZ4_TARGET)
+        if(TARGET LZ4::lz4_static)
+            set(LZ4_TARGET LZ4::lz4_static)
+        elseif(TARGET LZ4::lz4_shared)
+            set(LZ4_TARGET LZ4::lz4_shared)
+        elseif(TARGET lz4::lz4)
+            set(LZ4_TARGET lz4::lz4)
+        elseif(TARGET LZ4::lz4)    # intentionally UPPERCASE::LOWERCASE
+            set(LZ4_TARGET LZ4::lz4)
+        else()
+            message(FATAL_ERROR "No LZ4 target found.")
         endif()
     endif()
-endmacro()
 
-macro(set_lz4_project_link_libraries target)
-    if(MV_SNE_USE_ARTIFACTORY_LIBS AND MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
-        find_package(lz4 HINTS ${LIBRARY_INSTALL_DIR}/lib/cmake REQUIRED)
-        MESSAGE( STATUS "Linking PREBUILT lz4 libraries...")
-        target_link_libraries("${target}" PRIVATE LZ4::lz4_static)
-    endif()
+MESSAGE( STATUS "Linking lz4 library " ${LZ4_TARGET})
+    target_link_libraries("${target}" PRIVATE ${LZ4_TARGET})
 endmacro()
 
 # This silences OpenGL deprecation warnings on MacOS
