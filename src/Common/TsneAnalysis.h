@@ -70,6 +70,7 @@ public: // Setter
 public: // Getter
     ProbDistMatrix* getProbabilityDistribution() { return &_probabilityDistribution; };
     int getNumIterations() const;
+    OffscreenBuffer& getOffscreenBuffer() { return *_offscreenBuffer; }
 
 public slots:
     void compute();
@@ -145,7 +146,7 @@ public: // Getter
     const std::optional<ProbDistMatrix*> getProbabilityDistribution() const { return (_tsneWorker) ? std::optional<ProbDistMatrix*>(_tsneWorker->getProbabilityDistribution()) : std::nullopt; };
 
 private: // Internal
-    void startComputation(TsneWorker* tsneWorker);
+    void startComputation();
     void deleteWorker();
 
 signals:
