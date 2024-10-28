@@ -111,7 +111,7 @@ if(NOT HDILIB_ROOT)
     message(FATAL_ERROR "Define HDILIB_ROOT")
 endif()
 
-find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata CONFIG REQUIRED)
+find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata CONFIG REQUIRED PATHS ${HDILIB_ROOT})
 
 if(${HDILib_FOUND})
     message(STATUS "HDILib found at ${HDILIB_ROOT} with ${HDILib_LINK_LIBS}")
