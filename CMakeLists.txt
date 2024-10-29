@@ -27,8 +27,8 @@ set(CMAKE_AUTOUIC ON)
 # macros for linking both prebuilt artifactory libraries and locally built ones
 include(CMakeLinkUtilities)
 
-# Test hardware avx capabilities
-include(CMakeSetOptimizationAndAVX)
+# set optimization in release mode
+include(CMakeSetOptimizationLevel)
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP  /permissive- /Zc:__cplusplus")
