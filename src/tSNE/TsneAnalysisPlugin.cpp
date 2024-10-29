@@ -15,6 +15,7 @@
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
 
 #include <fstream>
+#include <iostream>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
 
@@ -341,6 +342,11 @@ QIcon TsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) co
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
 {
     return new TsneAnalysisPlugin(this);
+}
+
+mv::DataTypes TsneAnalysisPluginFactory::supportedDataTypes() const
+{
+    return { PointType };
 }
 
 PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const mv::Datasets& datasets) const

@@ -68,7 +68,7 @@ set_HDILib_project_link_libraries(${HSNE_PLUGIN})
 set_lz4_project_link_libraries(${HSNE_PLUGIN}) 
 
 set_optimization_level(${HSNE_PLUGIN} ${MV_SNE_OPTIMIZATION_LEVEL})
-check_and_set_AVX(${HSNE_PLUGIN} ${MV_SNE_USE_AVX})
+mv_check_and_set_AVX(${HSNE_PLUGIN} ${MV_SNE_USE_AVX})
 
 silence_opengl_deprecation(${HSNE_PLUGIN})
 

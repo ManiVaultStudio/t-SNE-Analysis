@@ -82,6 +82,8 @@ public:
      */
     QIcon getIcon(const QColor& color = Qt::black) const override;
 
+    mv::DataTypes supportedDataTypes() const override;
+
     /**
      * Produces the plugin
      * @return Pointer to the produced plugin

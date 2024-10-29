@@ -445,6 +445,11 @@ AnalysisPlugin* HsneAnalysisPluginFactory::produce()
     return new HsneAnalysisPlugin(this);
 }
 
+mv::DataTypes HsneAnalysisPluginFactory::supportedDataTypes() const
+{
+    return { PointType };
+}
+
 PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const mv::Datasets& datasets) const
 {
     PluginTriggerActions pluginTriggerActions;
