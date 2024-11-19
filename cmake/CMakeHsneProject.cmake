@@ -91,6 +91,11 @@ if (NOT DEFINED ENV{CI})
     )
 endif()
 
+set_target_properties(${HSNE_PLUGIN}
+    PROPERTIES
+    FOLDER AnalysisPlugins
+)
+
 # -----------------------------------------------------------------------------
 # Misc
 # -----------------------------------------------------------------------------

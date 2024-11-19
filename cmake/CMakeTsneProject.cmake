@@ -87,6 +87,11 @@ if (NOT DEFINED ENV{CI})
     )
 endif()
 
+set_target_properties(${TSNE_PLUGIN}
+    PROPERTIES
+    FOLDER AnalysisPlugins
+)
+
 # -----------------------------------------------------------------------------
 # Misc
 # -----------------------------------------------------------------------------
