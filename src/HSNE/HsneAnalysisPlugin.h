@@ -31,6 +31,7 @@ public:
 
     void computeTopLevelEmbedding();
     void continueComputation();
+    void removePreviouslyCreatedDatasets();
 
     HsneHierarchy& getHierarchy() { return *_hierarchy.get(); }
     TsneAnalysis& getTsneAnalysis() { return _tsneAnalysis; }

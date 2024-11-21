@@ -4,6 +4,7 @@
 #include "GradientDescentSettingsAction.h"
 #include "HsneHierarchy.h"
 #include "TsneParameters.h"
+#include "Globals.h"
 
 #include <event/Event.h>
 
@@ -296,11 +297,13 @@ void HsneScaleAction::refine()
         _input->setProperty("selectionHelperCount", ++selectionHelperCount);
         _selectionHelpers.push_back(_input->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), _input, /* visible = */ false));
         auto& hsneScaleSubset = _selectionHelpers.back();
+        hsneScaleSubset.setProperty("HSNE_tag", DATA_TAG);
 
         // Create derived data for the embedding
         _refineEmbeddings.push_back(mv::data().createDerivedDataset<Points>(QString("Hsne scale %1").arg(refinedScaleLevel), hsneScaleSubset, _embedding, false));
         auto& refineEmbedding = _refineEmbeddings.back();
         refineEmbedding->setProperty("selectionHelperID", hsneScaleSubset->getId());
+        refineEmbedding->setProperty("HSNE_tag", DATA_TAG);
 
         //qDebug() << "refineEmbedding " << refineEmbedding->getId() << " with hsneScaleSubset " << hsneScaleSubset->getId();
 
