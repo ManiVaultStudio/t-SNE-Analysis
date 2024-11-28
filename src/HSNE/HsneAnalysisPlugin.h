@@ -31,6 +31,7 @@ public:
 
     void computeTopLevelEmbedding();
     void continueComputation();
+    void removePreviouslyCreatedDatasets();
 
     HsneHierarchy& getHierarchy() { return *_hierarchy.get(); }
     TsneAnalysis& getTsneAnalysis() { return _tsneAnalysis; }
@@ -81,6 +82,8 @@ public:
      * @return Icon
      */
     QIcon getIcon(const QColor& color = Qt::black) const override;
+
+    mv::DataTypes supportedDataTypes() const override;
 
     /**
      * Produces the plugin

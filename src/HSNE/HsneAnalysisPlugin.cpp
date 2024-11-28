@@ -3,6 +3,7 @@
 #include "HsneParameters.h"
 #include "HsneRecomputeWarningDialog.h"
 #include "HsneScaleAction.h"
+#include "Globals.h"
 
 #include <PointData/DimensionsPickerAction.h>
 #include <PointData/InfoAction.h>
@@ -43,6 +44,8 @@ HsneAnalysisPlugin::~HsneAnalysisPlugin()
 
 void HsneAnalysisPlugin::init()
 {
+    DATA_TAG = QUuid::createUuid();
+
     // Get input/output datasets
     auto inputDataset = getInputDataset<Points>();
 
@@ -251,6 +254,9 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
     datasetTask.setName("Compute HSNE top level embedding");
     datasetTask.setRunning();
 
+    // Remove any previous generated datasets
+    removePreviouslyCreatedDatasets();
+
     // Get the top scale of the HSNE hierarchy
     const int topScaleIndex = _hierarchy->getTopScale();
     Hsne::scale_type& topScale = _hierarchy->getScale(topScaleIndex);
@@ -289,6 +295,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         auto selectionHelperCount = inputDataset->getProperty("selectionHelperCount").toInt();
         inputDataset->setProperty("selectionHelperCount", ++selectionHelperCount);
         _selectionHelperData = inputDataset->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), inputDataset, /*visible = */ false);
+        _selectionHelperData->setProperty(DATA_TAG_LABEL, DATA_TAG);
 
         selectionDataset->indices.clear();
 
@@ -346,6 +353,21 @@ void HsneAnalysisPlugin::continueComputation()
     _hsneSettingsAction->getTopLevelScaleAction().getComputationAction().getRunningAction().setChecked(true);
 
     _tsneAnalysis.continueComputation(_hsneSettingsAction->getTsneParameters().getNumIterations());
+}
+
+void HsneAnalysisPlugin::removePreviouslyCreatedDatasets()
+{
+    qDebug() << "Trying to remove datasets previously created by this plugin..";
+    mv::Datasets datasets = mv::data().getAllDatasets();
+    for (mv::Dataset<DatasetImpl> dataset : datasets)
+    {
+        if (dataset->hasProperty(DATA_TAG_LABEL) && dataset->getProperty(DATA_TAG_LABEL).toUuid() == DATA_TAG)
+        {
+            qDebug() << "Found previous dataset" << dataset->getGuiName() << "to be deleted..";
+            mv::data().removeDataset(dataset);
+            qDebug() << "Previous dataset deleted.";
+        }
+    }
 }
 
 void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
@@ -443,6 +465,11 @@ QIcon HsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) co
 AnalysisPlugin* HsneAnalysisPluginFactory::produce()
 {
     return new HsneAnalysisPlugin(this);
+}
+
+mv::DataTypes HsneAnalysisPluginFactory::supportedDataTypes() const
+{
+    return { PointType };
 }
 
 PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const mv::Datasets& datasets) const
