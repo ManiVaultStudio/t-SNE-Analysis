@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17.0)
+cmake_minimum_required(VERSION 3.22)
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27.0")
     cmake_policy(SET CMP0144 NEW)    # Remove once we set min cmake version accordingly
@@ -33,6 +33,7 @@ include(CMakeSetOptimizationLevel)
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP  /permissive- /Zc:__cplusplus")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MD")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif(MSVC)
 
@@ -78,7 +79,7 @@ endif()
 
 find_package(Qt6 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
-find_package(ManiVault COMPONENTS Core PointData ImageData CONFIG)
+find_package(ManiVault COMPONENTS Core PointData ImageData CONFIG QUIET)
 
 find_package(lz4 CONFIG)
 if(NOT ${lz4_FOUND})
