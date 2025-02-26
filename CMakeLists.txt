@@ -31,7 +31,7 @@ include(CMakeLinkUtilities)
 include(CMakeSetOptimizationLevel)
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP  /permissive- /Zc:__cplusplus")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP /permissive- /Zc:__cplusplus")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MD")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
@@ -46,7 +46,7 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS AND NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
     set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
     message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
-    set(HDILib_VERSION 1.2.9)
+    set(HDILib_VERSION 1.2.10)
     set(flann_VERSION 1.9.2)
     set(lz4_VERSION 1.10.0)
 
