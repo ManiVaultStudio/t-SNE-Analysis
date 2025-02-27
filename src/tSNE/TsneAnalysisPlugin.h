@@ -55,8 +55,9 @@ class TsneAnalysisPluginFactory : public AnalysisPluginFactory
                           FILE  "TsneAnalysisPlugin.json")
 
 public:
-    TsneAnalysisPluginFactory(void) {}
-    ~TsneAnalysisPluginFactory(void) override {}
+    TsneAnalysisPluginFactory();
+
+    ~TsneAnalysisPluginFactory() override {}
 
     mv::DataTypes supportedDataTypes() const override;
 
