@@ -330,14 +330,6 @@ QVariantMap TsneAnalysisPlugin::toVariantMap() const
     return variantMap;
 }
 
-// =============================================================================
-// Plugin Factory 
-// =============================================================================
-
-QIcon TsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) const
-{
-    return createPluginIcon("TSNE", color);
-}
 
 AnalysisPlugin* TsneAnalysisPluginFactory::produce()
 {
