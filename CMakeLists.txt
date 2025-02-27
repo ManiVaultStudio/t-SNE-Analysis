@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17.0)
+cmake_minimum_required(VERSION 3.22)
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27.0")
     cmake_policy(SET CMP0144 NEW)    # Remove once we set min cmake version accordingly
@@ -31,8 +31,9 @@ include(CMakeLinkUtilities)
 include(CMakeSetOptimizationLevel)
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP  /permissive- /Zc:__cplusplus")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP /permissive- /Zc:__cplusplus")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MD")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif(MSVC)
 
@@ -41,11 +42,11 @@ endif(MSVC)
 # -----------------------------------------------------------------------------
 
 # HDILib, flann and lz4 are available prebuilt in the lkeb-artifactory
-if (MV_SNE_USE_ARTIFACTORY_LIBS AND NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED) 
+if (MV_SNE_USE_ARTIFACTORY_LIBS) 
     set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
     message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
-    set(HDILib_VERSION 1.2.9)
+    set(HDILib_VERSION 1.2.10)
     set(flann_VERSION 1.9.2)
     set(lz4_VERSION 1.10.0)
 
@@ -65,8 +66,8 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS AND NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
     install_artifactory_package(flann ${flann_VERSION} lkeb TRUE)
     install_artifactory_package(lz4 ${lz4_VERSION} lkeb TRUE)
 
-    set(lz4_ROOT "${LIBRARY_INSTALL_DIR}/lz4/lib/cmake/lz4" CACHE PATH "Location of lz4 cmake file")
-    set(flann_ROOT "${LIBRARY_INSTALL_DIR}/flann/lib/cmake/flann" CACHE PATH "Location of flann cmake file")
+    set(lz4_ROOT "${LIBRARY_INSTALL_DIR}/lz4/lib/cmake" CACHE PATH "Location of lz4 cmake file")
+    set(flann_ROOT "${LIBRARY_INSTALL_DIR}/flann/lib/cmake/" CACHE PATH "Location of flann cmake file")
     set(HDILIB_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/HDILib" CACHE PATH "Location of HDILib cmake file")
 
     set(MV_SNE_ARTIFACTORY_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
@@ -78,7 +79,7 @@ endif()
 
 find_package(Qt6 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
-find_package(ManiVault COMPONENTS Core PointData ImageData CONFIG)
+find_package(ManiVault COMPONENTS Core PointData ImageData CONFIG QUIET)
 
 find_package(lz4 CONFIG)
 if(NOT ${lz4_FOUND})

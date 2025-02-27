@@ -16,7 +16,9 @@ This project builds two plugins which wrap the functionality of the [HDILib](htt
 </p>
 
 ## Compilation with a locally built HDILib
-By default, during the cmake configuration, a pre-built version of HDILib will be downloaded.
+By default, during the cmake configuration, a pre-built version of HDILib will be downloaded. 
+On Linux you'll probably need to add a certificate for this to work: `sudo ./cmake/install-lkeb-artifactory-cert.sh`.
+
 You might want to compile the [HDILib](https://github.com/biovault/HDILib) locally instead. 
 To use this locally compiled library, set the cmake variable `MV_SNE_USE_ARTIFACTORY_LIBS` to `OFF` and provide `HDILIB_ROOT`, e.g. `PATH_TO_HDILib_install\lib\cmake\HDILib` for cmake to find the HDILib binaries.
 
