@@ -351,7 +351,7 @@ PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const mv
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
-            auto pluginTriggerAction = new PluginTriggerAction(const_cast<TsneAnalysisPluginFactory*>(this), this, "TSNE", "Perform TSNE analysis on selected datasets", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
+            auto pluginTriggerAction = new PluginTriggerAction(const_cast<TsneAnalysisPluginFactory*>(this), this, "TSNE", "Perform TSNE analysis on selected datasets", icon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                 for (const auto& dataset : datasets)
                     getPluginInstance(dataset);
             });
@@ -360,7 +360,7 @@ PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const mv
         }
 
         if (datasets.count() >= 2) {
-            auto pluginTriggerAction = new PluginTriggerAction(const_cast<TsneAnalysisPluginFactory*>(this), this, "Group/TSNE", "Group datasets and perform TSNE analysis on it", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
+            auto pluginTriggerAction = new PluginTriggerAction(const_cast<TsneAnalysisPluginFactory*>(this), this, "Group/TSNE", "Group datasets and perform TSNE analysis on it", icon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                 getPluginInstance(mv::data().groupDatasets(datasets));
             });
 
