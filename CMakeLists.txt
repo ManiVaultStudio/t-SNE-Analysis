@@ -42,7 +42,7 @@ endif(MSVC)
 # -----------------------------------------------------------------------------
 
 # HDILib, flann and lz4 are available prebuilt in the lkeb-artifactory
-if (MV_SNE_USE_ARTIFACTORY_LIBS AND NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED) 
+if (MV_SNE_USE_ARTIFACTORY_LIBS) 
     set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
     message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
