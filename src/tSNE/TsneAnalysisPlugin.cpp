@@ -336,6 +336,11 @@ AnalysisPlugin* TsneAnalysisPluginFactory::produce()
     return new TsneAnalysisPlugin(this);
 }
 
+TsneAnalysisPluginFactory::TsneAnalysisPluginFactory()
+{
+    setIcon(StyledIcon(createPluginIcon("TSNE")));
+}
+
 mv::DataTypes TsneAnalysisPluginFactory::supportedDataTypes() const
 {
     return { PointType };
