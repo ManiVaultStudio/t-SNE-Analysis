@@ -457,14 +457,14 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
 // Plugin Factory 
 // =============================================================================
 
-QIcon HsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) const
-{
-    return createPluginIcon("HSNE", color);
-}
-
 AnalysisPlugin* HsneAnalysisPluginFactory::produce()
 {
     return new HsneAnalysisPlugin(this);
+}
+
+HsneAnalysisPluginFactory::HsneAnalysisPluginFactory()
+{
+    setIcon(StyledIcon(createPluginIcon("HSNE")));
 }
 
 mv::DataTypes HsneAnalysisPluginFactory::supportedDataTypes() const
@@ -482,7 +482,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const mv
 
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
-            auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "HSNE", "Perform HSNE analysis on selected datasets", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
+            auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "HSNE", "Perform HSNE analysis on selected datasets", icon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                 for (auto& dataset : datasets)
                     getPluginInstance(dataset);
             });
@@ -491,7 +491,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const mv
         }
 
         if (datasets.count() >= 2) {
-            auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "Group/HSNE", "Group datasets and perform HSNE analysis on it", getIcon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
+            auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "Group/HSNE", "Group datasets and perform HSNE analysis on it", icon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                 getPluginInstance(mv::data().groupDatasets(datasets));
             });
 
