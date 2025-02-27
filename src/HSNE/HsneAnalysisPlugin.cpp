@@ -457,11 +457,6 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
 // Plugin Factory 
 // =============================================================================
 
-QIcon HsneAnalysisPluginFactory::getIcon(const QColor& color /*= Qt::black*/) const
-{
-    return createPluginIcon("HSNE", color);
-}
-
 AnalysisPlugin* HsneAnalysisPluginFactory::produce()
 {
     return new HsneAnalysisPlugin(this);
