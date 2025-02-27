@@ -464,7 +464,7 @@ AnalysisPlugin* HsneAnalysisPluginFactory::produce()
 
 HsneAnalysisPluginFactory::HsneAnalysisPluginFactory()
 {
-    setIconByName(StyledIcon(createPluginIcon("HSNE")));
+    setIcon(StyledIcon(createPluginIcon("HSNE")));
 }
 
 mv::DataTypes HsneAnalysisPluginFactory::supportedDataTypes() const
