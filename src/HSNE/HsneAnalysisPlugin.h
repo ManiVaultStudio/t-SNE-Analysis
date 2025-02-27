@@ -73,15 +73,9 @@ class HsneAnalysisPluginFactory : public AnalysisPluginFactory
                           FILE  "HsneAnalysisPlugin.json")
 
 public:
-    HsneAnalysisPluginFactory(void) {}
-    ~HsneAnalysisPluginFactory(void) override {}
+    HsneAnalysisPluginFactory();
 
-    /**
-     * Get plugin icon
-     * @param color Icon color for flat (font) icons
-     * @return Icon
-     */
-    QIcon getIcon(const QColor& color = Qt::black) const override;
+    ~HsneAnalysisPluginFactory() override {}
 
     mv::DataTypes supportedDataTypes() const override;
 

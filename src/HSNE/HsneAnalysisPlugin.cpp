@@ -462,6 +462,11 @@ AnalysisPlugin* HsneAnalysisPluginFactory::produce()
     return new HsneAnalysisPlugin(this);
 }
 
+HsneAnalysisPluginFactory::HsneAnalysisPluginFactory()
+{
+    setIconByName(StyledIcon(createPluginIcon("HSNE")));
+}
+
 mv::DataTypes HsneAnalysisPluginFactory::supportedDataTypes() const
 {
     return { PointType };
