@@ -108,15 +108,23 @@ if(NOT ${flann_FOUND})
 endif()
 message (STATUS "Found flann version ${flann_VERSION}")
 
-if(NOT HDILIB_ROOT)
-    message(FATAL_ERROR "Define HDILIB_ROOT")
+# if this project and the HDILib are build as subproject together, we don't need to look for the library
+if(TARGET hdidimensionalityreduction AND TARGET hdiutils AND TARGET hdidata)
+    if(NOT HDILib_LINK_LIBS)
+        set(HDILib_LINK_LIBS hdidimensionalityreduction hdiutils hdidata)
+    endif()
+else()
+    if(NOT HDILIB_ROOT)
+        message(FATAL_ERROR "Define HDILIB_ROOT")
+    endif()
+
+    find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata CONFIG REQUIRED PATHS ${HDILIB_ROOT})
 endif()
 
-find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata CONFIG REQUIRED PATHS ${HDILIB_ROOT})
-
-if(${HDILib_FOUND})
-    message(STATUS "HDILib found at ${HDILIB_ROOT} with ${HDILib_LINK_LIBS}")
+if(NOT ${HDILib_FOUND})
+    message (FATAL_ERROR "HDILib NOT found")
 endif()
+message (STATUS "Found HDILib at ${HDILIB_ROOT} with ${HDILib_LINK_LIBS}")
 
 find_package(OpenGL REQUIRED)
 find_package(OpenMP)
