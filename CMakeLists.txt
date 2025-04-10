@@ -44,27 +44,31 @@ endif(MSVC)
 # HDILib, flann and lz4 are available prebuilt in the lkeb-artifactory
 if (MV_SNE_USE_ARTIFACTORY_LIBS) 
     set(LIBRARY_INSTALL_DIR ${PROJECT_BINARY_DIR})
-    message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
+    
+    if(NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
+        message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
-    set(HDILib_VERSION 1.2.10)
-    set(flann_VERSION 1.9.2)
-    set(lz4_VERSION 1.10.0)
+        set(HDILib_VERSION 1.2.10)
+        set(flann_VERSION 1.9.2)
+        set(lz4_VERSION 1.10.0)
 
-    include(FetchContent)
-    FetchContent_Declare(cmakesupport
-        GIT_REPOSITORY https://github.com/ManiVaultStudio/github-actions
-        GIT_TAG main
-        GIT_SHALLOW TRUE
-        SOURCE_SUBDIR CMakeSupport
-    )
-    FetchContent_MakeAvailable(cmakesupport)
+        include(FetchContent)
+        FetchContent_Declare(cmakesupport
+            GIT_REPOSITORY https://github.com/ManiVaultStudio/github-actions
+            GIT_TAG main
+            GIT_SHALLOW TRUE
+            SOURCE_SUBDIR CMakeSupport
+        )
+        FetchContent_MakeAvailable(cmakesupport)
 
-    message(STATUS "FetchContent: ${cmakesupport_SOURCE_DIR} ${cmakesupport_BINARY_DIR}")
-    include("${cmakesupport_SOURCE_DIR}/CMakeSupport/InstallArtifactoryPackage.cmake")
+        message(STATUS "FetchContent: ${cmakesupport_SOURCE_DIR} ${cmakesupport_BINARY_DIR}")
+        include("${cmakesupport_SOURCE_DIR}/CMakeSupport/InstallArtifactoryPackage.cmake")
 
-    install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) 
-    install_artifactory_package(flann ${flann_VERSION} lkeb TRUE)
-    install_artifactory_package(lz4 ${lz4_VERSION} lkeb TRUE)
+        install_artifactory_package(HDILib ${HDILib_VERSION} biovault TRUE) 
+        install_artifactory_package(flann ${flann_VERSION} lkeb TRUE)
+        install_artifactory_package(lz4 ${lz4_VERSION} lkeb TRUE)
+
+    endif()
 
     set(lz4_ROOT "${LIBRARY_INSTALL_DIR}/lz4/lib/cmake" CACHE PATH "Location of lz4 cmake file")
     set(flann_ROOT "${LIBRARY_INSTALL_DIR}/flann/lib/cmake/" CACHE PATH "Location of flann cmake file")
