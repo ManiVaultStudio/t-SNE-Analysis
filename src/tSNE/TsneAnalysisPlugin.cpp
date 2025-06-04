@@ -161,7 +161,8 @@ void TsneAnalysisPlugin::init()
 
     datasetTask.setName("Compute TSNE");
     datasetTask.setConfigurationFlag(Task::ConfigurationFlag::OverrideAggregateStatus);
- 
+    datasetTask.setMayKill(true);
+
     _tsneAnalysis.setTask(&datasetTask);
 
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetDataChanged));
