@@ -14,6 +14,7 @@
 #include <actions/PluginTriggerAction.h>
 #include <event/Event.h>
 #include <util/Icon.h>
+#include <widgets/MarkdownDialog.h>
 
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
 
@@ -465,11 +466,33 @@ AnalysisPlugin* HsneAnalysisPluginFactory::produce()
 HsneAnalysisPluginFactory::HsneAnalysisPluginFactory()
 {
     setIcon(StyledIcon(createPluginIcon("HSNE")));
+
+    connect(&getPluginMetadata().getTriggerHelpAction(), &TriggerAction::triggered, this, [this]() -> void {
+        if (!getReadmeMarkdownUrl().isValid() || _helpMarkdownDialog.get())
+            return;
+
+        _helpMarkdownDialog = new util::MarkdownDialog(getReadmeMarkdownUrl());
+
+        _helpMarkdownDialog->setWindowTitle(QString("%1").arg(getKind()));
+        _helpMarkdownDialog->setAttribute(Qt::WA_DeleteOnClose);
+        _helpMarkdownDialog->setWindowModality(Qt::NonModal);
+        _helpMarkdownDialog->show();
+        });
 }
 
 mv::DataTypes HsneAnalysisPluginFactory::supportedDataTypes() const
 {
     return { PointType };
+}
+
+QUrl HsneAnalysisPluginFactory::getReadmeMarkdownUrl() const
+{
+    return QUrl("https://raw.githubusercontent.com/ManiVaultStudio/t-SNE-Analysis/master/README.md");
+}
+
+QUrl HsneAnalysisPluginFactory::getRepositoryUrl() const
+{
+    return QUrl("https://github.com/ManiVaultStudio/t-SNE-Analysis");
 }
 
 PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const mv::Datasets& datasets) const

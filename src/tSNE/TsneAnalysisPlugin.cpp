@@ -8,6 +8,7 @@
 
 #include <event/Event.h>
 #include <util/Icon.h>
+#include <widgets/MarkdownDialog.h>
 
 #include <actions/PluginTriggerAction.h>
 
@@ -340,11 +341,33 @@ AnalysisPlugin* TsneAnalysisPluginFactory::produce()
 TsneAnalysisPluginFactory::TsneAnalysisPluginFactory()
 {
     setIcon(StyledIcon(createPluginIcon("TSNE")));
+
+    connect(&getPluginMetadata().getTriggerHelpAction(), &TriggerAction::triggered, this, [this]() -> void {
+        if (!getReadmeMarkdownUrl().isValid() || _helpMarkdownDialog.get())
+            return;
+
+        _helpMarkdownDialog = new util::MarkdownDialog(getReadmeMarkdownUrl());
+
+        _helpMarkdownDialog->setWindowTitle(QString("%1").arg(getKind()));
+        _helpMarkdownDialog->setAttribute(Qt::WA_DeleteOnClose);
+        _helpMarkdownDialog->setWindowModality(Qt::NonModal);
+        _helpMarkdownDialog->show();
+        });
 }
 
 mv::DataTypes TsneAnalysisPluginFactory::supportedDataTypes() const
 {
     return { PointType };
+}
+
+QUrl TsneAnalysisPluginFactory::getReadmeMarkdownUrl() const
+{
+    return QUrl("https://raw.githubusercontent.com/ManiVaultStudio/t-SNE-Analysis/master/README.md");
+}
+
+QUrl TsneAnalysisPluginFactory::getRepositoryUrl() const
+{
+    return QUrl("https://github.com/ManiVaultStudio/t-SNE-Analysis");
 }
 
 PluginTriggerActions TsneAnalysisPluginFactory::getPluginTriggerActions(const mv::Datasets& datasets) const

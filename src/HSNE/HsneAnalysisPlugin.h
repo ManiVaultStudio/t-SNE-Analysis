@@ -8,10 +8,17 @@
 #include "HsneSettingsAction.h"
 #include "TsneAnalysis.h"
 
+#include <QPointer>
+#include <QUrl>
+
 using namespace mv::plugin;
 using namespace mv::gui;
 
 class HsneScaleAction;
+
+namespace mv::util {
+    class MarkdownDialog;
+}
 
 /**
  * HsneAnalysisPlugin
@@ -91,4 +98,13 @@ public:
      * @return Vector of plugin trigger actions
      */
     PluginTriggerActions getPluginTriggerActions(const mv::Datasets& datasets) const override;
+
+    QUrl getReadmeMarkdownUrl() const override;
+
+    bool hasHelp() const override { return true; }
+
+    QUrl getRepositoryUrl() const override;
+
+private:
+    QPointer<mv::util::MarkdownDialog>   _helpMarkdownDialog = {};
 };
