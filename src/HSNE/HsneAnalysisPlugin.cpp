@@ -19,7 +19,7 @@
 
 #include <fstream>
 
-Q_PLUGIN_METADATA(IID "nl.tudelft.HsneAnalysisPlugin")
+Q_PLUGIN_METADATA(IID "studio.manivault.HsneAnalysisPlugin")
 
 using namespace mv;
 using namespace mv::util;

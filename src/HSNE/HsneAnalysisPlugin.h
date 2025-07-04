@@ -69,8 +69,8 @@ class HsneAnalysisPluginFactory : public AnalysisPluginFactory
 {
     Q_INTERFACES(mv::plugin::AnalysisPluginFactory mv::plugin::PluginFactory)
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID   "nl.tudelft.HsneAnalysisPlugin"
-                          FILE  "HsneAnalysisPlugin.json")
+        Q_PLUGIN_METADATA(IID   "studio.manivault.HsneAnalysisPlugin"
+                          FILE  "PluginInfo.json")
 
 public:
     HsneAnalysisPluginFactory();
