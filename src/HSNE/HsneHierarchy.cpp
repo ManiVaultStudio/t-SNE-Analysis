@@ -11,7 +11,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "nlohmann/json.hpp"
+#include "json/nlohmann/json.hpp"
 
 #include <QFileInfo>
 #include <QString>

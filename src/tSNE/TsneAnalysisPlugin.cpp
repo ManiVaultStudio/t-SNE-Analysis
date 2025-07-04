@@ -17,7 +17,7 @@
 #include <fstream>
 #include <iostream>
 
-Q_PLUGIN_METADATA(IID "nl.tudelft.TsneAnalysisPlugin")
+Q_PLUGIN_METADATA(IID "studio.manivault.TsneAnalysisPlugin")
 
 using namespace mv;
 using namespace mv::util;

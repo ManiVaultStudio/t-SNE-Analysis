@@ -51,8 +51,8 @@ class TsneAnalysisPluginFactory : public AnalysisPluginFactory
 {
     Q_INTERFACES(mv::plugin::AnalysisPluginFactory mv::plugin::PluginFactory)
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID   "nl.tudelft.TsneAnalysisPlugin"
-                          FILE  "TsneAnalysisPlugin.json")
+        Q_PLUGIN_METADATA(IID   "studio.manivault.TsneAnalysisPlugin"
+                          FILE  "PluginInfo.json")
 
 public:
     TsneAnalysisPluginFactory();
