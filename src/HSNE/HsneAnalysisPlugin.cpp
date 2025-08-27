@@ -68,7 +68,7 @@ void HsneAnalysisPlugin::init()
     _hsneSettingsAction = new HsneSettingsAction(this);
 
     // Set the default number of hierarchy scales based on number of points
-    int numHierarchyScales = std::max(1L, std::lround(log10(inputDataset->getNumPoints())) - 2);
+    const int numHierarchyScales = std::max(1L, std::lround(log10(inputDataset->getNumPoints())) - 2);
     _hsneSettingsAction->getGeneralHsneSettingsAction().getNumScalesAction().setValue(numHierarchyScales);
 
     // Manage UI elements attached to output data set
@@ -124,12 +124,11 @@ void HsneAnalysisPlugin::init()
     connect(&computationAction.getStartComputationAction(), &TriggerAction::triggered, this, [this, &computationAction]() {
         _hsneSettingsAction->setReadOnly(true);
 
-        int topScaleIndex = _hierarchy->getTopScale();
-        Hsne::scale_type& topScale = _hierarchy->getScale(topScaleIndex);
-        int numLandmarks = topScale.size();
-        TsneParameters tsneParameters = _hsneSettingsAction->getTsneParameters();
+        const int topScaleIndex       = _hierarchy->getTopScale();
+        const int numLandmarks        = _hierarchy->getScale(topScaleIndex).size();
+        const TsneParameters& tParams = _hsneSettingsAction->getTsneParameters();
 
-        _tsneAnalysis.startComputation(tsneParameters, _hierarchy->getTransitionMatrixAtScale(topScaleIndex), numLandmarks);
+        _tsneAnalysis.startComputation(tParams, _hierarchy->getTransitionMatrixAtScale(topScaleIndex), numLandmarks);
     });
 
     connect(&computationAction.getContinueComputationAction(), &TriggerAction::triggered, this, [this]() {
@@ -306,7 +305,7 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
         {
             LandmarkMap& landmarkMap = _hierarchy->getInfluenceHierarchy().getMap()[topScaleIndex];
 
-            mv::SelectionMap mapping;
+            mv::SelectionMap mapping = {};
             auto& selectionMap = mapping.getMap();
 
             if (inputDataset->isFull())
@@ -393,8 +392,8 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
             hdi::utils::CoutLog log;
 
             // Load HSNE Hierarchy
-            const auto loadPathHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
-            bool loadedHierarchy = _hierarchy->loadCacheHsneHierarchy(loadPathHierarchy.toStdString(), log);
+            const auto loadPathHierarchy    = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
+            const bool loadedHierarchy      = _hierarchy->loadCacheHsneHierarchy(loadPathHierarchy.toStdString(), log);
 
             // Load HSNE InfluenceHierarchy
             const auto loadPathInfluenceHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneInfluenceHierarchy"].toString());
@@ -506,7 +505,7 @@ PluginTriggerActions HsneAnalysisPluginFactory::getPluginTriggerActions(const mv
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (datasets.count() >= 1) {
             auto pluginTriggerAction = new PluginTriggerAction(const_cast<HsneAnalysisPluginFactory*>(this), this, "HSNE", "Perform HSNE analysis on selected datasets", icon(), [this, getPluginInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
-                for (auto& dataset : datasets)
+                for (const auto& dataset : datasets)
                     getPluginInstance(dataset);
             });
 
