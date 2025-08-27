@@ -60,8 +60,7 @@ void HsneAnalysisPlugin::init()
         auto newOutput = Dataset<Points>(mv::data().createDerivedDataset("HSNE Embedding", inputDataset, inputDataset));
         setOutputDataset(newOutput);
 
-        const size_t numEmbeddingDimensions = 2;
-        newOutput->setData(nullptr, inputDataset->getNumPoints(), numEmbeddingDimensions);
+        newOutput->setData(nullptr, inputDataset->getNumPoints(), 2);
 
         events().notifyDatasetDataChanged(newOutput);
     }
@@ -270,6 +269,9 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
 
     // Number of landmarks on the top scale
     const uint32_t numLandmarks = topScale.size();
+
+    embeddingDataset->setData(nullptr, numLandmarks, 2);
+    events().notifyDatasetDataChanged(embeddingDataset);
 
     // Only create new selection helper if a) it does not exist yet and b) we are above the data scale
     if (!_selectionHelperData.isValid() && topScaleIndex > 0)
