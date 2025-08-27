@@ -1,6 +1,6 @@
-#include "HSNEUtilities.h"
+#include "HsneUtilities.h"
 
-#include "HSNEHierarchy.h"
+#include "HsneHierarchy.h"
 
 #include <CoreInterface.h>
 #include <Dataset.h>
