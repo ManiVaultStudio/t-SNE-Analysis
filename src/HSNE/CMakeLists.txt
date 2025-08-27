@@ -15,6 +15,8 @@ set(HSNE_PLUGIN_SOURCES
     HsneParameters.h
     HsneRecomputeWarningDialog.h
     Globals.h
+    HsneUtilities.h
+    HsneUtilities.cpp
 )
 
 set(HSNE_ACTIONS_SOURCES

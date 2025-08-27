@@ -38,12 +38,13 @@ TsneWorker::TsneWorker(TsneParameters tsneParameters) :
 TsneWorker::TsneWorker(TsneParameters tsneParameters, KnnParameters knnParameters, const std::vector<float>& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
     TsneWorker(tsneParameters)
 {
-    _knnParameters = knnParameters;
     assert(numDimensions > 0);
-    _numPoints = data.size() / numDimensions;
+
+    _knnParameters = knnParameters;
+    _numPoints     = data.size() / numDimensions;
     _numDimensions = numDimensions;
-    _data = data;
-    _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+    _data          = data;
+    _embedding     = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -52,12 +53,13 @@ TsneWorker::TsneWorker(TsneParameters tsneParameters, KnnParameters knnParameter
 TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, std::vector<float>&& data, uint32_t numDimensions, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
     TsneWorker(parameters)
 {
-    _knnParameters = knnParameters;
     assert(numDimensions > 0);
-    _numPoints = data.size() / numDimensions;
+
+    _knnParameters = knnParameters;
+    _numPoints     = data.size() / numDimensions;
     _numDimensions = numDimensions;
-    _data = std::move(data);
-    _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+    _data          = std::move(data);
+    _embedding     = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -66,10 +68,10 @@ TsneWorker::TsneWorker(TsneParameters parameters, KnnParameters knnParameters, s
 TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::MapMemEff<uint32_t, float>>& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
     TsneWorker(parameters)
 {
-    _probabilityDistribution = probDist;
+    _probabilityDistribution    = probDist;
     _hasProbabilityDistribution = true;
-    _numPoints = numPoints;
-    _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+    _numPoints                  = numPoints;
+    _embedding                  = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
 
     if (initEmbedding)
         setInitEmbedding(*initEmbedding);
@@ -78,10 +80,10 @@ TsneWorker::TsneWorker(TsneParameters parameters, const std::vector<hdi::data::M
 TsneWorker::TsneWorker(TsneParameters parameters, std::vector<hdi::data::MapMemEff<uint32_t, float>>&& probDist, uint32_t numPoints, const hdi::data::Embedding<float>::scalar_vector_type* initEmbedding) :
     TsneWorker(parameters)
 {
-    _probabilityDistribution = std::move(probDist);
+    _probabilityDistribution    = std::move(probDist);
     _hasProbabilityDistribution = true;
-    _numPoints = numPoints;
-    _embedding = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
+    _numPoints                  = numPoints;
+    _embedding                  = { static_cast<uint32_t>(_tsneParameters.getNumDimensionsOutput()), _numPoints };
     _tsneParameters.setExaggerationFactor(4 + _numPoints / 60000.0);
 
     if (initEmbedding)

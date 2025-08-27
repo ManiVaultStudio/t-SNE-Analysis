@@ -3,6 +3,7 @@
 #include "DataHierarchyItem.h"
 #include "GradientDescentSettingsAction.h"
 #include "HsneHierarchy.h"
+#include "HsneUtilities.h"
 #include "TsneParameters.h"
 #include "Globals.h"
 
@@ -10,7 +11,10 @@
 
 #include <PointData/InfoAction.h>
 
+#include <algorithm>
+#include <iostream>
 #include <limits>
+#include <utility>
 
 #include <QMenu>
 
@@ -184,7 +188,7 @@ void HsneScaleAction::initLayoutAndConnection()
 
             // Check if the removed dataset was a selection helper created by this scale
             auto wasCreatedByScale = [&selectionHelperID](Dataset<DatasetImpl> s) { return s->getId() == selectionHelperID; };
-            if (auto it = std::find_if(std::begin(_selectionHelpers), std::end(_selectionHelpers), wasCreatedByScale); it != std::end(_selectionHelpers))
+            if (auto it = std::find_if(_selectionHelpers.begin(), _selectionHelpers.end(), wasCreatedByScale); it != _selectionHelpers.end())
             {
                 if ((*it).isValid())
                 {
@@ -225,7 +229,7 @@ void HsneScaleAction::refine()
     _initializationTask.setRunning();
 
     // Get the selection of points that are to be refined
-    auto selection = _embedding->getSelection<Points>();
+    const auto selection = _embedding->getSelection<Points>();
 
     // Set the scale of the refined embedding to be one below the current scale
     assert(_currentScaleLevel >= 1);
@@ -258,9 +262,12 @@ void HsneScaleAction::refine()
             refinedLandmarks.push_back(n.first);
         }
     }
+
+    const size_t numRefinedLandmarks = refinedLandmarks.size();
+
     std::cout << "#selected landmarks: " << selectedLandmarks.size() << std::endl;
     std::cout << "#landmarks at refined scale: " << neighbors.size() << std::endl;
-    std::cout << "#thresholded landmarks at refined scale: " << refinedLandmarks.size() << std::endl;
+    std::cout << "#thresholded landmarks at refined scale: " << numRefinedLandmarks << std::endl;
     std::cout << "Refining embedding.." << std::endl;
     
     ////////////////////////////
@@ -281,14 +288,14 @@ void HsneScaleAction::refine()
 
         if (_input->isFull())
         {
-            for (int i = 0; i < refinedLandmarks.size(); i++)
+            for (int i = 0; i < numRefinedLandmarks; i++)
                 selection->indices.push_back(refinedScale._landmark_to_original_data_idx[refinedLandmarks[i]]);
         }
         else
         {
             std::vector<unsigned int> globalIndices;
             _input->getGlobalIndices(globalIndices);
-            for (int i = 0; i < refinedLandmarks.size(); i++)
+            for (int i = 0; i < numRefinedLandmarks; i++)
                 selection->indices.push_back(globalIndices[refinedScale._landmark_to_original_data_idx[refinedLandmarks[i]]]);
         }
 
@@ -307,7 +314,7 @@ void HsneScaleAction::refine()
 
         //qDebug() << "refineEmbedding " << refineEmbedding->getId() << " with hsneScaleSubset " << hsneScaleSubset->getId();
 
-        refineEmbedding->setData(nullptr, 0, 2);
+        refineEmbedding->setData(nullptr, numRefinedLandmarks, 2);
 
         events().notifyDatasetAdded(refineEmbedding);
         events().notifyDatasetDataChanged(refineEmbedding);
@@ -329,6 +336,9 @@ void HsneScaleAction::refine()
         _refinedScaledAction->initNonTopScale(refinedLandmarks);
 
         refineEmbedding->addAction(*_refinedScaledAction);
+
+        // Publish landmark weight data
+        publishLandmarkWeightsData(&_hsneHierarchy, refinedScaleLevel, refineEmbedding, &refinedLandmarks);
     }
 
     ///////////////////////////////////
@@ -364,7 +374,7 @@ void HsneScaleAction::refine()
                 {
                     bottomMap[j] = globalIndices[bottomMap[j]];
                 }
-                int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
+                const int bottomLevelIdx = _hsneHierarchy.getScale(refinedScaleLevel)._landmark_to_original_data_idx[scaleIndex];
                 selectionMap[globalIndices[bottomLevelIdx]] = bottomMap;
             }
         }
@@ -378,7 +388,7 @@ void HsneScaleAction::refine()
         auto& refineEmbedding = _refineEmbeddings.back();
 
         // Update the refine embedding with new data
-        refineEmbedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
+        refineEmbedding->setData(tsneData.getData(), 2);
 
         _refinedScaledActions.back()->getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
 
@@ -404,7 +414,7 @@ void HsneScaleAction::refine()
     }
 
     // Start the embedding process
-    _tsneAnalysis.startComputation(_tsneParameters, refinedTransitionMatrix, refinedLandmarks.size());
+    _tsneAnalysis.startComputation(_tsneParameters, refinedTransitionMatrix, numRefinedLandmarks);
 }
 
 void HsneScaleAction::fromVariantMap(const QVariantMap& variantMap)
