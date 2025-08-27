@@ -3,6 +3,7 @@
 #include "HsneParameters.h"
 #include "HsneRecomputeWarningDialog.h"
 #include "HsneScaleAction.h"
+#include "HsneUtilities.h"
 #include "Globals.h"
 
 #include <PointData/DimensionsPickerAction.h>
@@ -343,6 +344,11 @@ void HsneAnalysisPlugin::computeTopLevelEmbedding()
             embeddingDataset->addLinkedData(inputDataset, mapping);
         }
     }
+
+    // Publish landmark weights data & focus embedding again
+    _hierarchy->setPublishLandmarkWeights(_hsneSettingsAction->getGeneralHsneSettingsAction().getPublishLandmarkWeightAction().isChecked());
+    publishLandmarkWeightsData(_hierarchy.get(), topScaleIndex, embeddingDataset);
+    embeddingDataset->getDataHierarchyItem().select();
 
     // Set t-SNE parameters
     TsneParameters tsneParameters = _hsneSettingsAction->getTsneParameters();

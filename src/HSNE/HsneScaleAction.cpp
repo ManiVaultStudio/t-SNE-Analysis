@@ -3,6 +3,7 @@
 #include "DataHierarchyItem.h"
 #include "GradientDescentSettingsAction.h"
 #include "HsneHierarchy.h"
+#include "HsneUtilities.h"
 #include "TsneParameters.h"
 #include "Globals.h"
 
@@ -335,6 +336,9 @@ void HsneScaleAction::refine()
         _refinedScaledAction->initNonTopScale(refinedLandmarks);
 
         refineEmbedding->addAction(*_refinedScaledAction);
+
+        // Publish landmark weight data
+        publishLandmarkWeightsData(&_hsneHierarchy, refinedScaleLevel, refineEmbedding, &refinedLandmarks);
     }
 
     ///////////////////////////////////

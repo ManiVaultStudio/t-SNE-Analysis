@@ -128,6 +128,9 @@ public:
     int getNumPoints() const { return _numPoints; }
     int getNumDimensions() const { return _numDimensions; }
 
+    void setPublishLandmarkWeights(bool publishLandmarkWeights) { _publishLandmarkWeights = publishLandmarkWeights; }
+    bool getPublishLandmarkWeights() const { return _publishLandmarkWeights; }
+
     /** Save HSNE hierarchy from this class to disk */
     void saveCacheHsne(const Hsne::Parameters& internalParams) const;
 
@@ -170,6 +173,7 @@ private:
     Path                    _cachePath;                            /** Path for saving and loading cache */
     Path                    _cachePathFileName;                    /** cachePath() + data name */
     bool                    _saveHierarchyToDisk = false;
+    bool                    _publishLandmarkWeights = false;
 
     friend class HsneAnalysisPlugin;
 };

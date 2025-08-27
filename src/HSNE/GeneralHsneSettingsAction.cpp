@@ -10,6 +10,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _numScalesAction(this, "Hierarchy Scales"),
     _knnAlgorithmAction(this, "kNN Algorithm"),
     _distanceMetricAction(this, "Distance metric"),
+    _publishLandmarkWeightAction(this, "Publish landmark weights", true),
     _numKnnAction(this, "Number of NN"),
     _startAction(this, "Start")
 {
@@ -17,6 +18,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     addAction(&_knnAlgorithmAction);
     addAction(&_distanceMetricAction);
     addAction(&_numKnnAction);
+    addAction(&_publishLandmarkWeightAction);
     addAction(&_startAction);
 
     _knnAlgorithmAction.setDefaultWidgetFlags(OptionAction::ComboBox);
@@ -29,6 +31,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
     _numKnnAction.initialize(3, 300, 90);
 
+    _publishLandmarkWeightAction.setToolTip("Create a second output dataset that stores the landmark weight\n(propotional to how many data points each landmark represents).");
     _numScalesAction.setToolTip("Number of hierarchy scales: e.g. 2 scales indicates one abstraction scale \nabove the data level, which is a scale itself.");
     _startAction.setToolTip("Initialize the HSNE hierarchy and create an embedding");
 
@@ -76,6 +79,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
 
         _knnAlgorithmAction.setEnabled(enabled);
         _distanceMetricAction.setEnabled(enabled);
+        _publishLandmarkWeightAction.setEnabled(enabled);
         _numScalesAction.setEnabled(enabled);
         _numKnnAction.setEnabled(enabled);
         _startAction.setEnabled(enabled);
@@ -115,6 +119,7 @@ void GeneralHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
     _numScalesAction.fromParentVariantMap(variantMap);
     _knnAlgorithmAction.fromParentVariantMap(variantMap);
     _distanceMetricAction.fromParentVariantMap(variantMap);
+    _publishLandmarkWeightAction.fromParentVariantMap(variantMap);
     _numKnnAction.fromParentVariantMap(variantMap);
     _startAction.fromParentVariantMap(variantMap);
 }
@@ -126,6 +131,7 @@ QVariantMap GeneralHsneSettingsAction::toVariantMap() const
     _numScalesAction.insertIntoVariantMap(variantMap);
     _knnAlgorithmAction.insertIntoVariantMap(variantMap);
     _distanceMetricAction.insertIntoVariantMap(variantMap);
+    _publishLandmarkWeightAction.insertIntoVariantMap(variantMap);
     _numKnnAction.insertIntoVariantMap(variantMap);
     _startAction.insertIntoVariantMap(variantMap);
 
