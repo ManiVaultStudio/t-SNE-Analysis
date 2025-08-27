@@ -3,6 +3,7 @@
 #include "actions/GroupAction.h"
 #include "actions/IntegralAction.h"
 #include "actions/OptionAction.h"
+#include "actions/ToggleAction.h"
 #include "actions/TriggerAction.h"
 
 using namespace mv::gui;
@@ -32,6 +33,7 @@ public: // Action getters
     OptionAction& getKnnAlgorithmAction() { return _knnAlgorithmAction; }
     IntegralAction& getNumKnnAction() { return _numKnnAction; };
     OptionAction& getDistanceMetricAction() { return _distanceMetricAction; }
+    ToggleAction& getPublishLandmarkWeightAction() { return _publishLandmarkWeightAction; }
     IntegralAction& getNumScalesAction() { return _numScalesAction; }
     TriggerAction& getStartAction() { return _startAction; }
 
@@ -54,6 +56,7 @@ protected:
     IntegralAction          _numScalesAction;                       /** Num scales action */
     OptionAction            _knnAlgorithmAction;                    /** KNN algorithm action */
     OptionAction            _distanceMetricAction;                  /** Distance metric action */
+    ToggleAction            _publishLandmarkWeightAction;           /** Whether to create a dataset that contains the landmark weights */
     IntegralAction          _numKnnAction;                          /** Number of Knn action */
     TriggerAction           _startAction;                           /** Start action */
 };

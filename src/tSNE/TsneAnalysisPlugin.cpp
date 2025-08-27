@@ -15,6 +15,7 @@
 #include "hdi/data/io.h"
 #include "hdi/dimensionality_reduction/hd_joint_probability_generator.h"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
@@ -194,10 +195,7 @@ void TsneAnalysisPlugin::startComputation()
     // Extract the enabled dimensions from the data
     std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
 
-    const auto numEnabledDimensions = count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
-
-    _tsneSettingsAction->getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().reset();
-
+    const auto numEnabledDimensions = std::count_if(enabledDimensions.begin(), enabledDimensions.end(), [](bool b) { return b; });
     const auto numPoints = inputPoints->isFull() ? inputPoints->getNumPoints() : inputPoints->indices.size();
     data.resize(numPoints * numEnabledDimensions);
 
@@ -207,6 +205,7 @@ void TsneAnalysisPlugin::startComputation()
 
     inputPoints->populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
+    _tsneSettingsAction->getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().setValue(0);
     _tsneSettingsAction->getComputationAction().getRunningAction().setChecked(true);
 
     // Init embedding: random or set from other dataset, e.g. PCA
