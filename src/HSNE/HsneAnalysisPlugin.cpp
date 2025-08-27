@@ -18,7 +18,11 @@
 
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
 
+#include <algorithm>
+#include <cmath>
 #include <fstream>
+#include <iostream>
+#include <numeric>
 
 Q_PLUGIN_METADATA(IID "studio.manivault.HsneAnalysisPlugin")
 
