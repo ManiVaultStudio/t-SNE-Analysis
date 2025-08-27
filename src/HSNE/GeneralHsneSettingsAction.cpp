@@ -10,7 +10,7 @@ GeneralHsneSettingsAction::GeneralHsneSettingsAction(HsneSettingsAction& hsneSet
     _numScalesAction(this, "Hierarchy Scales"),
     _knnAlgorithmAction(this, "kNN Algorithm"),
     _distanceMetricAction(this, "Distance metric"),
-    _publishLandmarkWeightAction(this, "Publish landmark weights", true),
+    _publishLandmarkWeightAction(this, "Publish landmark weights", false),
     _numKnnAction(this, "Number of NN"),
     _startAction(this, "Start")
 {
