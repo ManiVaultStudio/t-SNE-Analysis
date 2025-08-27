@@ -10,7 +10,10 @@
 
 #include <PointData/InfoAction.h>
 
+#include <algorithm>
+#include <iostream>
 #include <limits>
+#include <utility>
 
 #include <QMenu>
 
