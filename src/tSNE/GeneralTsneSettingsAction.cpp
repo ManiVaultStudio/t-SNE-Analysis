@@ -26,7 +26,7 @@ GeneralTsneSettingsAction::GeneralTsneSettingsAction(TsneSettingsAction& tsneSet
     _distanceMetricAction.setDefaultWidgetFlags(OptionAction::ComboBox);
     _perplexityAction.setDefaultWidgetFlags(IntegralAction::SpinBox | IntegralAction::Slider);
 
-    _knnAlgorithmAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "FLANN");
+    _knnAlgorithmAction.initialize(QStringList({ "FLANN", "HNSW", "ANNOY" }), "HNSW");
     _distanceMetricAction.initialize(QStringList({ "Euclidean", "Cosine", "Inner Product", "Manhattan", "Hamming", "Dot" }), "Euclidean");
     _perplexityAction.initialize(2, 50, 30);
 
