@@ -163,8 +163,10 @@ void HsneAnalysisPlugin::init()
         _hsneSettingsAction->getGradientDescentSettingsAction().setReadOnly(false);
         _hsneSettingsAction->getKnnSettingsAction().setReadOnly(false);
 
-        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setText("Recompute");
-        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setToolTip("Recomputing does not change the selection mapping.\n If the data size changed, prefer creating a new HSNE analysis.");
+        // TODO: fix recompute, see issues 140 and 152 on github.com/ManiVaultStudio/t-SNE-Analysis
+        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setEnabled(false);
+        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setText("Already computed"); // after fix: "Recompute"
+        _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setToolTip("Compute another HSNE embedding via.\nRight-click the source data -> Analyze -> HSNE");
 
         computeTopLevelEmbedding();
     });
@@ -421,8 +423,11 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     }
 
     _selectionHelperData = mv::data().getDataset(variantMap["selectionHelperDataGUID"].toString());
-    _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setText("Recompute");
-    _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setToolTip("Recomputing does not change the selection mapping.\n If the data size changed, prefer creating a new HSNE analysis.");
+
+    // TODO: fix recompute, see issues 140 and 152 on github.com/ManiVaultStudio/t-SNE-Analysis
+    _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setEnabled(false);
+    _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setText("Already computed"); // after fix: "Recompute"
+    _hsneSettingsAction->getGeneralHsneSettingsAction().getStartAction().setToolTip("Compute another HSNE embedding via.\nRight-click the source data -> Analyze -> HSNE");
 }
 
 QVariantMap HsneAnalysisPlugin::toVariantMap() const
