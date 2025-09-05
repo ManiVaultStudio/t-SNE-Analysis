@@ -20,10 +20,10 @@
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <numeric>
 
 Q_PLUGIN_METADATA(IID "studio.manivault.HsneAnalysisPlugin")
 
@@ -396,6 +396,9 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
     std::vector<bool> enabledDimensions = getInputDataset<Points>()->getDimensionsPickerAction().getEnabledDimensions();
     _hierarchy->setDataAndParameters(getInputDataset<Points>(), getOutputDataset<Points>(), _hsneSettingsAction->getHsneParameters(), _hsneSettingsAction->getKnnParameters(), std::move(enabledDimensions));
 
+    if(variantMap.contains("publishLandmarkWeightsBool"))
+        _hierarchy->setPublishLandmarkWeights(variantMap["publishLandmarkWeightsBool"].toBool());
+
     auto& hsne = _hierarchy->getHsne();
     hsne.setDimensionality(_hierarchy->getNumDimensions());
 
@@ -435,6 +438,10 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
     QVariantMap variantMap = AnalysisPlugin::toVariantMap();
 
     _hsneSettingsAction->insertIntoVariantMap(variantMap);
+
+    variantMap["publishLandmarkWeightsBool"] = _hierarchy->getPublishLandmarkWeights();
+
+    assert(_hierarchy->getPublishLandmarkWeights() == _hsneSettingsAction->getGeneralHsneSettingsAction().getPublishLandmarkWeightAction().isChecked());
 
     if (_hsneSettingsAction->getHierarchyConstructionSettingsAction().getSaveHierarchyToProjectAction().isChecked() && _hierarchy->isInitialized())
     {
