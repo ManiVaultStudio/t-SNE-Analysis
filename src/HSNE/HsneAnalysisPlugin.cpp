@@ -20,10 +20,10 @@
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <numeric>
 
 Q_PLUGIN_METADATA(IID "studio.manivault.HsneAnalysisPlugin")
 
@@ -440,6 +440,8 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
     _hsneSettingsAction->insertIntoVariantMap(variantMap);
 
     variantMap["publishLandmarkWeightsBool"] = _hierarchy->getPublishLandmarkWeights();
+
+    assert(_hierarchy->getPublishLandmarkWeights() == _hsneSettingsAction->getGeneralHsneSettingsAction().getPublishLandmarkWeightAction().isChecked());
 
     if (_hsneSettingsAction->getHierarchyConstructionSettingsAction().getSaveHierarchyToProjectAction().isChecked() && _hierarchy->isInitialized())
     {
