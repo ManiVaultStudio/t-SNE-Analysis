@@ -33,7 +33,7 @@ public: // Action getters
     OptionAction& getKnnAlgorithmAction() { return _knnAlgorithmAction; };
     OptionAction& getDistanceMetricAction() { return _distanceMetricAction; };
     IntegralAction& getNumIterationsAction() { return _computationAction.getNumIterationsAction(); };
-    IntegralAction& getNumberOfComputatedIterationsAction() { return _computationAction.getNumberOfComputatedIterationsAction(); };
+    IntegralAction& getNumberOfComputedIterationsAction() { return _computationAction.getNumberOfComputedIterationsAction(); };
     IntegralAction& getPerplexityAction() { return _perplexityAction; };
     TsneComputationAction& getComputationAction() { return _computationAction; }
     ToggleAction& getReinitAction() { return _reinitAction; }

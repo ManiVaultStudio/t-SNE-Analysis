@@ -44,7 +44,7 @@ public:
 public: // Action getters
 
     IntegralAction& getNumIterationsAction() { return _numIterationsAction; };
-    IntegralAction& getNumberOfComputatedIterationsAction() { return _numberOfComputatedIterationsAction; };
+    IntegralAction& getNumberOfComputedIterationsAction() { return _numberOfComputatedIterationsAction; };
     IntegralAction& getUpdateIterationsAction() { return _updateIterationsAction; };
     TriggerAction& getStartComputationAction() { return _startComputationAction; }
     TriggerAction& getContinueComputationAction() { return _continueComputationAction; }

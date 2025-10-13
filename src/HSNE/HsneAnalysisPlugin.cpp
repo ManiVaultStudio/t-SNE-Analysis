@@ -215,7 +215,7 @@ void HsneAnalysisPlugin::init()
 
         embedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
-        _hsneSettingsAction->getTopLevelScaleAction().getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
+        _hsneSettingsAction->getTopLevelScaleAction().getNumberOfComputedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
 
         // NOTE: Commented out because it causes a stack overflow after a couple of iterations
         //QCoreApplication::processEvents();
