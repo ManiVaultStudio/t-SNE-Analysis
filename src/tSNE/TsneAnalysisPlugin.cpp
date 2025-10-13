@@ -146,7 +146,7 @@ void TsneAnalysisPlugin::init()
         // Update the output points dataset with new data from the TSNE analysis
         getOutputDataset<Points>()->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
 
-        _tsneSettingsAction->getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
+        _tsneSettingsAction->getGeneralTsneSettingsAction().getNumberOfComputedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
 
         // Notify others that the embedding data changed
         events().notifyDatasetDataChanged(getOutputDataset());
@@ -205,7 +205,7 @@ void TsneAnalysisPlugin::startComputation()
 
     inputPoints->populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(data, indices);
 
-    _tsneSettingsAction->getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().setValue(0);
+    _tsneSettingsAction->getGeneralTsneSettingsAction().getNumberOfComputedIterationsAction().setValue(0);
     _tsneSettingsAction->getComputationAction().getRunningAction().setChecked(true);
 
     // Init embedding: random or set from other dataset, e.g. PCA
@@ -257,7 +257,7 @@ void TsneAnalysisPlugin::continueComputation()
         currentEmbeddingPositions.resize(2ull * currentEmbedding->getNumPoints());
         currentEmbedding->populateDataForDimensions<std::vector<float>, std::vector<unsigned int>>(currentEmbeddingPositions, { 0, 1 });
 
-        _tsneAnalysis.startComputation(_tsneSettingsAction->getTsneParameters(), std::move(_probDistMatrix), currentEmbedding->getNumPoints(), &currentEmbeddingPositions, _tsneSettingsAction->getGeneralTsneSettingsAction().getNumberOfComputatedIterationsAction().getValue());
+        _tsneAnalysis.startComputation(_tsneSettingsAction->getTsneParameters(), std::move(_probDistMatrix), currentEmbedding->getNumPoints(), &currentEmbeddingPositions, _tsneSettingsAction->getGeneralTsneSettingsAction().getNumberOfComputedIterationsAction().getValue());
     }
     else
     {

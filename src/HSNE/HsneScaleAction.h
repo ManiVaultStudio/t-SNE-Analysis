@@ -69,12 +69,12 @@ public: // Action getters
 
     TriggerAction& getRefineAction() { return _refineAction; }
     TsneComputationAction& getComputationAction() { return _computationAction; }
-    IntegralAction& getNumberOfComputatedIterationsAction() { return _computationAction.getNumberOfComputatedIterationsAction(); };
+    IntegralAction& getNumberOfComputedIterationsAction() { return _computationAction.getNumberOfComputedIterationsAction(); };
 
 public: // Setters
     void setScale(unsigned int scale) { _currentScaleLevel = scale; }
 
-    // Sets drillIndices and add GrandienDescentSettings
+    // Sets drillIndices and add GrandientDescentSettings
     void initNonTopScale(const std::vector<uint32_t>& drillIndices);
 
 public: // Serialization
@@ -97,7 +97,7 @@ private:
     using RefineScaleActions    = std::vector<HsneScaleAction*>;
 
 private:
-    TsneParameters          _tsneParameters;        /** TSNE paremeters */
+    TsneParameters          _tsneParameters;        /** TSNE parameters */
     TsneAnalysis            _tsneAnalysis;          /** TSNE analysis */
     HsneHierarchy&          _hsneHierarchy;         /** Reference to HSNE hierarchy */
     Dataset<Points>         _input;                 /** Input dataset reference */
@@ -105,7 +105,7 @@ private:
     Datasets                _refineEmbeddings;      /** Refine embedding dataset references */
     DatasetImpls            _selectionHelpers;      /** References to selection helper datasets */
 
-    TsneParameters*         _tsneParametersTopLevel;        /** TSNE paremeters from the top level HSNE analysis */
+    TsneParameters*         _tsneParametersTopLevel;        /** TSNE parameters from the top level HSNE analysis */
 
 private:
     TriggerAction           _refineAction;          /** Refine action */

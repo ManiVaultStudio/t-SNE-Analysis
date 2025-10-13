@@ -131,7 +131,7 @@ void HsneScaleAction::initLayoutAndConnection()
 
             connect(&_tsneAnalysis, &TsneAnalysis::embeddingUpdate, this, [this](const TsneData& tsneData) {
                 _embedding->setData(tsneData.getData().data(), tsneData.getNumPoints(), 2);
-                getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
+                getNumberOfComputedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
                 events().notifyDatasetDataChanged(_embedding);
                 });
         };
@@ -161,10 +161,10 @@ void HsneScaleAction::initLayoutAndConnection()
     }
 
     const auto updateReadOnly = [this]() -> void {
-        auto selection = _input->getSelection<Points>();
+        const auto selection = _input->getSelection<Points>();
         const auto enabled = !isReadOnly();
 
-        _refineAction.setEnabled(!isReadOnly() && !selection->indices.empty() && _hsneHierarchy.getNumScales() > 1);
+        _refineAction.setEnabled(enabled && !selection->indices.empty() && _hsneHierarchy.getNumScales() > 1);
         _computationAction.getNumIterationsAction().setEnabled(enabled);
     };
 
@@ -299,7 +299,7 @@ void HsneScaleAction::refine()
                 selection->indices.push_back(globalIndices[refinedScale._landmark_to_original_data_idx[refinedLandmarks[i]]]);
         }
 
-        // Create invisble subset from input data, used for selection mapping
+        // Create invisible subset from input data, used for selection mapping
         auto selectionHelperCount = _input->getProperty("selectionHelperCount").toInt();
         _input->setProperty("selectionHelperCount", ++selectionHelperCount);
         _selectionHelpers.push_back(_input->createSubsetFromSelection(QString("Hsne selection helper %1").arg(selectionHelperCount), _input, /* visible = */ false));
@@ -390,7 +390,7 @@ void HsneScaleAction::refine()
         // Update the refine embedding with new data
         refineEmbedding->setData(tsneData.getData(), 2);
 
-        _refinedScaledActions.back()->getNumberOfComputatedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
+        _refinedScaledActions.back()->getNumberOfComputedIterationsAction().setValue(_tsneAnalysis.getNumIterations() - 1);
 
         // Notify others that the embedding points have changed
         events().notifyDatasetDataChanged(refineEmbedding);
