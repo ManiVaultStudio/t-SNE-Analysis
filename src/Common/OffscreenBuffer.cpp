@@ -21,7 +21,11 @@ void OffscreenBuffer::initialize()
 
     bindContext();
 
-    if (!gladLoadGL((GLADloadfunc)QOpenGLContext::currentContext()->getProcAddress)) {
+    if (!gladLoadGL([](const char* name) -> GLADapiproc {
+        return reinterpret_cast<GLADapiproc>(
+            QOpenGLContext::currentContext()->getProcAddress(name)
+            );
+        })) {
         qFatal("No OpenGL context is currently bound, therefore OpenGL function loading has failed.");
     }
 
