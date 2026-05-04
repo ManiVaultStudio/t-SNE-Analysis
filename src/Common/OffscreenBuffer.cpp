@@ -22,7 +22,7 @@ void OffscreenBuffer::initialize()
     bindContext();
 
 #ifndef __APPLE__
-    if (!gladLoadGL()) {
+    if (!gladLoadGL((GLADloadfunc)QOpenGLContext::currentContext()->getProcAddress)) {
         qFatal("No OpenGL context is currently bound, therefore OpenGL function loading has failed.");
     }
 #endif // Not __APPLE__
