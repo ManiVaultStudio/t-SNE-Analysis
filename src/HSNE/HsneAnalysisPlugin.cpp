@@ -15,6 +15,7 @@
 #include <actions/PluginTriggerAction.h>
 #include <event/Event.h>
 #include <util/Icon.h>
+#include <util/Serialization.h>
 #include <widgets/MarkdownDialog.h>
 
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
