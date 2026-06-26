@@ -53,10 +53,10 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction, size_
     // always start with a random seed
     _randomSeedAction.initialize(SEEDMIN, SEEDMAX, NewRandomSeed());
 
-    _datasetInitAction.setFilterFunction([this](mv::Dataset<DatasetImpl> dataset) -> bool {
+    _datasetInitAction.setFilterFunction([this](mv::Dataset<mv::DatasetImpl> dataset) -> bool {
         if (dataset->getDataType() == PointType)
         {
-            const auto pointDataset = Dataset<Points>(dataset);
+            const auto pointDataset = mv::Dataset<Points>(dataset);
             if (pointDataset->getNumDimensions() >= 2 && pointDataset->getNumPoints() == _numPointsInputData)
                 return true;
             
@@ -112,8 +112,8 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction, size_
 void InitTsneSettings::updateDatasetPicker()
 {
     // Toggle to call filter function again
-    _datasetInitAction.setPopulationMode(AbstractDatasetsModel::PopulationMode::Manual);
-    _datasetInitAction.setPopulationMode(AbstractDatasetsModel::PopulationMode::Automatic);
+    _datasetInitAction.setPopulationMode(mv::AbstractDatasetsModel::PopulationMode::Manual);
+    _datasetInitAction.setPopulationMode(mv::AbstractDatasetsModel::PopulationMode::Automatic);
 }
 
 std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)
