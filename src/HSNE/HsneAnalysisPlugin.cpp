@@ -489,6 +489,10 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
         {
             const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
             const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
+            const auto cleanup  = qScopeGuard([&] {
+                if (!QFile::remove(QString::fromStdString(filePath)))
+                    qWarning() << "Failed to remove temporary file:" << filePath;
+            });
 
             std::ofstream saveFile(filePath, std::ios::out | std::ios::binary);
 
@@ -515,6 +519,10 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
         {
             const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
             const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
+            const auto cleanup  = qScopeGuard([&] {
+                if (!QFile::remove(QString::fromStdString(filePath)))
+                    qWarning() << "Failed to remove temporary file:" << filePath;
+            });
 
             _hierarchy->saveCacheHsneInfluenceHierarchy(filePath, _hierarchy->getInfluenceHierarchy().getMap());
             variantMap["HsneInfluenceHierarchy"] = fileName;
