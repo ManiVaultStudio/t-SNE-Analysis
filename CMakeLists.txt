@@ -115,6 +115,10 @@ message (STATUS "Found flann version ${flann_VERSION}")
 
 find_package(fmt REQUIRED)
 find_package(kompute REQUIRED)
+# Tell CMake to use the Release target for Kompute when we build RelWithDebInfo
+set_target_properties(kompute::kompute PROPERTIES 
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+)
 
 # if this project and the HDILib are build as subproject together, we don't need to look for the library
 if(TARGET hdidimensionalityreduction AND TARGET hdiutils AND TARGET hdidata)
