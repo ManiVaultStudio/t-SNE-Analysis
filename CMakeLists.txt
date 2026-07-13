@@ -47,7 +47,7 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS)
     if(NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
         message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
-        set(HDILib_VERSION 2.0.1)
+        set(HDILib_VERSION 2.0.2)
         set(flann_VERSION 1.9.2)
         set(lz4_VERSION 1.10.0)
 
