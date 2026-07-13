@@ -119,6 +119,12 @@ find_package(kompute REQUIRED)
 set_target_properties(kompute::kompute PROPERTIES 
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
 )
+set_target_properties(kompute::kp_logger PROPERTIES 
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+)
+set_target_properties(kompute::kp_shader PROPERTIES 
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+)
 
 # if this project and the HDILib are build as subproject together, we don't need to look for the library
 if(TARGET hdidimensionalityreduction AND TARGET hdiutils AND TARGET hdidata)
