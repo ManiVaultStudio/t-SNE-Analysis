@@ -89,7 +89,7 @@ jobs:
           glslang-tools
 
       - name: Install Vulkan SDK (Macos)
-        if: startsWith(matrix.os, 'ubuntu')
+        if: startsWith(matrix.os, 'macos')
         run: |
           brew install vulkan-loader molten-vk glslang
 
