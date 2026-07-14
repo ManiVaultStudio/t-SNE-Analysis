@@ -79,6 +79,16 @@ jobs:
           echo "VULKAN_SDK=C:\VulkanSDK\$version" >> $env:GITHUB_ENV
         shell: pwsh
 
+      - name: Install Vulkan SDK (Windows)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt install -y \
+          libvulkan-dev \
+          vulkan-tools \
+          glslang-dev \
+          glslang-tools
+
+
       - name: Windows build
         if: startsWith(runner.os, 'Windows')
         uses: ManiVaultStudio/github-actions/conan_windows_build@main
