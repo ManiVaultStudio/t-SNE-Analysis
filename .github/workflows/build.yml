@@ -79,7 +79,7 @@ jobs:
           echo "VULKAN_SDK=C:\VulkanSDK\$version" >> $env:GITHUB_ENV
         shell: pwsh
 
-      - name: Install Vulkan SDK (Windows)
+      - name: Install Vulkan SDK (Linux)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           sudo apt install -y \
@@ -88,6 +88,10 @@ jobs:
           glslang-dev \
           glslang-tools
 
+      - name: Install Vulkan SDK (Macos)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          brew install vulkan-loader molten-vk glslang
 
       - name: Windows build
         if: startsWith(runner.os, 'Windows')
@@ -122,16 +126,16 @@ jobs:
           conan-cc: gcc-${{matrix.build-cversion}}
           conan-cxx: g++-${{matrix.build-cversion}}
 
-      #- name: Mac build
-      #  if: startsWith(matrix.os, 'macos')
-      #  uses: ManiVaultStudio/github-actions/conan_linuxmac_build@main
-      #  with:
-      #    conan-compiler: ${{matrix.build-compiler}}
-      #    conan-compiler-version: ${{matrix.build-cversion}}
-      #    conan-libcxx-version: ${{matrix.build-libcxx}}
-      #    conan-build-type: ${{matrix.build-config}}
-      #    conan-build-os: ${{matrix.build-os}}
-      #    build-arch: ${{matrix.build-arch}}
-      #    conan-user: ${{secrets.LKEB_UPLOAD_USER}}
-      #    conan-password: ${{secrets.LKEB_UPLOAD_USER_PASSWORD}}
-      #    conan-pem: ${{secrets.LKEB_UPLOAD_CERT_CHAIN}}
+      - name: Mac build
+        if: startsWith(matrix.os, 'macos')
+        uses: ManiVaultStudio/github-actions/conan_linuxmac_build@main
+        with:
+          conan-compiler: ${{matrix.build-compiler}}
+          conan-compiler-version: ${{matrix.build-cversion}}
+          conan-libcxx-version: ${{matrix.build-libcxx}}
+          conan-build-type: ${{matrix.build-config}}
+          conan-build-os: ${{matrix.build-os}}
+          build-arch: ${{matrix.build-arch}}
+          conan-user: ${{secrets.LKEB_UPLOAD_USER}}
+          conan-password: ${{secrets.LKEB_UPLOAD_USER_PASSWORD}}
+          conan-pem: ${{secrets.LKEB_UPLOAD_CERT_CHAIN}}
