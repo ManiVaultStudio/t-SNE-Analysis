@@ -242,11 +242,11 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
             auto params = tsneParameters();
 
             // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
+            _GPGPU_tSNE.setType(hdi::dr::GradientDescentTSNETexture::GpgpuSneType::AUTO_DETECT);
             if (_hasProbabilityDistribution)
                 _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
             else
                 _GPGPU_tSNE.initializeWithJointProbabilityDistribution(_probabilityDistribution, &_embedding, params);
-            _GPGPU_tSNE.setType(hdi::dr::GradientDescentTSNETexture::GpgpuSneType::AUTO_DETECT);
 
             qDebug() << "A-tSNE (GPU): Exaggeration factor: " << params._exaggeration_factor << ", exaggeration iterations: " << params._remove_exaggeration_iter << ", exaggeration decay iter: " << params._exponential_decay_iter;
         }
