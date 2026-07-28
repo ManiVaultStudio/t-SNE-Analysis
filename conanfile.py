@@ -139,7 +139,7 @@ class SNEAnalysesConan(ConanFile):
 
         cmake = self._configure_cmake()
         cmake.build(build_type="RelWithDebInfo")
-        cmake.build(build_type="Release")
+        #cmake.build(build_type="Release")
 
     def package(self):
         package_dir = pathlib.Path(self.build_folder, "package")
