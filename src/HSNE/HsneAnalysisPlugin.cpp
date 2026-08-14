@@ -20,6 +20,8 @@
 
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
 
+#include <QFileInfo>
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -30,6 +32,40 @@ Q_PLUGIN_METADATA(IID "studio.manivault.HsneAnalysisPlugin")
 
 using namespace mv;
 using namespace mv::util;
+
+namespace
+{
+    /**
+     * Read a file in chunks
+     *
+     * A single QFile::readAll() issues one native read() call sized to the full file.
+     * On macOS (and other platforms) that syscall fails for large files (> 2@GB)
+     */
+    QByteArray readFileInChunks(const QString& filePath)
+    {
+        QFile file(filePath);
+
+        if (!file.open(QIODevice::ReadOnly))
+            throw std::runtime_error(QString("Failed to open input file '%1'").arg(filePath).toStdString());
+
+        const qint64 totalSize = file.size();
+
+        constexpr qint64 chunkSize = 512LL * 1024 * 1024;
+
+        QByteArray bytes;
+        bytes.reserve(static_cast<qsizetype>(totalSize));
+
+        while (bytes.size() < totalSize) {
+            const auto chunk = file.read(std::min(chunkSize, totalSize - bytes.size()));
+
+            if (chunk.isEmpty())
+                throw std::runtime_error(QString("Failed to read file '%1': %2").arg(filePath, file.errorString()).toStdString());
+
+            bytes.append(chunk);
+        }
+
+        return bytes;
+    }
 
 HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
@@ -505,12 +541,7 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
                 variantMap["HsneHierarchy"] = fileName;
             }
 
-            QFile file(QString::fromStdString(filePath));
-
-            if (!file.open(QIODevice::ReadOnly))
-                throw std::runtime_error("Failed to open input file");
-
-            const auto bytes = file.readAll();
+            const auto bytes = readFileInChunks(QString::fromStdString(filePath));
 
             variantMap["HsneHierarchyRaw"] = bytesToBlobVariantMap(bytes.constData(), static_cast<std::uint64_t>(bytes.size()));
         }
@@ -527,12 +558,7 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
             _hierarchy->saveCacheHsneInfluenceHierarchy(filePath, _hierarchy->getInfluenceHierarchy().getMap());
             variantMap["HsneInfluenceHierarchy"] = fileName;
 
-            QFile file(QString::fromStdString(filePath));
-
-            if (!file.open(QIODevice::ReadOnly))
-                throw std::runtime_error("Failed to open input file");
-
-            const auto bytes = file.readAll();
+            const auto bytes = readFileInChunks(QString::fromStdString(filePath));
 
             variantMap["HsneInfluenceHierarchyRaw"] = bytesToBlobVariantMap(bytes.constData(), static_cast<std::uint64_t>(bytes.size()));
         }
