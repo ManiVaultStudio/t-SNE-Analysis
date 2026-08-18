@@ -15,9 +15,12 @@
 #include <actions/PluginTriggerAction.h>
 #include <event/Event.h>
 #include <util/Icon.h>
+#include <util/Serialization.h>
 #include <widgets/MarkdownDialog.h>
 
 #include "hdi/dimensionality_reduction/hierarchical_sne.h"
+
+#include <QFileInfo>
 
 #include <algorithm>
 #include <cassert>
@@ -29,6 +32,69 @@ Q_PLUGIN_METADATA(IID "studio.manivault.HsneAnalysisPlugin")
 
 using namespace mv;
 using namespace mv::util;
+
+namespace
+{
+    /**
+     * Read a file in chunks
+     *
+     * A single QFile::readAll() issues one native read() call sized to the full file.
+     * On macOS (and other platforms) that syscall fails for large files (> 2@GB)
+     */
+    QByteArray readFileInChunks(const QString& filePath)
+    {
+        QFile file(filePath);
+
+        if (!file.open(QIODevice::ReadOnly))
+            throw std::runtime_error(QString("Failed to open input file '%1'").arg(filePath).toStdString());
+
+        const qint64 totalSize = file.size();
+
+        constexpr qint64 chunkSize = 512LL * 1024 * 1024;
+
+        QByteArray bytes;
+        bytes.reserve(static_cast<qsizetype>(totalSize));
+
+        while (bytes.size() < totalSize) {
+            const auto chunk = file.read(std::min(chunkSize, totalSize - bytes.size()));
+
+            if (chunk.isEmpty())
+                throw std::runtime_error(QString("Failed to read file '%1': %2").arg(filePath, file.errorString()).toStdString());
+
+            bytes.append(chunk);
+        }
+
+        return bytes;
+    }
+
+    /**
+     * Write a buffer to file in bounded chunks rather than a single write().
+     * Mirrors readFileInChunks(): a single QFile::write() hassimilar issues as described above
+     */
+    void writeFileInChunks(const QString& filePath, const QByteArray& bytes)
+    {
+        QFile file(filePath);
+
+        if (!file.open(QIODevice::WriteOnly))
+            throw std::runtime_error(QString("Failed to open output file '%1'").arg(filePath).toStdString());
+
+        constexpr qint64 chunkSize = 512LL * 1024 * 1024;
+
+        qint64 written = 0;
+
+        while (written < bytes.size()) {
+            const auto size = std::min(chunkSize, static_cast<qint64>(bytes.size()) - written);
+            const auto result = file.write(bytes.constData() + written, size);
+
+            if (result <= 0)
+                throw std::runtime_error(QString("Failed to write file '%1': %2").arg(filePath, file.errorString()).toStdString());
+
+            written += result;
+        }
+
+        file.close();
+    }
+}
 
 HsneAnalysisPlugin::HsneAnalysisPlugin(const PluginFactory* factory) :
     AnalysisPlugin(factory),
@@ -408,12 +474,35 @@ void HsneAnalysisPlugin::fromVariantMap(const QVariantMap& variantMap)
         {
             hdi::utils::CoutLog log;
 
+            QTemporaryDir tempDir;
+
             // Load HSNE Hierarchy
-            const auto loadPathHierarchy    = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
-            const bool loadedHierarchy      = _hierarchy->loadCacheHsneHierarchy(loadPathHierarchy.toStdString(), log);
+            auto loadPathHierarchy = QDir::cleanPath(mv::projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneHierarchy"].toString());
+            
+            if (variantMap.contains("HsneHierarchyRaw") && variantMap["HsneHierarchyRaw"].canConvert<QVariantMap>()) {
+                const auto hsneHierarchyRawMap  = variantMap["HsneHierarchyRaw"].toMap();
+                const auto restored             = bytesFromBlobVariantMap(hsneHierarchyRawMap);
+
+                writeFileInChunks(loadPathHierarchy, restored);
+            } else {
+                loadPathHierarchy = mv::projects().extractFileFromManiVaultProject(mv::projects().getCurrentProject()->getFilePath(), tempDir, variantMap["HsneHierarchy"].toString());
+            }
+
+        	const auto loadedHierarchy = _hierarchy->loadCacheHsneHierarchy(loadPathHierarchy.toStdString(), log);
 
             // Load HSNE InfluenceHierarchy
-            const auto loadPathInfluenceHierarchy = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneInfluenceHierarchy"].toString());
+            auto loadPathInfluenceHierarchy = QDir::cleanPath(mv::projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Open) + QDir::separator() + variantMap["HsneInfluenceHierarchy"].toString());
+
+        	if (variantMap.contains("HsneInfluenceHierarchyRaw") && variantMap["HsneInfluenceHierarchyRaw"].canConvert<QVariantMap>()) {
+                const auto hsneInfluenceHierarchyRawMap = variantMap["HsneInfluenceHierarchyRaw"].toMap();
+                const auto restored                     = bytesFromBlobVariantMap(hsneInfluenceHierarchyRawMap);
+
+                writeFileInChunks(loadPathInfluenceHierarchy, restored);
+            }
+            else {
+                loadPathInfluenceHierarchy = mv::projects().extractFileFromManiVaultProject(mv::projects().getCurrentProject()->getFilePath(), tempDir, variantMap["HsneInfluenceHierarchy"].toString());
+            }
+
             bool loadedInfluenceHierarchy = _hierarchy->loadCacheHsneInfluenceHierarchy(loadPathInfluenceHierarchy.toStdString(), _hierarchy->getInfluenceHierarchy().getMap());
 
             _hierarchy->setIsInitialized(true);
@@ -449,6 +538,10 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
         {
             const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
             const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
+            const auto cleanup  = qScopeGuard([&] {
+                if (!QFile::remove(QString::fromStdString(filePath)))
+                    qWarning() << "Failed to remove temporary file:" << filePath;
+            });
 
             std::ofstream saveFile(filePath, std::ios::out | std::ios::binary);
 
@@ -460,15 +553,27 @@ QVariantMap HsneAnalysisPlugin::toVariantMap() const
                 saveFile.close();
                 variantMap["HsneHierarchy"] = fileName;
             }
+
+            const auto bytes = readFileInChunks(QString::fromStdString(filePath));
+
+            variantMap["HsneHierarchyRaw"] = bytesToBlobVariantMap(bytes.constData(), static_cast<std::uint64_t>(bytes.size()));
         }
 
         // Handle HSNE InfluenceHierarchy
         {
             const auto fileName = QUuid::createUuid().toString(QUuid::WithoutBraces) + ".bin";
             const auto filePath = QDir::cleanPath(projects().getTemporaryDirPath(AbstractProjectManager::TemporaryDirType::Save) + QDir::separator() + fileName).toStdString();
+            const auto cleanup  = qScopeGuard([&] {
+                if (!QFile::remove(QString::fromStdString(filePath)))
+                    qWarning() << "Failed to remove temporary file:" << filePath;
+            });
 
             _hierarchy->saveCacheHsneInfluenceHierarchy(filePath, _hierarchy->getInfluenceHierarchy().getMap());
             variantMap["HsneInfluenceHierarchy"] = fileName;
+
+            const auto bytes = readFileInChunks(QString::fromStdString(filePath));
+
+            variantMap["HsneInfluenceHierarchyRaw"] = bytesToBlobVariantMap(bytes.constData(), static_cast<std::uint64_t>(bytes.size()));
         }
     }
 

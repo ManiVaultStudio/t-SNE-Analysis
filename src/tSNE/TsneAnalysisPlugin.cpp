@@ -8,6 +8,8 @@
 
 #include <event/Event.h>
 #include <util/Icon.h>
+#include <util/Serialization.h>
+
 #include <widgets/MarkdownDialog.h>
 
 #include <actions/PluginTriggerAction.h>

@@ -42,8 +42,8 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction, size_
     _newRandomSeedAction.setToolTip("Use a new random seed when re-initializing the embedding.");
     _randomSeedAction.setToolTip("Seed for random init.");
     _datasetInitAction.setToolTip("Dataset to use for init.");
-    _dataDimensionActionX.setToolTip("Dimensions of dataset to use for inititial embedding X dimension.");
-    _dataDimensionActionY.setToolTip("Dimensions of dataset to use for inititial embedding Y dimension.");
+    _dataDimensionActionX.setToolTip("Dimensions of dataset to use for initial embedding X dimension.");
+    _dataDimensionActionY.setToolTip("Dimensions of dataset to use for initial embedding Y dimension.");
     _rescaleInitAction.setToolTip("Whether to rescale the init embedding such that the standard deviation of \nthe first embedding dimension is 0.0001.");
 
     _datasetInitAction.setEnabled(false);
@@ -53,10 +53,10 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction, size_
     // always start with a random seed
     _randomSeedAction.initialize(SEEDMIN, SEEDMAX, NewRandomSeed());
 
-    _datasetInitAction.setFilterFunction([this](mv::Dataset<DatasetImpl> dataset) -> bool {
+    _datasetInitAction.setFilterFunction([this](mv::Dataset<mv::DatasetImpl> dataset) -> bool {
         if (dataset->getDataType() == PointType)
         {
-            const auto pointDataset = Dataset<Points>(dataset);
+            const auto pointDataset = mv::Dataset<Points>(dataset);
             if (pointDataset->getNumDimensions() >= 2 && pointDataset->getNumPoints() == _numPointsInputData)
                 return true;
             
@@ -112,8 +112,8 @@ InitTsneSettings::InitTsneSettings(TsneSettingsAction& tsneSettingsAction, size_
 void InitTsneSettings::updateDatasetPicker()
 {
     // Toggle to call filter function again
-    _datasetInitAction.setPopulationMode(AbstractDatasetsModel::PopulationMode::Manual);
-    _datasetInitAction.setPopulationMode(AbstractDatasetsModel::PopulationMode::Automatic);
+    _datasetInitAction.setPopulationMode(mv::AbstractDatasetsModel::PopulationMode::Manual);
+    _datasetInitAction.setPopulationMode(mv::AbstractDatasetsModel::PopulationMode::Automatic);
 }
 
 std::vector<float> InitTsneSettings::getInitEmbedding(size_t numPoints)

@@ -119,7 +119,7 @@ void GeneralHsneSettingsAction::fromVariantMap(const QVariantMap& variantMap)
     _numScalesAction.fromParentVariantMap(variantMap);
     _knnAlgorithmAction.fromParentVariantMap(variantMap);
     _distanceMetricAction.fromParentVariantMap(variantMap);
-    _publishLandmarkWeightAction.fromParentVariantMap(variantMap);
+    _publishLandmarkWeightAction.fromParentVariantMap(variantMap, true);
     _numKnnAction.fromParentVariantMap(variantMap);
     _startAction.fromParentVariantMap(variantMap);
 }

@@ -1,6 +1,11 @@
 #include "TsneAnalysis.h"
 
-#include "hdi/utils/glad/glad.h"
+#ifdef __APPLE__
+    #include <OpenGL/gl3.h>
+#else // __APPLE__
+    #include "hdi/utils/glad/glad.h"
+#endif // __APPLE__
+ 
 #include "OffscreenBuffer.h"
 
 #include <cassert>
@@ -237,6 +242,7 @@ void TsneWorker::computeGradientDescent(uint32_t iterations)
             auto params = tsneParameters();
 
             // In case of HSNE, the _probabilityDistribution is a non-summetric transition matrix and initialize() symmetrizes it here
+            _GPGPU_tSNE.setType(hdi::dr::GradientDescentTSNETexture::GpgpuSneType::AUTO_DETECT);
             if (_hasProbabilityDistribution)
                 _GPGPU_tSNE.initialize(_probabilityDistribution, &_embedding, params);
             else

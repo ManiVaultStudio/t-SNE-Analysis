@@ -69,6 +69,30 @@ jobs:
           key: ${{ secrets.RULESSUPPORT_DEPLOY_KEY }}
           known_hosts: github.com AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==
 
+      # From windows image 2025 winget-cli is available to perform the vulkan SDK install
+      - name: Install Vulkan SDK (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          $version = "1.4.341.0"
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$version/windows/vulkansdk-windows-X64-$version.exe" -OutFile VulkanSDK.exe
+          Start-Process -FilePath VulkanSDK.exe -Args "--accept-licenses --default-answer --confirm-command install" -Wait
+          echo "VULKAN_SDK=C:\VulkanSDK\$version" >> $env:GITHUB_ENV
+        shell: pwsh
+
+      - name: Install Vulkan SDK (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt install -y \
+          libvulkan-dev \
+          vulkan-tools \
+          glslang-dev \
+          glslang-tools
+
+      - name: Install Vulkan SDK (Macos)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install vulkan-loader molten-vk glslang
+
       - name: Windows build
         if: startsWith(runner.os, 'Windows')
         uses: ManiVaultStudio/github-actions/conan_windows_build@main

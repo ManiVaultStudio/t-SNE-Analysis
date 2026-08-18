@@ -47,7 +47,7 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS)
     if(NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
         message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
-        set(HDILib_VERSION 1.2.10)
+        set(HDILib_VERSION 2.0.2)
         set(flann_VERSION 1.9.2)
         set(lz4_VERSION 1.10.0)
 
@@ -72,6 +72,8 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS)
     set(lz4_ROOT "${LIBRARY_INSTALL_DIR}/lz4/lib/cmake" CACHE PATH "Location of lz4 cmake file")
     set(flann_ROOT "${LIBRARY_INSTALL_DIR}/flann/lib/cmake/" CACHE PATH "Location of flann cmake file")
     set(HDILIB_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/HDILib" CACHE PATH "Location of HDILib cmake file")
+    set(kompute_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/kompute")
+    set(fmt_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/fmt")
 
     set(MV_SNE_ARTIFACTORY_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
 endif()
@@ -110,6 +112,22 @@ if(NOT ${flann_FOUND})
     message (FATAL_ERROR "flann NOT found")
 endif()
 message (STATUS "Found flann version ${flann_VERSION}")
+
+find_package(fmt REQUIRED)
+set_target_properties(fmt::fmt PROPERTIES 
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+)
+find_package(kompute REQUIRED)
+# Tell CMake to use the Release target for Kompute when we build RelWithDebInfo
+set_target_properties(kompute::kompute PROPERTIES 
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+)
+set_target_properties(kompute::kp_logger PROPERTIES 
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+)
+set_target_properties(kompute::kp_shader PROPERTIES 
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+)
 
 # if this project and the HDILib are build as subproject together, we don't need to look for the library
 if(TARGET hdidimensionalityreduction AND TARGET hdiutils AND TARGET hdidata)
