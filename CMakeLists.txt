@@ -113,11 +113,11 @@ if(NOT ${flann_FOUND})
 endif()
 message (STATUS "Found flann version ${flann_VERSION}")
 
-find_package(fmt REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 set_target_properties(fmt::fmt PROPERTIES 
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
 )
-find_package(kompute REQUIRED)
+find_package(kompute CONFIG REQUIRED)
 # Tell CMake to use the Release target for Kompute when we build RelWithDebInfo
 set_target_properties(kompute::kompute PROPERTIES 
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
