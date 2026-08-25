@@ -1,9 +1,10 @@
-#include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h" // Included for glad, must be included before OpenGLContext
+#include "hdi/utils/glad/glad.h" // Must be included before OpenGLContext
 
 #include "OffscreenBuffer.h"
 
 OffscreenBuffer::OffscreenBuffer() :
-    _context(nullptr)
+    _context(nullptr),
+    _surface(nullptr)
 {
     setSurfaceType(QWindow::OpenGLSurface);
 
@@ -19,20 +20,29 @@ void OffscreenBuffer::initialize()
     if (!_context->create())
         qFatal("Cannot create requested OpenGL context.");
 
+    // Create an offscreen surface (on the GUI thread) matching the context
+    // format. The context is later made current on this surface from the worker
+    // thread; using the QWindow itself as the surface fails on macOS.
+    _surface = new QOffscreenSurface();
+    _surface->setFormat(_context->format());
+    _surface->create();
+
     bindContext();
 
-#ifndef __APPLE__
-    if (!gladLoadGL()) {
-        qFatal("No OpenGL context is currently bound, therefore OpenGL function loading has failed.");
-    }
-#endif // Not __APPLE__
+    auto loader = [](const char* name) -> GLADapiproc {
+        QOpenGLContext* ctx = QOpenGLContext::currentContext();
+        return ctx ? reinterpret_cast<GLADapiproc>(ctx->getProcAddress(name)) : nullptr;
+    };
 
+    if (!gladLoadGL(loader))
+        qFatal("Failed to load OpenGL functions via Qt getProcAddress.");
+        
     releaseContext();
 }
 
 void OffscreenBuffer::bindContext()
 {
-    _context->makeCurrent(this);
+    _context->makeCurrent(_surface);
 }
 
 void OffscreenBuffer::releaseContext()
