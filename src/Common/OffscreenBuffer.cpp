@@ -1,4 +1,4 @@
-#include "hdi/dimensionality_reduction/gradient_descent_tsne_texture.h" // Included for glad, must be included before OpenGLContext
+#include "hdi/utils/glad/glad.h" // Must be included before OpenGLContext
 
 #include "OffscreenBuffer.h"
 
@@ -29,22 +29,14 @@ void OffscreenBuffer::initialize()
 
     bindContext();
 
-#ifdef __APPLE__
-    // On macOS, Qt 6 provides OpenGL over Metal and exposes it only through the
-    // context's getProcAddress; the system OpenGL framework symbols are not
-    // bound to it. Load glad via Qt so HDILib's (glad-based) GL calls reach the
-    // live context. Must be done with the context current (bindContext above).
-    if (!gladLoadGLLoader((GLADloadproc)[](const char* name) -> void* {
-            QOpenGLContext* ctx = QOpenGLContext::currentContext();
-            return ctx ? reinterpret_cast<void*>(ctx->getProcAddress(name)) : nullptr;
-        }))
-        qFatal("Failed to load OpenGL functions via Qt getProcAddress on macOS.");
-#else
-    if (!gladLoadGL()) {
-        qFatal("No OpenGL context is currently bound, therefore OpenGL function loading has failed.");
-    }
-#endif
+    auto loader = [](const char* name) -> GLADapiproc {
+        QOpenGLContext* ctx = QOpenGLContext::currentContext();
+        return ctx ? reinterpret_cast<GLADapiproc>(ctx->getProcAddress(name)) : nullptr;
+    };
 
+    if (!gladLoadGL(loader))
+        qFatal("Failed to load OpenGL functions via Qt getProcAddress.");
+        
     releaseContext();
 }
 
