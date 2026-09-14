@@ -53,8 +53,14 @@ macro(set_lz4_project_link_libraries target)
         endif()
     endif()
 
-MESSAGE( STATUS "Linking lz4 library " ${LZ4_TARGET})
+    MESSAGE( STATUS "Linking lz4 library " ${LZ4_TARGET})
     target_link_libraries("${target}" PRIVATE ${LZ4_TARGET})
+    if (APPLE)
+        # Add LZ4 path to allow macdeployqt to find the shared file
+        set_target_properties("${target}" PROPERTIES
+            INSTALL_RPATH "${CMAKE_INSTALL_RPATH};$<TARGET_FILE_DIR:${LZ4_TARGET}>"
+        )
+    endif()
 endmacro()
 
 # This silences OpenGL deprecation warnings on MacOS
