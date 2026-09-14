@@ -1,4 +1,4 @@
-#include "hdi/utils/glad/glad.h" // Must be included before OpenGLContext
+#include <hdi/utils/glad/glad.h> // Must be included before OpenGLContext
 
 #include "OffscreenBuffer.h"
 
@@ -36,7 +36,7 @@ void OffscreenBuffer::initialize()
 
     if (!gladLoadGL(loader))
         qFatal("Failed to load OpenGL functions via Qt getProcAddress.");
-        
+
     releaseContext();
 }
 
