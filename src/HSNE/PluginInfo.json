@@ -5,5 +5,17 @@
         "core" : ["1.3"]
     },
     "type" : "Analysis",
-    "dependencies" : ["Points", "Images"]
+    "dependencies" : ["Points", "Images"],
+    "thirdPartyLicenses" : [
+        {
+            "name" : "Eigen",
+            "license" : "MPL-2.0",
+            "url" : "https://eigen.tuxfamily.org/"
+        },
+        {
+            "name" : "hnswlib",
+            "license" : "MIT",
+            "url" : "https://github.com/nmslib/hnswlib"
+        }
+    ]
 }
