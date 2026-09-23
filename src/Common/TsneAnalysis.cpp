@@ -1,10 +1,9 @@
 #include "TsneAnalysis.h"
 
-#ifdef __APPLE__
-    #include <OpenGL/gl3.h>
-#else // __APPLE__
-    #include "hdi/utils/glad/glad.h"
-#endif // __APPLE__
+// Use glad on all platforms (incl. macOS) to match HDILib. Mixing the macOS
+// OpenGL framework header with glad in one translation unit produces duplicate
+// GL definitions, and the framework symbols aren't bound to Qt's context anyway.
+#include "hdi/utils/glad/glad.h"
  
 #include "OffscreenBuffer.h"
 
@@ -109,6 +108,7 @@ void TsneWorker::changeThread(QThread* targetThread)
     // Move the Offscreen buffer to the processing thread after creating it in the UI Thread
     _offscreenBuffer->moveToThread(targetThread);
     _offscreenBuffer->getContext()->moveToThread(targetThread);
+    _offscreenBuffer->getSurface()->moveToThread(targetThread);
 }
 
 void TsneWorker::resetThread()
