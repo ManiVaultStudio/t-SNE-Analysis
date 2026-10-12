@@ -47,7 +47,7 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS)
     if(NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
         message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
-        set(HDILib_VERSION 2.0.2)
+        set(HDILib_VERSION 2.0.3)
         set(flann_VERSION 1.9.2)
         set(lz4_VERSION 1.10.0)
 
@@ -71,10 +71,9 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS)
 
     set(lz4_ROOT "${LIBRARY_INSTALL_DIR}/lz4/lib/cmake" CACHE PATH "Location of lz4 cmake file")
     set(flann_ROOT "${LIBRARY_INSTALL_DIR}/flann/lib/cmake/" CACHE PATH "Location of flann cmake file")
-    set(HDILIB_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/HDILib" CACHE PATH "Location of HDILib cmake file")
-    set(kompute_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/kompute")
-    set(fmt_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/fmt")
-
+    set(HDILIB_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/share/HDILib" CACHE PATH "Location of HDILib cmake file")
+    set(kompute_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/share/kompute" CACHE PATH "Location of kompute cmake for use with HDILib" )
+    set(fmt_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/share/fmt" CACHE PATH "Location of fmt cmake for use with HDILib")
     set(MV_SNE_ARTIFACTORY_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
 endif()
 
