@@ -138,8 +138,8 @@ class SNEAnalysesConan(ConanFile):
         print("Build OS is: ", self.settings.os)
 
         cmake = self._configure_cmake()
-        cmake.build(build_type="RelWithDebInfo")
-        #cmake.build(build_type="Release")
+        cmake.build(build_type="Release")
+        #cmake.build(build_type="RelWithDebInfo")
 
     def package(self):
         package_dir = pathlib.Path(self.build_folder, "package")
