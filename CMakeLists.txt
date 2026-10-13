@@ -71,9 +71,9 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS)
 
     set(lz4_ROOT "${LIBRARY_INSTALL_DIR}/lz4/lib/cmake" CACHE PATH "Location of lz4 cmake file")
     set(flann_ROOT "${LIBRARY_INSTALL_DIR}/flann/lib/cmake/" CACHE PATH "Location of flann cmake file")
-    set(HDILIB_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/share/HDILib" CACHE PATH "Location of HDILib cmake file")
-    set(kompute_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/share/kompute")
-    set(fmt_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/share/fmt")
+    set(HDILIB_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/share/HDILib" CACHE PATH "Location of HDILib cmake file")
+    set(kompute_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/share/kompute")
+    set(fmt_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/share/fmt")
 
     set(MV_SNE_ARTIFACTORY_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
 endif()
