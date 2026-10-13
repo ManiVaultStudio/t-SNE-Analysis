@@ -9,3 +9,4 @@ lz4.tgz
 lz4_Debug.tgz
 lz4_Release.tgz
 *.bak
+.DS_Store

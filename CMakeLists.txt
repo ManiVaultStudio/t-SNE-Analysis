@@ -47,7 +47,7 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS)
     if(NOT MV_SNE_ARTIFACTORY_LIBS_INSTALLED)
         message(STATUS "Installing artifactory packages to: ${LIBRARY_INSTALL_DIR}")
 
-        set(HDILib_VERSION 2.0.2)
+        set(HDILib_VERSION 2.0.3)
         set(flann_VERSION 1.9.2)
         set(lz4_VERSION 1.10.0)
 
@@ -71,9 +71,9 @@ if (MV_SNE_USE_ARTIFACTORY_LIBS)
 
     set(lz4_ROOT "${LIBRARY_INSTALL_DIR}/lz4/lib/cmake" CACHE PATH "Location of lz4 cmake file")
     set(flann_ROOT "${LIBRARY_INSTALL_DIR}/flann/lib/cmake/" CACHE PATH "Location of flann cmake file")
-    set(HDILIB_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/HDILib" CACHE PATH "Location of HDILib cmake file")
-    set(kompute_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/kompute")
-    set(fmt_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/lib/cmake/fmt")
+    set(HDILIB_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/share/HDILib" CACHE PATH "Location of HDILib cmake file")
+    set(kompute_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/share/kompute")
+    set(fmt_ROOT "${LIBRARY_INSTALL_DIR}/HDILib/share/fmt")
 
     set(MV_SNE_ARTIFACTORY_LIBS_INSTALLED TRUE CACHE BOOL "Use the prebuilt libraries from artifactory" FORCE)
 endif()
@@ -85,6 +85,7 @@ endif()
 find_package(Qt6 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
 find_package(ManiVault COMPONENTS Core PointData ImageData CONFIG QUIET)
+mv_project_defaults()
 
 find_package(lz4 CONFIG)
 if(NOT ${lz4_FOUND})
@@ -129,6 +130,15 @@ set_target_properties(kompute::kp_shader PROPERTIES
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
 )
 
+function(map_relwithdebinfo_to_release target_name)
+    if(TARGET ${target_name})
+        set_target_properties(${target_name} PROPERTIES
+            MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+            MAP_IMPORTED_CONFIG_MINSIZEREL Release
+        )
+    endif()
+endfunction()
+
 # if this project and the HDILib are build as subproject together, we don't need to look for the library
 if(TARGET hdidimensionalityreduction AND TARGET hdiutils AND TARGET hdidata)
     if(NOT HDILib_LINK_LIBS)
@@ -143,7 +153,15 @@ else()
         message(FATAL_ERROR "Define HDILIB_ROOT")
     endif()
 
+    
     find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata CONFIG REQUIRED PATHS ${HDILIB_ROOT})
+    # Use Release as the match for RelWithDebInfo
+    map_relwithdebinfo_to_release(hdidimensionalityreduction)
+    map_relwithdebinfo_to_release(hdiutils)
+    map_relwithdebinfo_to_release(hdidata)
+    map_relwithdebinfo_to_release(HDI::hdidimensionalityreduction)
+    map_relwithdebinfo_to_release(HDI::hdiutils)
+    map_relwithdebinfo_to_release(HDI::hdidata)
 endif()
 
 if(NOT ${HDILib_FOUND})
