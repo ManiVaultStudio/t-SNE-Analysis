@@ -85,6 +85,7 @@ endif()
 find_package(Qt6 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
 find_package(ManiVault COMPONENTS Core PointData ImageData CONFIG QUIET)
+mv_project_defaults()
 
 find_package(lz4 CONFIG)
 if(NOT ${lz4_FOUND})
