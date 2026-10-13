@@ -130,6 +130,15 @@ set_target_properties(kompute::kp_shader PROPERTIES
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
 )
 
+function(map_relwithdebinfo_to_release target_name)
+    if(TARGET ${target_name})
+        set_target_properties(${target_name} PROPERTIES
+            MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+            MAP_IMPORTED_CONFIG_MINSIZEREL Release
+        )
+    endif()
+endfunction()
+
 # if this project and the HDILib are build as subproject together, we don't need to look for the library
 if(TARGET hdidimensionalityreduction AND TARGET hdiutils AND TARGET hdidata)
     if(NOT HDILib_LINK_LIBS)
@@ -144,22 +153,15 @@ else()
         message(FATAL_ERROR "Define HDILIB_ROOT")
     endif()
 
+    
     find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata CONFIG REQUIRED PATHS ${HDILIB_ROOT})
-    # Use Release as the match for RelWithDebInfo and MinSizeRel
-    set_target_properties(hdidimensionalityreduction PROPERTIES
-        MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
-        MAP_IMPORTED_CONFIG_MINSIZEREL Release
-    )
-
-    set_target_properties(hdiutils PROPERTIES
-        MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
-        MAP_IMPORTED_CONFIG_MINSIZEREL Release
-    )
-
-    set_target_properties(hdidata PROPERTIES
-        MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
-        MAP_IMPORTED_CONFIG_MINSIZEREL Release
-    )
+    # Use Release as the match for RelWithDebInfo
+    map_relwithdebinfo_to_release(hdidimensionalityreduction)
+    map_relwithdebinfo_to_release(hdiutils)
+    map_relwithdebinfo_to_release(hdidata)
+    map_relwithdebinfo_to_release(HDI::hdidimensionalityreduction)
+    map_relwithdebinfo_to_release(HDI::hdiutils)
+    map_relwithdebinfo_to_release(HDI::hdidata)
 endif()
 
 if(NOT ${HDILib_FOUND})
