@@ -145,6 +145,21 @@ else()
     endif()
 
     find_package(HDILib COMPONENTS hdidimensionalityreduction hdiutils hdidata CONFIG REQUIRED PATHS ${HDILIB_ROOT})
+    # Use Release as the match for RelWithDebInfo and MinSizeRel
+    set_target_properties(hdidimensionalityreduction PROPERTIES
+        MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+        MAP_IMPORTED_CONFIG_MINSIZEREL Release
+    )
+
+    set_target_properties(hdiutils PROPERTIES
+        MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+        MAP_IMPORTED_CONFIG_MINSIZEREL Release
+    )
+
+    set_target_properties(hdidata PROPERTIES
+        MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+        MAP_IMPORTED_CONFIG_MINSIZEREL Release
+    )
 endif()
 
 if(NOT ${HDILib_FOUND})
